@@ -3,12 +3,6 @@
 
 #include "stdafx.h"
 #include "TestOpenGL.h"
-#include "OpenGLWin.hpp"
-
-#include "stdio.h" 
-#include "windows.h" 
-#include "process.h" 
-#include "resource.h" 
 
 
 
@@ -30,29 +24,29 @@ using namespace std;
 bool bDone = false; 
 
 // this function is called by a new thread 
-void InputThreadProc( void *dummy ) 
-{ 
-		HDC hDC;				/* device context */    
-		HGLRC hRC;				/* opengl context */    
-		HWND  hWnd;				/* window */    
-		MSG   msg;				/* message */
-
-		hWnd = CreateOpenGLWindow("minimal", 0, 0, 256, 256, PFD_TYPE_RGBA, 0);    
-		if (hWnd == NULL)	
-			exit(1);    
-		hDC = GetDC(hWnd);    
-		hRC = wglCreateContext(hDC);    
-		wglMakeCurrent(hDC, hRC);    
-		ShowWindow(hWnd, SW_SHOW);    
-		while(GetMessage(&msg, hWnd, 0, 0)) {	
-			TranslateMessage(&msg);	
-			DispatchMessage(&msg);    
-		}    
-		wglMakeCurrent(NULL, NULL);    
-		ReleaseDC(hWnd, hDC);    
-		wglDeleteContext(hRC);    
-		DestroyWindow(hWnd); 
-} 
+//void InputThreadProc( void *dummy ) 
+//{ 
+//		HDC hDC;				/* device context */    
+//		HGLRC hRC;				/* opengl context */    
+//		HWND  hWnd;				/* window */    
+//		MSG   msg;				/* message */
+//
+//		hWnd = CreateOpenGLWindow("minimal", 0, 0, 256, 256, PFD_TYPE_RGBA, 0, NULL);    
+//		if (hWnd == NULL)	
+//			exit(1);    
+//		hDC = GetDC(hWnd);    
+//		hRC = wglCreateContext(hDC);    
+//		wglMakeCurrent(hDC, hRC);    
+//		ShowWindow(hWnd, SW_SHOW);    
+//		while(GetMessage(&msg, hWnd, 0, 0)) {	
+//			TranslateMessage(&msg);	
+//			DispatchMessage(&msg);    
+//		}    
+//		wglMakeCurrent(NULL, NULL);    
+//		ReleaseDC(hWnd, hDC);    
+//		wglDeleteContext(hRC);    
+//		DestroyWindow(hWnd); 
+//} 
 
 
 
@@ -70,15 +64,22 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	}
 	else
 	{
+		static OpenGLWinUI *pOpenGLWinUI = new OpenGLWinUI;
 
 		HDC hDC;				/* device context */    
 		HGLRC hRC;				/* opengl context */    
 		HWND  hWnd;				/* window */    
 		MSG   msg;				/* message */
 
-		hWnd = CreateOpenGLWindow("minimal", 0, 0, 256, 256, PFD_TYPE_RGBA, 0);    
-		if (hWnd == NULL)	
+		hWnd = CreateOpenGLWindow("minimal", 0, 0, 256, 256, PFD_TYPE_RGBA, 0, pOpenGLWinUI);
+		
+		if (hWnd == NULL){	
 			exit(1);    
+		} else {
+			if(!InitGL()){
+				PostQuitMessage(0);
+			}
+		}
 		hDC = GetDC(hWnd);    
 		hRC = wglCreateContext(hDC);    
 		wglMakeCurrent(hDC, hRC);    
