@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="8,00"
+	Version="8.00"
 	Name="TestOpenGL"
 	ProjectGUID="{27A2B991-E17A-4164-B5B5-CD3835B9D8B5}"
 	RootNamespace="TestOpenGL"
@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories=".\include\glut"
+				AdditionalIncludeDirectories=".\include\glut; .\include\PMD_Cam"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,9 +62,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="glut32.lib"
+				AdditionalDependencies="glut32.lib pmdaccess2.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories=".\lib\glut"
+				AdditionalLibraryDirectories=".\lib\glut;.\lib\PMD_Cam"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
@@ -184,6 +184,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PMDCamIO.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -214,11 +218,15 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\MyDataIO.cpp"
+				RelativePath=".\MyDataIO.hpp"
 				>
 			</File>
 			<File
 				RelativePath=".\OpenGLWin.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\PMDCamIO.hpp"
 				>
 			</File>
 			<File
