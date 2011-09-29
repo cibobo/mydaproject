@@ -6,12 +6,10 @@
 
 
 
+
 #ifndef _MT 
 #define _MT 
 #endif 
-
-
-
 
 // Das einzige Anwendungsobjekt
 
@@ -66,32 +64,66 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	{
 		static OpenGLWinUI *pOpenGLWinUI = new OpenGLWinUI;
 
-		HDC hDC;				/* device context */    
-		HGLRC hRC;				/* opengl context */    
-		HWND  hWnd;				/* window */    
-		MSG   msg;				/* message */
+//		HDC hDC;				/* device context */    
+//		HGLRC hRC;				/* opengl context */    
+//		HWND  hWnd;				/* window */    
+//		MSG   msg;				/* message */
+//
+//		hWnd = CreateOpenGLWindow("minimal", 0, 0, 256, 256, PFD_TYPE_RGBA, 0, pOpenGLWinUI);
+//		
+//		//if (hWnd == NULL){	
+//		//	exit(1);    
+//		//} else {
+//		//	if(!InitGL()){
+//		//		PostQuitMessage(0);
+//		//	}
+//		//}
+//		hDC = GetDC(hWnd);    
+//		hRC = wglCreateContext(hDC);    
+//		wglMakeCurrent(hDC, hRC);    
+//		ShowWindow(hWnd, SW_SHOW);    
+///*		while(GetMessage(&msg, hWnd, 0, 0)) {	
+//			TranslateMessage(&msg);	
+//			DispatchMessage(&msg);    
+//		}  */ 
+//		while(1){
+//			if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
+//				if(msg.message==WM_QUIT){
+//					break;
+//				} else {
+//					TranslateMessage(&msg);
+//					DispatchMessage(&msg);
+//				}
+//			}
+//		}
+//		wglMakeCurrent(NULL, NULL);    
+//		ReleaseDC(hWnd, hDC);    
+//		wglDeleteContext(hRC);    
+//		DestroyWindow(hWnd);    
 
-		hWnd = CreateOpenGLWindow("minimal", 0, 0, 256, 256, PFD_TYPE_RGBA, 0, pOpenGLWinUI);
-		
-		if (hWnd == NULL){	
-			exit(1);    
-		} else {
-			if(!InitGL()){
-				PostQuitMessage(0);
+		if(!createPMDCon()){
+			exit(1);
+		}
+		hdrImage();
+		closePMDCon();
+
+		MSG msg;
+		BOOL done = FALSE;
+
+		if(!CreateOpenGLWindow("minimal", 0, 0, 256, 256, PFD_TYPE_RGBA, 0, pOpenGLWinUI)){
+			return 0;
+		}
+		while(!done){
+			if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
+				if(msg.message==WM_QUIT){
+					done = TRUE;
+				} else {
+					TranslateMessage(&msg);
+					DispatchMessage(&msg);
+				}
 			}
 		}
-		hDC = GetDC(hWnd);    
-		hRC = wglCreateContext(hDC);    
-		wglMakeCurrent(hDC, hRC);    
-		ShowWindow(hWnd, SW_SHOW);    
-		while(GetMessage(&msg, hWnd, 0, 0)) {	
-			TranslateMessage(&msg);	
-			DispatchMessage(&msg);    
-		}    
-		wglMakeCurrent(NULL, NULL);    
-		ReleaseDC(hWnd, hDC);    
-		wglDeleteContext(hRC);    
-		DestroyWindow(hWnd);    
+		KillGLWindow();
 		return msg.wParam;
 		
 		
