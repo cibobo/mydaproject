@@ -51,13 +51,17 @@ struct OpenGLWinUI
 
 void display();
 
+void openGLLoadData(int index);
+
+void openGLLoadData(float *d);
+
 int InitGL();
 
 GLvoid ReSizeGLScene(GLsizei iWidth, GLsizei iHeight);
 
 LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-BOOL CreateOpenGLWindow(char* title, int x, int y, int width, int height, 		   
+HWND CreateOpenGLWindow(char* title, int x, int y, int width, int height, 		   
 					   BYTE type, DWORD flags, OpenGLWinUI *pOpenGLWinUI);
 
 GLvoid KillGLWindow(GLvoid); 

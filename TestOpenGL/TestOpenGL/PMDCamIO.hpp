@@ -13,4 +13,8 @@ void closePMDCon();
 
 void checkError (PMDHandle hnd, int code);
 
-void hdrImage ();
+void hdrImage();
+
+float* getPMDDataPointer();
+
+void savePMDDataToFile(const char *path, float *data);
