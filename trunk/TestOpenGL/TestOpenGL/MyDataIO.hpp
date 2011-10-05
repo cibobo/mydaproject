@@ -8,7 +8,7 @@
 
 /*
 */
-template <typename T> bool saveData(char *pPath, T *pData, int iDataCount)
+template <typename T> bool saveData(const char *pPath, T *pData, int iDataCount)
 {
 	FILE *pFile;
 	pFile = fopen(pPath, "wb");
@@ -23,7 +23,7 @@ template <typename T> bool saveData(char *pPath, T *pData, int iDataCount)
 
 /*
 */
-template <typename T> bool loadData(char *pPath, T *pData, int iDataCount)
+template <typename T> bool loadData(const char *pPath, T *pData, int iDataCount)
 {
 	FILE *pFile;
 	pFile = fopen(pPath, "rb");

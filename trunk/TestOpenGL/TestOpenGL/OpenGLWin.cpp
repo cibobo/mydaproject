@@ -2,6 +2,7 @@
 #include "stdafx.h"
 #include "OpenGLWin.hpp"
 
+#define DATA_SIZE 204;
 using namespace std;
 
 HDC hDC;				/* device context */    
@@ -9,9 +10,8 @@ HGLRC hRC;				/* opengl context */
 HWND  hWnd;				/* window */    
 HINSTANCE       hInstance;    // Holds The Instance Of The Application 
 
-
-
 float data[204*204];
+float *ptrData = data;
 
 // Declared static (no need for object reference
 static float X = 0.0f;        // Translate screen to x direction (left or right)
@@ -46,7 +46,8 @@ void display(){
     glRotatef(rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
 
 	//set the origin depth
-	Z = data[0];
+	//Z = data[204*102];
+	Z = 2;
 	glTranslatef(X, Y, Z);
 
 /*	glBegin(GL_TRIANGLES);    
@@ -60,7 +61,7 @@ void display(){
 	glBegin(GL_POINTS);
 	for(int i=0;i<204;i++) {
 		for(int j=0;j<204;j++) {
-			glVertex3f((i-102)*factor, (j-102)*factor, -data[i*204+j]);
+			glVertex3f((i-102)*factor, (j-102)*factor, -ptrData[i*204+j]);
 		}
 	}
 			
@@ -73,6 +74,53 @@ void display(){
 	glFlush();
 }
 
+/**
+ * Load data with the index of the data file
+ */
+void openGLLoadData(int index){
+	string path("data/2/distance/");
+	string fileName;
+	if(index<10){
+		fileName.append(3,'0');
+		fileName.append(1,char(index+48));
+	} else if(index>=10 && index<100){
+		fileName.append(2,'0');
+		fileName.append(1,char((index/10)+48));
+		fileName.append(1,char((index%10)+48));
+	} else if(index>=100 && index<1000){
+		fileName.append(1,'0');
+		fileName.append(1,char((index/100)+48));
+		fileName.append(1,char(((index%100)/10)+48));
+		fileName.append(1,char((index%10)+48));
+	} else {
+		cout<<"the file name is bigger than 1000"<<endl;
+		exit(0);
+	}
+
+	path.append(fileName);
+	path.append(".dat");
+
+	const char *ch = path.data();
+	cout<<"Path: "<<ch<<endl;
+	if(!loadData<float>(ch, ptrData, 204*204)){
+		cout<<"data "<<index<<" load error!"<<endl;
+		//exit(0);
+	} else {
+		cout<<"data "<<index<<" successful load!"<<endl;
+	}
+
+	//updata the Window
+	//PostMessage(hWnd, WM_PAINT, 0, 0);	
+}
+
+
+/**
+ * load data with a pointer of float arraz
+ */
+void openGLLoadData(float *d){
+	ptrData = d;
+			//PostMessage(hWnd, WM_PAINT, 0, 0);
+}
 
 /*
 
@@ -84,22 +132,23 @@ int InitGL()
 
 	/* schwarzer Hintergrund */
 	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
-	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);    
- //   glClearDepth(1.0f);          // Set the Depth buffer value (ranges[0,1])
- //   glEnable(GL_DEPTH_TEST);  // Enable Depth test
- //   glDepthFunc(GL_LEQUAL);   // If two objects on the same coordinate 
- //                                           // show the first drawn
- //   glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);    
+    glClearDepth(1.0f);          // Set the Depth buffer value (ranges[0,1])
+    glEnable(GL_DEPTH_TEST);  // Enable Depth test
+    glDepthFunc(GL_LEQUAL);   // If two objects on the same coordinate 
+                                            // show the first drawn
+    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
 	//get data from file
-	char path[] = {"data/data"};
-	if(!loadData<float>(path,data, 204*204)){
-		cout<<"data load error!"<<endl;
-		//exit(0);
-	}
-	cout<<"load complete!"<<endl;
+	//const char path[] = {"data/data"};
+	//if(!loadData<float>(path,data, 204*204)){
+	//	cout<<"data load error!"<<endl;
+	//	//exit(0);
+	//}
+	//cout<<"load complete!"<<endl;
 
+	//openGLLoadData(0);
+	
 	return TRUE;
 }
 
@@ -244,6 +293,8 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
                 case 90:    // Z            // Opposite way
                     rotZ += 2.0f;
                     break;
+				//case 'n':
+				//	openGLLoadData()
 			}
 			PostMessage(hWnd, WM_PAINT, 0, 0);	
 			return 0;
@@ -270,7 +321,7 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 	return DefWindowProc(hWnd, uMsg, wParam, lParam); 
 } 
 
-BOOL CreateOpenGLWindow(char* title, int x, int y, int width, int height, 		   
+HWND CreateOpenGLWindow(char* title, int x, int y, int width, int height, 		   
 					   BYTE type, DWORD flags, OpenGLWinUI *pOpenGLWinUI){    
 
 	GLuint         PixelFormat;    
@@ -409,8 +460,8 @@ BOOL CreateOpenGLWindow(char* title, int x, int y, int width, int height,
 
 	DescribePixelFormat(hDC, PixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pfd);    
 	//ReleaseDC(hWnd, hDC);    
-	//return hWnd;
-	return TRUE;
+	return hWnd;
+	//return TRUE;
 }    
 
 GLvoid KillGLWindow(GLvoid)                         // Properly Kill The Window 
