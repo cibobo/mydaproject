@@ -6,6 +6,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+bool isDirectoryExist(const char *directory);
+
+bool createDirectory(const char *directory);
+
+void createDefaultPMDDataDirectory();
+
+void saveNormalDataToFile(const char *type, int frameCount, float *data);
+
+void loadNormalDataFromFile(int index, float *data);
 /*
 */
 template <typename T> bool saveData(const char *pPath, T *pData, int iDataCount)
