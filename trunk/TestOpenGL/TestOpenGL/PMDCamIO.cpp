@@ -16,6 +16,8 @@ float *ptrPMDData;
 int res;
 PMDHandle hnd;
 
+int frameCount = 0;
+
 
 BOOL createPMDCon(){
 	res = pmdOpen (&hnd, "plugin\\camcube0", "", "plugin\\camcubeproc0", "");
@@ -30,6 +32,9 @@ BOOL createPMDCon(){
 
 		return FALSE;
 	}
+	//create the directory of the new data
+	createDefaultPMDDataDirectory();
+
 	return TRUE;
 }
 
@@ -69,6 +74,7 @@ void hdrImage ()
   
   float amplitude[2][204*204];
   float distance[2][204*204];
+  float intensity[204*204];
 
   /* Take a picture with the short integration time */
   res = pmdSetIntegrationTime (hnd, 0, SHORT_TIME);
@@ -101,11 +107,10 @@ void hdrImage ()
                               sizeof (float) * 204 * 204);
   checkError (hnd, res);
 
-  //printf ("A distance from the middle (short): %f m (a = %f)\n",
-  //        distance[0][204 * 102 + 102], amplitude[0][204 * 102 + 102]);
 
-  //printf ("A distance from the middle (long): %f m (a = %f)\n",
-  //        distance[1][204 * 102 + 102], amplitude[1][204 * 102 + 102]);
+  res = pmdGetIntensities (hnd, intensity, sizeof (float) * 204 * 204);
+
+  checkError (hnd, res);
 
   /* Check every pixel: If the amplitude is too low, use
      the long measurement, otherwise keep the short one */
@@ -122,43 +127,18 @@ void hdrImage ()
 
   /* amplitude[0] and distance[0] now contain the merged
      data */
-  savePMDDataToFile(distanceSavePath, distance[0]);
-  savePMDDataToFile(amplitudeSavePath, amplitude[0]);
+  //saveNormalDataToFile("distance", frameCount, distance[0]);
+  //saveNormalDataToFile("amplitude", frameCount, amplitude[0]);
+  //saveNormalDataToFile("intensity", frameCount, intensity);
+  frameCount++;
   ptrPMDData = distance[0];
   printf ("Selected distance from the middle: %f m\n",
           distance[0][204 * 102 + 102]);
 }
 
-int frameCount = 0;
+
 
 float* getPMDDataPointer(){
 	return ptrPMDData;
 }
 
-void savePMDDataToFile(const char *path, float *data){
-	string fullPath;
-	string fileName;
-	if(frameCount<10){
-		fileName.append(3,'0');
-		fileName.append(1,char(frameCount+48));
-	} else if(frameCount>=10 && frameCount<100){
-		fileName.append(2,'0');
-		fileName.append(1,char((frameCount/10)+48));
-		fileName.append(1,char((frameCount%10)+48));
-	} else if(frameCount>=100 && frameCount<1000){
-		fileName.append(1,'0');
-		fileName.append(1,char((frameCount/100)+48));
-		fileName.append(1,char(((frameCount%100)/10)+48));
-		fileName.append(1,char((frameCount%10)+48));
-	} else {
-		cout<<"the file name is bigger than 1000"<<endl;
-		exit(0);
-	}
-
-	fullPath.append(path);
-	fullPath.append(fileName);
-	fullPath.append(".dat");
-	saveData<float>(fullPath.data(), data, 204*204);
-	cout<<"The "<<frameCount<<" frame successful saved!"<<endl;
-	frameCount++;
-}

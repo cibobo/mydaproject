@@ -41,8 +41,11 @@
 #include <afxcmn.h>			// MFC-Unterstützung für allgemeine Windows-Steuerelemente
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
+
+
 #include <iostream>
 #include <string>
+
 
 
 

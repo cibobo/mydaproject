@@ -11,7 +11,8 @@ HWND  hWnd;				/* window */
 HINSTANCE       hInstance;    // Holds The Instance Of The Application 
 
 float data[204*204];
-float *ptrData = data;
+// define a pointer for the Data
+float *ptrData;
 
 // Declared static (no need for object reference
 static float X = 0.0f;        // Translate screen to x direction (left or right)
@@ -25,7 +26,7 @@ static float rotLx = 0.0f;   // Translate screen by using the glulookAt function
                              // (left or right)
 static float rotLy = 0.0f;   // Translate screen by using the glulookAt function 
                              // (up or down)
-static float rotLz = 0.0f;   // Translate screen by using the glulookAt function 
+static float rotLz = 5.0f;   // Translate screen by using the glulookAt function 
                                      // (zoom in or out)
 
 
@@ -36,8 +37,7 @@ void display(){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 	//set the view point
-	gluLookAt(rotLx, rotLy, 5.0f + 
-                     rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	gluLookAt(rotLx, rotLy, rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 	glPushMatrix();   // It is important to push the Matrix before 
                                  
 	// calling glRotatef and glTranslatef
@@ -47,7 +47,7 @@ void display(){
 
 	//set the origin depth
 	//Z = data[204*102];
-	Z = 2;
+	//Z = 2;
 	glTranslatef(X, Y, Z);
 
 /*	glBegin(GL_TRIANGLES);    
@@ -74,44 +74,7 @@ void display(){
 	glFlush();
 }
 
-/**
- * Load data with the index of the data file
- */
-void openGLLoadData(int index){
-	string path("data/2/distance/");
-	string fileName;
-	if(index<10){
-		fileName.append(3,'0');
-		fileName.append(1,char(index+48));
-	} else if(index>=10 && index<100){
-		fileName.append(2,'0');
-		fileName.append(1,char((index/10)+48));
-		fileName.append(1,char((index%10)+48));
-	} else if(index>=100 && index<1000){
-		fileName.append(1,'0');
-		fileName.append(1,char((index/100)+48));
-		fileName.append(1,char(((index%100)/10)+48));
-		fileName.append(1,char((index%10)+48));
-	} else {
-		cout<<"the file name is bigger than 1000"<<endl;
-		exit(0);
-	}
 
-	path.append(fileName);
-	path.append(".dat");
-
-	const char *ch = path.data();
-	cout<<"Path: "<<ch<<endl;
-	if(!loadData<float>(ch, ptrData, 204*204)){
-		cout<<"data "<<index<<" load error!"<<endl;
-		//exit(0);
-	} else {
-		cout<<"data "<<index<<" successful load!"<<endl;
-	}
-
-	//updata the Window
-	//PostMessage(hWnd, WM_PAINT, 0, 0);	
-}
 
 
 /**
@@ -119,7 +82,7 @@ void openGLLoadData(int index){
  */
 void openGLLoadData(float *d){
 	ptrData = d;
-			//PostMessage(hWnd, WM_PAINT, 0, 0);
+	//PostMessage(hWnd, WM_PAINT, 0, 0);
 }
 
 /*
@@ -139,15 +102,12 @@ int InitGL()
                                             // show the first drawn
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
-	//get data from file
-	//const char path[] = {"data/data"};
-	//if(!loadData<float>(path,data, 204*204)){
-	//	cout<<"data load error!"<<endl;
-	//	//exit(0);
-	//}
-	//cout<<"load complete!"<<endl;
-
+	//set the initial depth
+	Z = 2;
 	//openGLLoadData(0);
+	if(ptrData == NULL){
+		ptrData = data;
+	}
 	
 	return TRUE;
 }
@@ -181,6 +141,11 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 	static float fMousePosY;
 	static float fMousePosOldX;
 	static float fMousePosOldY;
+
+	/*
+	 * isZChanged controlled by key Shift, which will be set true if the Shift key pressed and false if the key released
+	 */
+	static bool isZChanged = false;
 
 	switch(uMsg) {
 		case WM_CREATE:
@@ -223,9 +188,24 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 
 				pOpenGLWinUI->fMouseMoveLBX -= (fMousePosX - fMousePosOldX);
 				pOpenGLWinUI->fMouseMoveLBY -= (fMousePosY - fMousePosOldY);
+
+				/*
+				 * Horizontal displacement displayed the rotation around Z axis and 
+				 * Vertical displacement displayed the rotation around X axis
+				 */
+				if(rotLz!=0){
+					float angleZ = (fMousePosX - fMousePosOldX)/rotLz;
+					float angleX = (fMousePosY - fMousePosOldY)/rotLz;
+					//calculate the Radian
+					rotZ +=angleZ/1;
+					rotX +=angleX/1;
+					//cout<<(fMousePosY - fMousePosOldY)<<"   "<<angleZ<<endl;
+				}
 			
 				fMousePosOldX = fMousePosX;
 				fMousePosOldY = fMousePosY;
+
+				PostMessage(hWnd, WM_PAINT, 0, 0);	
 			}
 
 			if(wParam == MK_RBUTTON)
@@ -239,7 +219,8 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 				fMousePosOldX = fMousePosX;
 				fMousePosOldY = fMousePosY;
 			}
-
+		
+		
 		return TRUE;						
 		
 
@@ -258,13 +239,23 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 		
 
 		case WM_MOUSEWHEEL:
-		
-			if((int)wParam > 0){
-				pOpenGLWinUI->fMouseWheel += 1.0f;
-				rotLz += 0.3;
+			//if SHIFT is pressed
+			if(isZChanged){
+				if((int)wParam > 0){
+					pOpenGLWinUI->fMouseWheel += 1.0f;
+					Z += 0.3;
+				} else {
+					pOpenGLWinUI->fMouseWheel -= 1.0f;
+					Z -= 0.3;
+				}
 			} else {
-				pOpenGLWinUI->fMouseWheel -= 1.0f;
-				rotLz -= 0.3;
+				if((int)wParam > 0){
+					pOpenGLWinUI->fMouseWheel += 1.0f;
+					rotLz += 0.3;
+				} else {
+					pOpenGLWinUI->fMouseWheel -= 1.0f;
+					rotLz -= 0.3;
+				}
 			}
 		PostMessage(hWnd, WM_PAINT, 0, 0);	
 		return TRUE;			
@@ -293,8 +284,21 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
                 case 90:    // Z            // Opposite way
                     rotZ += 2.0f;
                     break;
+				case VK_SHIFT:
+					//cout<<"Shift pressed!"<<endl;
+					isZChanged = true;
+					break;
 				//case 'n':
 				//	openGLLoadData()
+			}
+			PostMessage(hWnd, WM_PAINT, 0, 0);	
+			return 0;
+
+		case WM_KEYUP:
+			switch(wParam){
+				case VK_SHIFT:
+					isZChanged = false;
+					break;
 			}
 			PostMessage(hWnd, WM_PAINT, 0, 0);	
 			return 0;
@@ -303,18 +307,21 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 			display();	
 			BeginPaint(hWnd, &ps);	
 			EndPaint(hWnd, &ps);	
-			return 0;    
+			return 0;  
+
 		case WM_SIZE:	
 			ReSizeGLScene(LOWORD(lParam), HIWORD(lParam));	
 			PostMessage(hWnd, WM_PAINT, 0, 0);	
-			return 0;    
+			return 0;
+
 		case WM_CHAR:	
 			switch (wParam) {	
 				case 27:			/* ESC key */	    
 					PostQuitMessage(0);	    
 					break;	
 			}	
-			return 0;    
+			return 0; 
+
 		case WM_CLOSE:	PostQuitMessage(0);	
 			return 0;    
 	}    

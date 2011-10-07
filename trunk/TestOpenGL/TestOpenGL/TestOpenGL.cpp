@@ -24,8 +24,8 @@ bool bDone = false;
 // The handle for OpenGL Windows
 HWND  openGLhnd;				
 
-
-float *mainData;
+float mData[204*204];
+float *mainData = mData;
 
 // this function is called by a new thread 
 void openGLThreadPorc( void *param ) 
@@ -83,27 +83,30 @@ void openGLThreadPorc( void *param )
 void inputThreadProc(void *param){
 	//EnterCriticalSection (&crs);
 
-	for(int i=0;i<532;i+=2){
-		openGLLoadData(i);
-		//updata the OpenGL Window
-		PostMessage(openGLhnd, WM_PAINT, 0, 0);	
-		Sleep(100);
-	}
-
-	//if(!createPMDCon()){
-	//	exit(1);
-	//}
-	//while(!bDone){
-	//	hdrImage();
-	//	mainData = getPMDDataPointer();
-	//	//EnterCriticalSection (&crs);
+	//for(int i=0;i<532;i+=2){
+	//	loadNormalDataFromFile(i, mainData);
 	//	openGLLoadData(mainData);
-	//	//LeaveCriticalSection (&crs);
-	//	PostMessage(openGLhnd, WM_PAINT, 0, 0);
-	//	cout<<"Input Process with PMD Cam is running!"<<endl;
+	//	//updata the OpenGL Window
+	//	PostMessage(openGLhnd, WM_PAINT, 0, 0);	
 	//	Sleep(100);
 	//}
-	//closePMDCon();
+
+	EnterCriticalSection (&crs);
+	if(!createPMDCon()){
+		exit(1);
+	}
+	LeaveCriticalSection (&crs);
+	while(!bDone){
+		hdrImage();
+		mainData = getPMDDataPointer();
+		
+		openGLLoadData(mainData);
+		
+		PostMessage(openGLhnd, WM_PAINT, 0, 0);
+		cout<<"Input Process with PMD Cam is running!"<<endl;
+		Sleep(100);
+	}
+	closePMDCon();
 
 }
 
@@ -123,18 +126,29 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	}
 	else
 	{
+		//if(mainData == NULL){
+			//mainData = new float[204*204];
+		//}
 
-		
+		//Start Input Thread
+		if(_beginthread (inputThreadProc, 0, NULL) == -1){
+			cout<<"Failed to create input thread"<<endl;
+		}
 
 		// Start OpenGL Window Thread 
 		if(_beginthread (openGLThreadPorc, 0, NULL)==-1){
 			cout<<"Failed to create openGL thread"<<endl;
 		}
+
+		//createDefaultPMDDataDirectory();
+		//char* dir = "data/4";
+		//cout<<isDirectoryExist(dir)<<endl;
+		//if(!isDirectoryExist(dir)){
+		//	CreateDirectory(dir, NULL);
+		//	CreateDirectory("data/4/distance",NULL);
+		//}
 		
-		//Start Input Thread
-		if(_beginthread (inputThreadProc, 0, NULL) == -1){
-			cout<<"Failed to create input thread"<<endl;
-		}
+		
 	
 
 //			if(!createPMDCon()){
@@ -159,6 +173,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		
 		
 	}
+
+	//delete[] mainData;
 
 	return nRetCode;
 }
