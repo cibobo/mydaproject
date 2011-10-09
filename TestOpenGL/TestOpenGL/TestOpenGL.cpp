@@ -11,6 +11,8 @@
 #define _MT 
 #endif 
 
+const int DATA_SIZE = 204*204;
+
 // Das einzige Anwendungsobjekt
 
 CWinApp theApp;
@@ -21,21 +23,31 @@ CRITICAL_SECTION crs;
 
 // global flag 
 bool bDone = false;
-// The handle for OpenGL Windows
-HWND  openGLhnd;				
+// The handle for OpenGL Window
+HWND openGLhnd;	
+// The handle for Grayscale Window
+HWND grayScalehnd;
 
-float mData[204*204];
-float *mainData = mData;
+//TODO: direct pointer define
+// Array and the Pointer of Distance Data
+float dData[DATA_SIZE];
+float *disData;// = dData;
+
+// Array and the Pointer of Intensity Data
+float iData[DATA_SIZE];
+float *intData;
+
+
 
 // this function is called by a new thread 
 void openGLThreadPorc( void *param ) 
 { 
 	MSG msg;
-	BOOL done = FALSE;
-
+	//BOOL done = FALSE;
 	static OpenGLWinUI *pOpenGLWinUI = new OpenGLWinUI;
+
 	//if(!CreateOpenGLWindow("minimal", 0, 0, 800, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI)){
-	if((openGLhnd=CreateOpenGLWindow("minimal", 0, 0, 800, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI))==NULL){
+	if((openGLhnd=CreateOpenGLWindow("OpenGL Window", 0, 0, 900, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI))==NULL){
 		exit(0);
 	}
 
@@ -44,6 +56,7 @@ void openGLThreadPorc( void *param )
 	//EnterCriticalSection (&crs);
 	while(!bDone){
 		if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
+		//if(GetMessage(&msg, openGLhnd, 0, 0)){
 			if(msg.message==WM_QUIT){
 				bDone = TRUE;
 			} else {
@@ -53,9 +66,11 @@ void openGLThreadPorc( void *param )
 		}
 			
 	}
+
+		//SetTimer(hWnd,101,50,NULL);
 	//LeaveCriticalSection (&crs);
 
-	KillGLWindow();
+	//KillGLWindow();
 
 
 		//HDC hDC;				/* device context */    
@@ -83,30 +98,31 @@ void openGLThreadPorc( void *param )
 void inputThreadProc(void *param){
 	//EnterCriticalSection (&crs);
 
-	//for(int i=0;i<532;i+=2){
-	//	loadNormalDataFromFile(i, mainData);
-	//	openGLLoadData(mainData);
-	//	//updata the OpenGL Window
-	//	PostMessage(openGLhnd, WM_PAINT, 0, 0);	
-	//	Sleep(100);
-	//}
-
-	EnterCriticalSection (&crs);
-	if(!createPMDCon()){
-		exit(1);
-	}
-	LeaveCriticalSection (&crs);
-	while(!bDone){
-		hdrImage();
-		mainData = getPMDDataPointer();
-		
-		openGLLoadData(mainData);
-		
-		PostMessage(openGLhnd, WM_PAINT, 0, 0);
-		cout<<"Input Process with PMD Cam is running!"<<endl;
+	for(int i=0;i<400;i++){
+		loadNormalDataFromFile("distance", i, disData);
+		loadNormalDataFromFile("intensity", i, intData);
+		openGLLoadData(disData, intData);
+		//updata the OpenGL Window
+		PostMessage(openGLhnd, WM_PAINT, 0, 0);	
 		Sleep(100);
 	}
-	closePMDCon();
+
+	//EnterCriticalSection (&crs);
+	//if(!createPMDCon()){
+	//	exit(1);
+	//}
+	//LeaveCriticalSection (&crs);
+	//while(!bDone){
+	//	hdrImage();
+	//	disData = getPMDDataPointer();
+	//	
+	//	openGLLoadData(disData);
+	//	
+	//	PostMessage(openGLhnd, WM_PAINT, 0, 0);
+	//	cout<<"Input Process with PMD Cam is running!"<<endl;
+	//	Sleep(100);
+	//}
+	//closePMDCon();
 
 }
 
@@ -126,9 +142,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	}
 	else
 	{
-		//if(mainData == NULL){
-			//mainData = new float[204*204];
-		//}
+		// create a new array for distance data
+		disData = new float[DATA_SIZE];
+
+		// create a new array for intensity data
+		intData = new float[DATA_SIZE];
 
 		//Start Input Thread
 		if(_beginthread (inputThreadProc, 0, NULL) == -1){
@@ -140,27 +158,25 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			cout<<"Failed to create openGL thread"<<endl;
 		}
 
-		//createDefaultPMDDataDirectory();
-		//char* dir = "data/4";
-		//cout<<isDirectoryExist(dir)<<endl;
-		//if(!isDirectoryExist(dir)){
-		//	CreateDirectory(dir, NULL);
-		//	CreateDirectory("data/4/distance",NULL);
+		//static OpenGLWinUI *pOpenGLWinUI2 = new OpenGLWinUI;
+		//if((grayScalehnd=CreateOpenGLWindow("Garyscale Window", 0, 0, 400, 300, PFD_TYPE_RGBA, 0, pOpenGLWinUI2))==NULL){
+		//	exit(0);
 		//}
-		
-		
-	
+		//
+		//MSG msg;
+		//while(!bDone){
+		//	if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
+		//	//if(GetMessage(&msg, grayScalehnd, 0, 0)){
+		//		if(msg.message==WM_QUIT){
+		//			bDone = TRUE;
+		//		} else {
+		//			TranslateMessage(&msg);
+		//			DispatchMessage(&msg);
+		//		}
+		//	}
+		//		
+		//}
 
-//			if(!createPMDCon()){
-//		exit(1);
-//	}
-//cout<<"successful create"<<endl;
-//		hdrImage();
-//
-//		cout<<"Input Process with PMD Cam is running!"<<endl;
-//	closePMDCon();
-		
-		
 		//Main Thread
 		while (!bDone ) 
 		{ 
@@ -170,11 +186,15 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			printf("main thread running\n"); 
 			//LeaveCriticalSection (&crs);
 		} 
+
+		//Sleep(3000);
+		//KillGLWindow();
 		
+		// release the memory block of the data
+		delete [] disData;
+		delete [] intData;
 		
 	}
-
-	//delete[] mainData;
 
 	return nRetCode;
 }

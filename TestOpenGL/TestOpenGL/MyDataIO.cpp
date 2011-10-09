@@ -7,7 +7,7 @@ using namespace std;
 const char *defaultSavePath = "data/4/";
 
 //default load path
-const char *defaultLoadPath = "data/3/distance/";
+const char *defaultLoadPath = "data/3/";
 
 bool isDirectoryExist(const char *directory){
 	int returnvalue;
@@ -55,7 +55,10 @@ void createDefaultPMDDataDirectory(){
 }
 
 
-
+/*
+ * save the data to the File with the type name: distance, amplitude, intentsity,
+ * the index of frame and the pointer of the containing array
+ */
 void saveNormalDataToFile(const char *type, int frameCount, float *data){
 	string fullPath;
 	string fileName;
@@ -88,9 +91,9 @@ void saveNormalDataToFile(const char *type, int frameCount, float *data){
 /**
  * Load data with the index of the data file
  */
-void loadNormalDataFromFile(int frameCount, float *data){
+void loadNormalDataFromFile(const char *type,int frameCount, float *data){
 	//string path("data/2/distance/");
-	string path;
+	string fullPath;
 	string fileName;
 	if(frameCount<10){
 		fileName.append(3,'0');
@@ -109,11 +112,13 @@ void loadNormalDataFromFile(int frameCount, float *data){
 		exit(0);
 	}
 
-	path.append(defaultLoadPath);
-	path.append(fileName);
-	path.append(".dat");
+	fullPath.append(defaultLoadPath);
+	fullPath.append(type);
+	fullPath.append("/");
+	fullPath.append(fileName);
+	fullPath.append(".dat");
 
-	const char *ch = path.data();
+	const char *ch = fullPath.data();
 	cout<<"Path: "<<ch<<endl;
 	if(!loadData<float>(ch, data, 204*204)){
 		cout<<"data "<<frameCount<<" load error!"<<endl;
@@ -121,7 +126,5 @@ void loadNormalDataFromFile(int frameCount, float *data){
 	} else {
 		cout<<"data "<<frameCount<<" successful load!"<<endl;
 	}
-
-	//updata the Window
-	//PostMessage(hWnd, WM_PAINT, 0, 0);	
 }
+
