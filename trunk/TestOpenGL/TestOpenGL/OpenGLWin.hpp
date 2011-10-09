@@ -53,7 +53,7 @@ void display();
 
 void openGLLoadData(int index);
 
-void openGLLoadData(float *d);
+void openGLLoadData(float *disData, float *intData);
 
 int InitGL();
 
@@ -64,4 +64,4 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 HWND CreateOpenGLWindow(char* title, int x, int y, int width, int height, 		   
 					   BYTE type, DWORD flags, OpenGLWinUI *pOpenGLWinUI);
 
-GLvoid KillGLWindow(GLvoid); 
+GLvoid KillGLWindow(HINSTANCE hInstance, HWND hWnd, HDC hDC, HGLRC hRC); 

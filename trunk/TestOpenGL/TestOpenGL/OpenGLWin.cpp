@@ -5,19 +5,17 @@
 #define DATA_SIZE 204;
 using namespace std;
 
-HDC hDC;				/* device context */    
-HGLRC hRC;				/* opengl context */    
-HWND  hWnd;				/* window */    
-HINSTANCE       hInstance;    // Holds The Instance Of The Application 
 
-float data[204*204];
-// define a pointer for the Data
-float *ptrData;
+float glDisData[204*204];
+float *pglDisData;
+
+float glIntData[204*204];
+float *pglIntData;
 
 // Declared static (no need for object reference
 static float X = 0.0f;        // Translate screen to x direction (left or right)
 static float Y = 0.0f;        // Translate screen to y direction (up or down)
-static float Z = 0.0f;        // Translate screen to z direction (zoom in or out)
+static float Z = 2.0f;        // Translate screen to z direction (zoom in or out)
 static float rotX = 0.0f;    // Rotate screen on x axis 
 static float rotY = 0.0f;    // Rotate screen on y axis
 static float rotZ = 0.0f;    // Rotate screen on z axis
@@ -29,13 +27,21 @@ static float rotLy = 0.0f;   // Translate screen by using the glulookAt function
 static float rotLz = 5.0f;   // Translate screen by using the glulookAt function 
                                      // (zoom in or out)
 
+// The Width and Height of the Window
+int width;
+int height;
 
+static float contrast = 1000;
+static float balance = 5300;
 
 void display(){    
 	  
 	// Clear the Color Buffer and Depth Buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
+	// 3D View Port
+	glViewport(0, 0, height, height);
+
 	//set the view point
 	gluLookAt(rotLx, rotLy, rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 	glPushMatrix();   // It is important to push the Matrix before 
@@ -49,27 +55,65 @@ void display(){
 	//Z = data[204*102];
 	//Z = 2;
 	glTranslatef(X, Y, Z);
+	glColor3f(1.0f,1.0f,1.0f);
+ 
+	float factor = 2.04/204;
+	glBegin(GL_POINTS);
+	for(int i=0;i<204;i++) {
+		for(int j=0;j<204;j++) {
+			glVertex3f((i-102)*factor, (j-102)*factor, -pglDisData[i*204+j]);
+		}
+	}
+			
+	glEnd();    
 
-/*	glBegin(GL_TRIANGLES);    
+
+	
+
+    glPopMatrix();                   // Don't forget to pop the Matrix
+
+	
+	// Grayscale View Port
+	glLoadIdentity();
+	glViewport(height, height/2, (width-height), height/2.0);
+	glPushMatrix();   // It is important to push the Matrix before 
+	glTranslatef(0, 0, -3);
+	float grayValue;
+	glBegin(GL_POINTS);
+	for(int i=0;i<204;i++) {
+		for(int j=0;j<204;j++) {
+			grayValue = (pglIntData[i*204+j]-balance)/contrast;
+			if(grayValue>1){
+				grayValue = 1;
+			}
+			if(grayValue<0){
+				grayValue = 0;
+			}
+			glColor3f(grayValue,grayValue,grayValue);
+			glVertex3f((i-102)*factor, (j-102)*factor, 0);
+		}
+	}
+	//glVertex3f(0,0,-3);
+	glEnd();
+	glPopMatrix();        
+	//cout<<"Gray Value: "<<pglDisData[204*201]<<endl;
+
+
+	glLoadIdentity();
+	glViewport(height, 0, (width-height), height/2.0);
+	glBegin(GL_TRIANGLES);    
 	glColor3f(1.0f, 0.0f, 0.0f);    
 	glVertex3f(0,  1, -3);    
 	glColor3f(0.0f, 1.0f, 0.0f);    
 	glVertex3f(-1, -1, -3);    
 	glColor3f(0.0f, 0.0f, 1.0f);    
-	glVertex3f(1, -1, -3); */   
-	float factor = 2.04/204;
-	glBegin(GL_POINTS);
-	for(int i=0;i<204;i++) {
-		for(int j=0;j<204;j++) {
-			glVertex3f((i-102)*factor, (j-102)*factor, -ptrData[i*204+j]);
-		}
-	}
-			
-	glEnd();    
-	
+	glVertex3f(1, -1, -3); 
+	glEnd();
+	glLoadIdentity();
+
 	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
     //glutPostRedisplay();           // Redraw the scene
-    glPopMatrix();                   // Don't forget to pop the Matrix
+
 	//glutSwapBuffers();
 	glFlush();
 }
@@ -78,10 +122,11 @@ void display(){
 
 
 /**
- * load data with a pointer of float arraz
+ * load data with a pointer of float array
  */
-void openGLLoadData(float *d){
-	ptrData = d;
+void openGLLoadData(float *disData, float *intData){
+	pglDisData = disData;
+	pglIntData = intData;
 	//PostMessage(hWnd, WM_PAINT, 0, 0);
 }
 
@@ -102,13 +147,22 @@ int InitGL()
                                             // show the first drawn
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
-	//set the initial depth
-	Z = 2;
-	//openGLLoadData(0);
-	if(ptrData == NULL){
-		ptrData = data;
+	if(pglDisData ==  NULL){
+		pglDisData = glDisData;
 	}
-	
+	if(pglIntData ==  NULL){
+		pglIntData = glIntData;
+	}
+
+	//char *ch = "data/3/intensity/0000.dat";
+	//if(!loadData<float>(ch, pglDisData, 204*204)){
+	//	cout<<"data 0050 load error!"<<endl;
+	//	//exit(0);
+	//} else {
+	//	cout<<"data 0050 successful load!"<<endl;
+	//	cout<<"The middel is "<<pglDisData[0]<<endl;
+	//}
+
 	return TRUE;
 }
 
@@ -120,15 +174,20 @@ GLvoid ReSizeGLScene(GLsizei iWidth, GLsizei iHeight)
 {
 	/*  */
 	glViewport(0, 0, iWidth, iHeight);	
-
+	
 	/* Projection Transformation */
 	glMatrixMode(GL_PROJECTION);						
 	glLoadIdentity();
-	gluPerspective(45.0f, (GLfloat)iWidth/(GLfloat)iHeight, 0.5f, 120.0f);
+
+	// set the rate of width and height as 1
+	gluPerspective(45.0f, (GLfloat)iHeight/(GLfloat)iHeight, 0.5f, 120.0f);
+
 	glMatrixMode(GL_MODELVIEW);
 
 	glLoadIdentity();
-	
+
+	width = iWidth;
+	height = iHeight;
 
 }
 
@@ -160,6 +219,7 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 			pOpenGLWinUI->fMouseMoveRBY = 0.0f;
 
 			pOpenGLWinUI->fMouseWheel = 0.0f;
+
 		return TRUE;
 
 		/* Controlle Message for Mouse */
@@ -284,6 +344,20 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
                 case 90:    // Z            // Opposite way
                     rotZ += 2.0f;
                     break;
+
+				case 'b':
+					balance += 10;
+					break;
+				case 'v':
+					balance -= 10;
+					break;
+				case 'n':
+					contrast += 2;
+					break;
+				case 'm':
+					contrast -=2;
+					break;
+
 				case VK_SHIFT:
 					//cout<<"Shift pressed!"<<endl;
 					isZChanged = true;
@@ -304,7 +378,7 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 			return 0;
 
 		case WM_PAINT:	
-			display();	
+			display();
 			BeginPaint(hWnd, &ps);	
 			EndPaint(hWnd, &ps);	
 			return 0;  
@@ -328,24 +402,31 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 	return DefWindowProc(hWnd, uMsg, wParam, lParam); 
 } 
 
-HWND CreateOpenGLWindow(char* title, int x, int y, int width, int height, 		   
+HWND CreateOpenGLWindow(char* title, int x, int y, int iWidth, int iHeight, 		   
 					   BYTE type, DWORD flags, OpenGLWinUI *pOpenGLWinUI){    
+
+	width = iWidth;
+	height = iHeight;
 
 	GLuint         PixelFormat;    
 	//HDC         hDC;    
 	//HWND        hWnd;    
 	WNDCLASS    wc;    
 
+	HDC hDC = NULL;				/* device context */    
+	HGLRC hRC = NULL;				/* opengl context */    
+	HWND  hWnd = NULL;				/* window */    
+
 	DWORD	dwExStyle;
 	DWORD	dwStyle;
 
 	RECT WindowRect;                            // Grabs Rectangle Upper Left / Lower Right Values 
 	WindowRect.left=(long)0;                        // Set Left Value To 0 
-	WindowRect.right=(long)width;                       // Set Right Value To Requested Width 
+	WindowRect.right=(long)iWidth;                       // Set Right Value To Requested Width 
 	WindowRect.top=(long)0;                         // Set Top Value To 0 
-	WindowRect.bottom=(long)height;                     // Set Bottom Value To Requested Height 
+	WindowRect.bottom=(long)iHeight;                     // Set Bottom Value To Requested Height 
 
-	//static HINSTANCE hInstance = 0;    /* only register the window class once - use hInstance as a flag. */    
+	static HINSTANCE hInstance = 0;    /* only register the window class once - use hInstance as a flag. */    
 	if (!hInstance) {	
 		hInstance = GetModuleHandle(NULL);	
 		wc.style         = CS_OWNDC;	
@@ -386,7 +467,7 @@ HWND CreateOpenGLWindow(char* title, int x, int y, int width, int height,
                 hInstance,              // Instance 
                 (LPVOID)pOpenGLWinUI)))                 // Don't Pass Anything To WM_CREATE 
 	{ 
-		KillGLWindow();                         // Reset The Display 
+		KillGLWindow(hInstance, hWnd, hDC, hRC);                         // Reset The Display 
 		MessageBox(NULL,"Window Creation Error.","ERROR",MB_OK|MB_ICONEXCLAMATION); 
 		return FALSE;                           // Return FALSE 
 	} else {
@@ -421,7 +502,7 @@ HWND CreateOpenGLWindow(char* title, int x, int y, int width, int height,
  
 	if (!(hDC=GetDC(hWnd)))                         // Did We Get A Device Context? 
 	{ 
-		KillGLWindow();                         // Reset The Display 
+		KillGLWindow(hInstance, hWnd, hDC, hRC);                         // Reset The Display 
 		MessageBox(NULL,"Can't Create A GL Device Context.","ERROR",MB_OK|MB_ICONEXCLAMATION); 
 		return FALSE;                           // Return FALSE 
 	} 
@@ -436,26 +517,26 @@ HWND CreateOpenGLWindow(char* title, int x, int y, int width, int height,
 
 	if (!(PixelFormat=ChoosePixelFormat(hDC,&pfd)))             // Did Windows Find A Matching Pixel Format? 
 	{ 
-		KillGLWindow();                         // Reset The Display 
+		KillGLWindow(hInstance, hWnd, hDC, hRC);                         // Reset The Display 
 		MessageBox(NULL,"Can't Find A Suitable PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION); 
 		return FALSE;                           // Return FALSE 
 	} 
 	if(!SetPixelFormat(hDC,PixelFormat,&pfd))               // Are We Able To Set The Pixel Format? 
 	{ 
-		KillGLWindow();                         // Reset The Display 
+		KillGLWindow(hInstance, hWnd, hDC, hRC);                         // Reset The Display 
 		MessageBox(NULL,"Can't Set The PixelFormat.","ERROR",MB_OK|MB_ICONEXCLAMATION); 
 		return FALSE;                           // Return FALSE 
 	} 
 	
 	if (!(hRC=wglCreateContext(hDC)))                   // Are We Able To Get A Rendering Context? 
 	{ 
-		KillGLWindow();                         // Reset The Display 
+		KillGLWindow(hInstance, hWnd, hDC, hRC);                         // Reset The Display 
 		MessageBox(NULL,"Can't Create A GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION); 
 		return FALSE;                           // Return FALSE 
 	} 
 	if(!wglMakeCurrent(hDC,hRC))                        // Try To Activate The Rendering Context 
 	{ 
-		KillGLWindow();                         // Reset The Display 
+		KillGLWindow(hInstance, hWnd, hDC, hRC);                         // Reset The Display 
 		MessageBox(NULL,"Can't Activate The GL Rendering Context.","ERROR",MB_OK|MB_ICONEXCLAMATION); 
 		return FALSE;                           // Return FALSE 
 	} 
@@ -463,7 +544,7 @@ HWND CreateOpenGLWindow(char* title, int x, int y, int width, int height,
 	ShowWindow(hWnd,SW_SHOW);                       // Show The Window 
 	SetForegroundWindow(hWnd);                      // Slightly Higher Priority 
 	SetFocus(hWnd);                             // Sets Keyboard Focus To The Window 
-	ReSizeGLScene(width, height);                       // Set Up Our Perspective GL Screen 
+	ReSizeGLScene(iWidth, iHeight);                       // Set Up Our Perspective GL Screen 
 
 	DescribePixelFormat(hDC, PixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pfd);    
 	//ReleaseDC(hWnd, hDC);    
@@ -471,7 +552,7 @@ HWND CreateOpenGLWindow(char* title, int x, int y, int width, int height,
 	//return TRUE;
 }    
 
-GLvoid KillGLWindow(GLvoid)                         // Properly Kill The Window 
+GLvoid KillGLWindow(HINSTANCE hInstance, HWND hWnd, HDC hDC, HGLRC hRC)                         // Properly Kill The Window 
 { 
 	//if (fullscreen)                             // Are We In Fullscreen Mode? 
 	//{ 
