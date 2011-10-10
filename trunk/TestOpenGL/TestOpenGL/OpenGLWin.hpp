@@ -53,7 +53,7 @@ void display();
 
 void openGLLoadData(int index);
 
-void openGLLoadData(float *disData, float *intData);
+void openGLLoadData(float *disData, float *intData, float *ampData);
 
 int InitGL();
 

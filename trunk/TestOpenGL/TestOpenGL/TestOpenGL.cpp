@@ -37,6 +37,9 @@ float *disData;// = dData;
 float iData[DATA_SIZE];
 float *intData;
 
+// Array and the Pointer of Amplitude Data
+float aData[DATA_SIZE];
+float *ampData;
 
 
 // this function is called by a new thread 
@@ -110,7 +113,8 @@ void inputThreadProc(void *param){
 	for(int i=0;i<400;i++){
 		loadNormalDataFromFile("distance", i, disData);
 		loadNormalDataFromFile("intensity", i, intData);
-		openGLLoadData(disData, intData);
+		loadNormalDataFromFile("amplitude", i, ampData);
+		openGLLoadData(disData, intData, ampData);
 		//updata the OpenGL Window
 		PostMessage(openGLhnd, WM_PAINT, 0, 0);	
 		Sleep(100);
@@ -162,6 +166,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		// create a new array for intensity data
 		intData = new float[DATA_SIZE];
 
+		// create a new array for amplitude data
+		ampData = new float[DATA_SIZE];
+
 		//Start Input Thread
 		if(_beginthread (inputThreadProc, 0, NULL) == -1){
 			cout<<"Failed to create input thread"<<endl;
@@ -207,6 +214,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		// release the memory block of the data
 		delete [] disData;
 		delete [] intData;
+		delete [] ampData;
 		
 	}
 
