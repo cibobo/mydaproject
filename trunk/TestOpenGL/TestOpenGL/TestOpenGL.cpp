@@ -46,6 +46,8 @@ void openGLThreadPorc( void *param )
 	//BOOL done = FALSE;
 	static OpenGLWinUI *pOpenGLWinUI = new OpenGLWinUI;
 
+	EnterCriticalSection (&crs);
+
 	//if(!CreateOpenGLWindow("minimal", 0, 0, 800, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI)){
 	if((openGLhnd=CreateOpenGLWindow("OpenGL Window", 0, 0, 900, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI))==NULL){
 		exit(0);
@@ -53,7 +55,11 @@ void openGLThreadPorc( void *param )
 
 	cout<<"Thread OpenGL running"<<endl;
 
-	//EnterCriticalSection (&crs);
+	LeaveCriticalSection (&crs);
+
+
+
+
 	while(!bDone){
 		if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
 		//if(GetMessage(&msg, openGLhnd, 0, 0)){
@@ -68,7 +74,7 @@ void openGLThreadPorc( void *param )
 	}
 
 		//SetTimer(hWnd,101,50,NULL);
-	//LeaveCriticalSection (&crs);
+
 
 	//KillGLWindow();
 
@@ -97,6 +103,9 @@ void openGLThreadPorc( void *param )
 
 void inputThreadProc(void *param){
 	//EnterCriticalSection (&crs);
+	//cout<<"input thread running!"<<endl;
+	//Sleep(3000);
+	//LeaveCriticalSection (&crs);
 
 	for(int i=0;i<400;i++){
 		loadNormalDataFromFile("distance", i, disData);
@@ -109,9 +118,14 @@ void inputThreadProc(void *param){
 
 	//EnterCriticalSection (&crs);
 	//if(!createPMDCon()){
-	//	exit(1);
+	//	//exit(1);
+	//	cout<<"input thread running!"<<endl;
+	//	
 	//}
+	//Sleep(3000);
+	////cout<<"input thread running!!!!"<<endl;
 	//LeaveCriticalSection (&crs);
+
 	//while(!bDone){
 	//	hdrImage();
 	//	disData = getPMDDataPointer();

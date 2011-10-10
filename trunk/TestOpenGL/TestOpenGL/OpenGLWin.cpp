@@ -31,8 +31,8 @@ static float rotLz = 5.0f;   // Translate screen by using the glulookAt function
 int width;
 int height;
 
-static float contrast = 1000;
-static float balance = 5300;
+static float contrast = 3200;
+static float balance = 5000;
 
 void display(){    
 	  
@@ -79,6 +79,7 @@ void display(){
 	glPushMatrix();   // It is important to push the Matrix before 
 	glTranslatef(0, 0, -3);
 	float grayValue;
+	cout<<"Balance: "<<balance<<"    contrast: "<<contrast<<endl;
 	glBegin(GL_POINTS);
 	for(int i=0;i<204;i++) {
 		for(int j=0;j<204;j++) {
@@ -155,12 +156,12 @@ int InitGL()
 	}
 
 	//char *ch = "data/3/intensity/0000.dat";
-	//if(!loadData<float>(ch, pglDisData, 204*204)){
+	//if(!loadData<float>(ch, pglIntData, 204*204)){
 	//	cout<<"data 0050 load error!"<<endl;
 	//	//exit(0);
 	//} else {
 	//	cout<<"data 0050 successful load!"<<endl;
-	//	cout<<"The middel is "<<pglDisData[0]<<endl;
+	//	cout<<"The middel is "<<pglIntData[0]<<endl;
 	//}
 
 	return TRUE;
@@ -345,17 +346,18 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
                     rotZ += 2.0f;
                     break;
 
-				case 'b':
+				// the input value of case must be a capital letter 
+				case 'B':
 					balance += 10;
 					break;
-				case 'v':
+				case 'V':
 					balance -= 10;
 					break;
-				case 'n':
-					contrast += 2;
+				case 'N':
+					contrast += 5;
 					break;
-				case 'm':
-					contrast -=2;
+				case 'M':
+					contrast -=5;
 					break;
 
 				case VK_SHIFT:
