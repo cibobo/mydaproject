@@ -12,6 +12,9 @@ float *pglDisData;
 float glIntData[204*204];
 float *pglIntData;
 
+float glAmpData[204*204];
+float *pglAmpData;
+
 // Declared static (no need for object reference
 static float X = 0.0f;        // Translate screen to x direction (left or right)
 static float Y = 0.0f;        // Translate screen to y direction (up or down)
@@ -58,6 +61,7 @@ void display(){
 	glColor3f(1.0f,1.0f,1.0f);
  
 	float factor = 2.04/204;
+
 	glBegin(GL_POINTS);
 	for(int i=0;i<204;i++) {
 		for(int j=0;j<204;j++) {
@@ -79,7 +83,7 @@ void display(){
 	glPushMatrix();   // It is important to push the Matrix before 
 	glTranslatef(0, 0, -3);
 	float grayValue;
-	cout<<"Balance: "<<balance<<"    contrast: "<<contrast<<endl;
+	//cout<<"Balance: "<<balance<<"    contrast: "<<contrast<<endl;
 	glBegin(GL_POINTS);
 	for(int i=0;i<204;i++) {
 		for(int j=0;j<204;j++) {
@@ -102,16 +106,41 @@ void display(){
 
 	glLoadIdentity();
 	glViewport(height, 0, (width-height), height/2.0);
-	glBegin(GL_TRIANGLES);    
-	glColor3f(1.0f, 0.0f, 0.0f);    
-	glVertex3f(0,  1, -3);    
-	glColor3f(0.0f, 1.0f, 0.0f);    
-	glVertex3f(-1, -1, -3);    
-	glColor3f(0.0f, 0.0f, 1.0f);    
-	glVertex3f(1, -1, -3); 
+	glPushMatrix();   // It is important to push the Matrix before 
+	glTranslatef(0, 0, -3);
+	glBegin(GL_POINTS);
+	for(int i=0;i<204;i++) {
+		for(int j=0;j<204;j++) {
+			//using HSV color mode. some variables has been omited
+			float h = 240-pglAmpData[i*204+j]/6;
+			int hi = int(h/60);
+			float f = h/60-hi;
+			switch(hi){
+				case 0:
+					glColor3f(1,f,0);
+					break;
+				case 1:
+					glColor3f(1-f,1,0);
+					break;
+				case 2:
+					glColor3f(0,1,f);
+					break;
+				case 3:
+					glColor3f(0,1-f,1);
+					break;
+				case 4:
+					glColor3f(f,0,1);
+					break;
+				default:
+					glColor3f(1,0,1-f);
+			}
+			glVertex3f((i-102)*factor, (j-102)*factor, 0);
+		}
+	}
 	glEnd();
-	glLoadIdentity();
-
+	glPopMatrix();  
+	
+	
 	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
     //glutPostRedisplay();           // Redraw the scene
 
@@ -125,9 +154,10 @@ void display(){
 /**
  * load data with a pointer of float array
  */
-void openGLLoadData(float *disData, float *intData){
+void openGLLoadData(float *disData, float *intData, float *ampData){
 	pglDisData = disData;
 	pglIntData = intData;
+	pglAmpData = ampData;
 	//PostMessage(hWnd, WM_PAINT, 0, 0);
 }
 
@@ -154,14 +184,17 @@ int InitGL()
 	if(pglIntData ==  NULL){
 		pglIntData = glIntData;
 	}
+	if(pglAmpData ==  NULL){
+		pglAmpData = glAmpData;
+	}
 
-	//char *ch = "data/3/intensity/0000.dat";
-	//if(!loadData<float>(ch, pglIntData, 204*204)){
+	//char *ch = "data/3/amplitude/0000.dat";
+	//if(!loadData<float>(ch, pglAmpData, 204*204)){
 	//	cout<<"data 0050 load error!"<<endl;
 	//	//exit(0);
 	//} else {
 	//	cout<<"data 0050 successful load!"<<endl;
-	//	cout<<"The middel is "<<pglIntData[0]<<endl;
+	//	cout<<"The middel is "<<pglAmpData[204*102]<<endl;
 	//}
 
 	return TRUE;
