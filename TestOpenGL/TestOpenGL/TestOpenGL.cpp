@@ -20,6 +20,7 @@ CWinApp theApp;
 using namespace std;
 
 CRITICAL_SECTION crs;
+CRITICAL_SECTION frameCrs;
 
 // global flag 
 bool bDone = false;
@@ -62,13 +63,26 @@ void openGLThreadPorc( void *param )
 
 
 
+	//parameter to mark, whether the input process is in pause
+	bool isPause = false;
 
 	while(!bDone){
 		if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
 		//if(GetMessage(&msg, openGLhnd, 0, 0)){
 			if(msg.message==WM_QUIT){
 				bDone = TRUE;
-			} else {
+			} else if(msg.message==WM_RBUTTONDOWN){
+				// klick right button of mouse to stop and rerun the input of frame
+				if(isPause){
+					cout<<"frame running!"<<endl;
+					LeaveCriticalSection(&frameCrs);
+					isPause = false;
+				} else {
+					cout<<"frame pause!"<<endl;
+					EnterCriticalSection(&frameCrs);
+					isPause = true;
+				}
+			} else{
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
 			}
@@ -111,12 +125,14 @@ void inputThreadProc(void *param){
 	//LeaveCriticalSection (&crs);
 
 	for(int i=0;i<400;i++){
+		EnterCriticalSection(&frameCrs);
 		loadNormalDataFromFile("distance", i, disData);
 		loadNormalDataFromFile("intensity", i, intData);
 		loadNormalDataFromFile("amplitude", i, ampData);
-		openGLLoadData(disData, intData, ampData);
+		openGLLoadData(disData, intData, ampData);	
 		//updata the OpenGL Window
 		PostMessage(openGLhnd, WM_PAINT, 0, 0);	
+		LeaveCriticalSection(&frameCrs);
 		Sleep(100);
 	}
 
@@ -150,6 +166,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	int nRetCode = 0;
 	//just for the situation, that more than one threads are calling the same data at the same time
 	InitializeCriticalSection (&crs);
+	InitializeCriticalSection (&frameCrs);
 
 	// MFC initialisieren und drucken. Bei Fehlschlag Fehlermeldung aufrufen.
 	if (!AfxWinInit(::GetModuleHandle(NULL), NULL, ::GetCommandLine(), 0))

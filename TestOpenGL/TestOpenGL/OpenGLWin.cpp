@@ -34,8 +34,11 @@ static float rotLz = 5.0f;   // Translate screen by using the glulookAt function
 int width;
 int height;
 
-static float contrast = 3200;
-static float balance = 5000;
+static float gContrast = 3200;
+static float gBalance = 5000;
+
+static float aContrast = 12;
+static float aBalance = 250;
 
 void display(){    
 	  
@@ -83,11 +86,11 @@ void display(){
 	glPushMatrix();   // It is important to push the Matrix before 
 	glTranslatef(0, 0, -3);
 	float grayValue;
-	//cout<<"Balance: "<<balance<<"    contrast: "<<contrast<<endl;
+	//cout<<"Balance: "<<gBalance<<"    Contrast: "<<gContrast<<endl;
 	glBegin(GL_POINTS);
 	for(int i=0;i<204;i++) {
 		for(int j=0;j<204;j++) {
-			grayValue = (pglIntData[i*204+j]-balance)/contrast;
+			grayValue = (pglIntData[i*204+j]-gBalance)/gContrast;
 			if(grayValue>1){
 				grayValue = 1;
 			}
@@ -108,11 +111,13 @@ void display(){
 	glViewport(height, 0, (width-height), height/2.0);
 	glPushMatrix();   // It is important to push the Matrix before 
 	glTranslatef(0, 0, -3);
+	//cout<<"Balance: "<<aBalance<<"    Contrast: "<<aContrast<<endl;
 	glBegin(GL_POINTS);
 	for(int i=0;i<204;i++) {
 		for(int j=0;j<204;j++) {
 			//using HSV color mode. some variables has been omited
-			float h = 240-pglAmpData[i*204+j]/6;
+			float h = aBalance-pglAmpData[i*204+j]/aContrast;
+			//if(h<0) h=0;
 			int hi = int(h/60);
 			float f = h/60-hi;
 			switch(hi){
@@ -380,17 +385,32 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
                     break;
 
 				// the input value of case must be a capital letter 
+				// controll key of the grayscale
 				case 'B':
-					balance += 10;
+					gBalance += 10;
 					break;
 				case 'V':
-					balance -= 10;
+					gBalance -= 10;
 					break;
 				case 'N':
-					contrast += 5;
+					gContrast += 5;
 					break;
 				case 'M':
-					contrast -=5;
+					gContrast -=5;
+					break;
+
+				// controll key of the amplitude
+				case 'H':
+					aBalance += 2;
+					break;
+				case 'G':
+					aBalance -= 2;
+					break;
+				case 'J':
+					aContrast += 1;
+					break;
+				case 'K':
+					aContrast -=1;
 					break;
 
 				case VK_SHIFT:
