@@ -7,7 +7,7 @@ using namespace std;
 const char *defaultSavePath = "data/4/";
 
 //default load path
-const char *defaultLoadPath = "data/3/";
+const char *defaultLoadPath = "data/4/";
 
 bool isDirectoryExist(const char *directory){
 	int returnvalue;
