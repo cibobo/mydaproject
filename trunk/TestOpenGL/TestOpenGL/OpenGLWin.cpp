@@ -404,13 +404,17 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 					aBalance += 2;
 					break;
 				case 'G':
-					aBalance -= 2;
+					if(aBalance >0){
+						aBalance -= 2;
+					}
 					break;
 				case 'J':
 					aContrast += 1;
 					break;
 				case 'K':
-					aContrast -=1;
+					if(aContrast > 0){
+						aContrast -=1;
+					}
 					break;
 
 				case VK_SHIFT:

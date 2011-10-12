@@ -5,7 +5,7 @@
 #include "TestOpenGL.h"
 
 
-
+#define OFFLINE
 
 #ifndef _MT 
 #define _MT 
@@ -124,7 +124,8 @@ void inputThreadProc(void *param){
 	//Sleep(3000);
 	//LeaveCriticalSection (&crs);
 
-	for(int i=0;i<400;i++){
+#ifdef OFFLINE
+	for(int i=0;i<700;i++){
 		EnterCriticalSection(&frameCrs);
 		loadNormalDataFromFile("distance", i, disData);
 		loadNormalDataFromFile("intensity", i, intData);
@@ -136,28 +137,32 @@ void inputThreadProc(void *param){
 		Sleep(100);
 	}
 
-	//EnterCriticalSection (&crs);
-	//if(!createPMDCon()){
-	//	//exit(1);
-	//	cout<<"input thread running!"<<endl;
-	//	
-	//}
+#else
+	EnterCriticalSection (&crs);
+	createDefaultPMDDataDirectory();
+	if(!createPMDCon()){
+		exit(1);
+		//cout<<"input thread running!"<<endl;
+		
+	}
 	//Sleep(3000);
-	////cout<<"input thread running!!!!"<<endl;
-	//LeaveCriticalSection (&crs);
+	//cout<<"input thread running!!!!"<<endl;
+	LeaveCriticalSection (&crs);
 
-	//while(!bDone){
-	//	hdrImage();
-	//	disData = getPMDDataPointer();
-	//	
-	//	openGLLoadData(disData);
-	//	
-	//	PostMessage(openGLhnd, WM_PAINT, 0, 0);
-	//	cout<<"Input Process with PMD Cam is running!"<<endl;
-	//	Sleep(100);
-	//}
-	//closePMDCon();
-
+	while(!bDone){
+		EnterCriticalSection(&frameCrs);
+		getPMDData(disData, intData, ampData);
+		//disData = getPMDDataPointer();
+		
+		openGLLoadData(disData, intData, ampData);
+		
+		PostMessage(openGLhnd, WM_PAINT, 0, 0);
+		//cout<<"Input Process with PMD Cam is running!"<<endl;
+		LeaveCriticalSection(&frameCrs);
+		Sleep(30);
+	}
+	closePMDCon();
+#endif
 }
 
 

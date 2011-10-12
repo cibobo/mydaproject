@@ -33,7 +33,7 @@ BOOL createPMDCon(){
 		return FALSE;
 	}
 	//create the directory of the new data
-	createDefaultPMDDataDirectory();
+	//createDefaultPMDDataDirectory();
 
 	return TRUE;
 }
@@ -137,6 +137,74 @@ void hdrImage ()
 }
 
 
+void getPMDData(float *disData, float *intData, float *ampData){
+	int res;
+
+	// array to save the data of long integration time
+	float ampDataL[204*204];
+	float disDataL[204*204];
+	float intDataL[204*204];
+
+	/* Take a picture with the short integration time */
+	res = pmdSetIntegrationTime (hnd, 0, SHORT_TIME);
+	checkError (hnd, res);
+
+	res = pmdUpdate (hnd);
+	checkError (hnd, res);
+
+	/* space of 204*204 float */
+	res = pmdGetAmplitudes (hnd, ampData,
+							  sizeof (float) * 204 * 204);
+	checkError (hnd, res);
+
+	res = pmdGetDistances (hnd, disData,
+							 sizeof (float) * 204 * 204);
+	checkError (hnd, res);
+
+	res = pmdGetIntensities(hnd, intData,
+							 sizeof (float) * 204 * 204);
+	checkError (hnd, res);
+
+	
+	/* Take a picture with the long integration time */
+	res = pmdSetIntegrationTime (hnd, 0, LONG_TIME);
+	checkError (hnd, res);
+
+	res = pmdUpdate (hnd);
+	checkError (hnd, res);
+
+	res = pmdGetAmplitudes (hnd, ampDataL,
+							  sizeof (float) * 204 * 204);
+	checkError (hnd, res);
+
+	res = pmdGetDistances (hnd, disDataL,
+								  sizeof (float) * 204 * 204);
+	checkError (hnd, res);
+
+	res = pmdGetIntensities (hnd, intDataL, 
+								  sizeof (float) * 204 * 204);
+	checkError (hnd, res);
+
+	/* 
+	 * Check every pixel: If the amplitude is too low, use
+	 * the long measurement, otherwise keep the short one 
+	 */
+	for (unsigned i = 0; i < 204 * 204; ++i)
+	{
+	  if (ampData[i] < AMPL_THRESHOLD)
+		{
+		  ampData[i] = ampDataL[i];
+		  disData[i] = disDataL[i];
+		  intData[i] = intDataL[i];
+		  //float temp = distance[0][i] + distance[1][i];
+		  //distance[0][i] = temp/2;
+		}
+	}
+	saveNormalDataToFile("distance", frameCount, disData);
+	saveNormalDataToFile("amplitude", frameCount, ampData);
+	saveNormalDataToFile("intensity", frameCount, intData);
+	frameCount++;
+}
 
 float* getPMDDataPointer(){
 	return ptrPMDData;
