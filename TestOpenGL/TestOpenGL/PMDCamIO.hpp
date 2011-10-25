@@ -20,3 +20,5 @@ void getPMDData(float *disData, float *intData, float *ampData);
 float* getPMDDataPointer();
 
 void savePMDDataToFile(const char *path, float *data);
+
+void setIsDataSaved(bool isSaved);

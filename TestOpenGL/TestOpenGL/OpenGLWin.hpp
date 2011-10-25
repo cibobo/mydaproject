@@ -5,7 +5,7 @@
 #include <GL/glaux.h>
 #include <stdio.h>
 
-#include "glut.h"
+#include "glut/glut.h"
 
 #include "MyDataIO.hpp"
 
@@ -14,15 +14,40 @@
 */
 struct OpenGLWinUI
 {
-	float fMouseMoveLBX;
+	//float fMouseMoveLBX;
 
-	float fMouseMoveLBY;
+	//float fMouseMoveLBY;
 
-	float fMouseMoveRBX;
+	//float fMouseMoveRBX;
 
-	float fMouseMoveRBY;
+	//float fMouseMoveRBY;
 
+	// Mouse Wheel
 	float fMouseWheel;
+	// Mouse Position
+	float fMousePosX;
+	float fMousePosY;
+	float fMousePosOldX;
+	float fMousePosOldY;
+
+	// Declared static (no need for object reference
+	float X;        // Translate screen to x direction (left or right)
+	float Y;        // Translate screen to y direction (up or down)
+	float Z;        // Translate screen to z direction (zoom in or out)
+	float rotX;    // Rotate screen on x axis 
+	float rotY;    // Rotate screen on y axis
+	float rotZ;    // Rotate screen on z axis
+
+	float rotLx;   // Translate screen by using the glulookAt function 
+				   // (left or right)
+	float rotLy;   // Translate screen by using the glulookAt function 
+				   // (up or down)
+	float rotLz;   // Translate screen by using the glulookAt function 
+				   // (zoom in or out)
+
+	// The Width and Height of the Window
+	int width;
+	int height;
 
 	//int iKeyState;
 
@@ -49,7 +74,9 @@ struct OpenGLWinUI
 	//bool iKeyPressedNumPadInsert;
 };
 
-void display();
+void display(OpenGLWinUI *pOpenGLWinUI);
+
+void display(OpenGLWinUI *pOpenGLWinUI, float *disData, float *intData, float *ampData);
 
 void openGLLoadData(int index);
 

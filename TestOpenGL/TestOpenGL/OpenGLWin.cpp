@@ -5,34 +5,33 @@
 #define DATA_SIZE 204;
 using namespace std;
 
+DWORD tlsIndex = 1001;
 
-float glDisData[204*204];
-float *pglDisData;
-
-float glIntData[204*204];
-float *pglIntData;
-
-float glAmpData[204*204];
-float *pglAmpData;
+//float glDisData[204*204];
+//float *pglDisData;
+//
+//float glIntData[204*204];
+//float *pglIntData;
+//
+//float glAmpData[204*204];
+//float *pglAmpData;
 
 // Declared static (no need for object reference
-static float X = 0.0f;        // Translate screen to x direction (left or right)
-static float Y = 0.0f;        // Translate screen to y direction (up or down)
-static float Z = 2.0f;        // Translate screen to z direction (zoom in or out)
-static float rotX = 0.0f;    // Rotate screen on x axis 
-static float rotY = 0.0f;    // Rotate screen on y axis
-static float rotZ = 0.0f;    // Rotate screen on z axis
+//static float X = 0.0f;        // Translate screen to x direction (left or right)
+//static float Y = 0.0f;        // Translate screen to y direction (up or down)
+//static float Z = 2.0f;        // Translate screen to z direction (zoom in or out)
+//static float rotX = 0.0f;    // Rotate screen on x axis 
+//static float rotY = 0.0f;    // Rotate screen on y axis
+//static float rotZ = 0.0f;    // Rotate screen on z axis
+//
+//static float rotLx = 0.0f;   // Translate screen by using the glulookAt function 
+//                             // (left or right)
+//static float rotLy = 0.0f;   // Translate screen by using the glulookAt function 
+//                             // (up or down)
+//static float rotLz = 5.0f;   // Translate screen by using the glulookAt function 
+//                                     // (zoom in or out)
 
-static float rotLx = 0.0f;   // Translate screen by using the glulookAt function 
-                             // (left or right)
-static float rotLy = 0.0f;   // Translate screen by using the glulookAt function 
-                             // (up or down)
-static float rotLz = 5.0f;   // Translate screen by using the glulookAt function 
-                                     // (zoom in or out)
 
-// The Width and Height of the Window
-int width;
-int height;
 
 static float gContrast = 3200;
 static float gBalance = 5000;
@@ -40,8 +39,62 @@ static float gBalance = 5000;
 static float aContrast = 12;
 static float aBalance = 250;
 
-void display(){    
+/*
+ *
+ */
+void display(OpenGLWinUI *pOpenGLWinUI){    
 	  
+	// Clear the Color Buffer and Depth Buffer
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glLoadIdentity();
+
+	//set the view point
+	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	glPushMatrix();   // It is important to push the Matrix before 
+                                 
+	// calling glRotatef and glTranslatef
+	glRotatef(pOpenGLWinUI->rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
+    glRotatef(pOpenGLWinUI->rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
+    glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
+
+	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
+	
+	glBegin(GL_POLYGON);
+		glColor3f(0.5f,0.0f,0.0f);
+		glVertex3f(0.0f, 1.0f, 0.0f);
+		//glVertex3f(0.86f, 0.0f, 0.5f);
+		//glVertex3f(-0.86f, 0.0f, 0.5f);
+
+		glColor3f(0.0f,0.5f,0.0f);
+		//glVertex3f(0.0f, 1.0f, 0.0f);
+		glVertex3f(0.86f, 0.0f, 0.5f);
+		//glVertex3f(0.0f, 0.0f, -1.0f);
+
+		glColor3f(0.0f,0.0f,0.5f);
+		//glVertex3f(0.0f, 1.0f, 0.0f);
+		glVertex3f(-0.86f, 0.0f, 0.5f);
+		//glVertex3f(0.0f, 0.0f, -1.0f);
+
+		glColor3f(1.0f,0.5f,0.5f);
+		glVertex3f(0.0f, 0.0f, -1.0f);
+		//glVertex3f(0.86f, 0.0f, 0.5f);
+		//glVertex3f(-0.86f, 0.0f, 0.5f);
+	glEnd();
+	glPopMatrix();  
+	
+	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
+    //glutPostRedisplay();           // Redraw the scene
+
+	//glutSwapBuffers();
+	glFlush();
+}
+
+
+void display(OpenGLWinUI *pOpenGLWinUI, float *disData, float *intData, float *ampData){    
+	  
+	int height = pOpenGLWinUI->height;
+	int width = pOpenGLWinUI->width;
+
 	// Clear the Color Buffer and Depth Buffer
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
@@ -49,18 +102,15 @@ void display(){
 	glViewport(0, 0, height, height);
 
 	//set the view point
-	gluLookAt(rotLx, rotLy, rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 	glPushMatrix();   // It is important to push the Matrix before 
                                  
 	// calling glRotatef and glTranslatef
-	glRotatef(rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
-    glRotatef(rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
-    glRotatef(rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
+	glRotatef(pOpenGLWinUI->rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
+    glRotatef(pOpenGLWinUI->rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
+    glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
 
-	//set the origin depth
-	//Z = data[204*102];
-	//Z = 2;
-	glTranslatef(X, Y, Z);
+	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
 	glColor3f(1.0f,1.0f,1.0f);
  
 	float factor = 2.04/204;
@@ -68,18 +118,14 @@ void display(){
 	glBegin(GL_POINTS);
 	for(int i=0;i<204;i++) {
 		for(int j=0;j<204;j++) {
-			glVertex3f((i-102)*factor, (j-102)*factor, -pglDisData[i*204+j]);
+			glVertex3f((i-102)*factor, (j-102)*factor, -disData[i*204+j]);
 		}
 	}
 			
 	glEnd();    
 
-
-	
-
     glPopMatrix();                   // Don't forget to pop the Matrix
 
-	
 	// Grayscale View Port
 	glLoadIdentity();
 	glViewport(height, height/2, (width-height), height/2.0);
@@ -90,7 +136,7 @@ void display(){
 	glBegin(GL_POINTS);
 	for(int i=0;i<204;i++) {
 		for(int j=0;j<204;j++) {
-			grayValue = (pglIntData[i*204+j]-gBalance)/gContrast;
+			grayValue = (intData[i*204+j]-gBalance)/gContrast;
 			if(grayValue>1){
 				grayValue = 1;
 			}
@@ -116,7 +162,7 @@ void display(){
 	for(int i=0;i<204;i++) {
 		for(int j=0;j<204;j++) {
 			//using HSV color mode. some variables has been omited
-			float h = aBalance-pglAmpData[i*204+j]/aContrast;
+			float h = aBalance-ampData[i*204+j]/aContrast;
 			//if(h<0) h=0;
 			int hi = int(h/60);
 			float f = h/60-hi;
@@ -155,16 +201,15 @@ void display(){
 
 
 
-
 /**
  * load data with a pointer of float array
  */
-void openGLLoadData(float *disData, float *intData, float *ampData){
-	pglDisData = disData;
-	pglIntData = intData;
-	pglAmpData = ampData;
-	//PostMessage(hWnd, WM_PAINT, 0, 0);
-}
+//void openGLLoadData(float *disData, float *intData, float *ampData){
+//	pglDisData = disData;
+//	pglIntData = intData;
+//	pglAmpData = ampData;
+//	//PostMessage(hWnd, WM_PAINT, 0, 0);
+//}
 
 /*
 
@@ -183,15 +228,15 @@ int InitGL()
                                             // show the first drawn
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
-	if(pglDisData ==  NULL){
-		pglDisData = glDisData;
-	}
-	if(pglIntData ==  NULL){
-		pglIntData = glIntData;
-	}
-	if(pglAmpData ==  NULL){
-		pglAmpData = glAmpData;
-	}
+	//if(pglDisData ==  NULL){
+	//	pglDisData = glDisData;
+	//}
+	//if(pglIntData ==  NULL){
+	//	pglIntData = glIntData;
+	//}
+	//if(pglAmpData ==  NULL){
+	//	pglAmpData = glAmpData;
+	//}
 
 	//char *ch = "data/3/amplitude/0000.dat";
 	//if(!loadData<float>(ch, pglAmpData, 204*204)){
@@ -225,20 +270,21 @@ GLvoid ReSizeGLScene(GLsizei iWidth, GLsizei iHeight)
 
 	glLoadIdentity();
 
-	width = iWidth;
-	height = iHeight;
+	//width = iWidth;
+	//height = iHeight;
 
 }
 
 
 LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){     
-	static PAINTSTRUCT ps;
+	PAINTSTRUCT ps;
 
-	static OpenGLWinUI *pOpenGLWinUI;
-	static float fMousePosX;
-	static float fMousePosY;
-	static float fMousePosOldX;
-	static float fMousePosOldY;
+	OpenGLWinUI *pOpenGLWinUI;
+	pOpenGLWinUI = (OpenGLWinUI *)TlsGetValue(tlsIndex);
+	//static float fMousePosX;
+	//static float fMousePosY;
+	//static float fMousePosOldX;
+	//static float fMousePosOldY;
 
 	/*
 	 * isZChanged controlled by key Shift, which will be set true if the Shift key pressed and false if the key released
@@ -251,29 +297,43 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 			pOpenGLWinUI = (OpenGLWinUI*)((CREATESTRUCT*)lParam)->lpCreateParams;
 
 			/* Init */
-			pOpenGLWinUI->fMouseMoveLBX = 0.0f;
-			pOpenGLWinUI->fMouseMoveLBY = 0.0f;
+			pOpenGLWinUI->fMousePosX = 0.0f;
+			pOpenGLWinUI->fMousePosY = 0.0f;
 			
-			pOpenGLWinUI->fMouseMoveRBX = 0.0f;
-			pOpenGLWinUI->fMouseMoveRBY = 0.0f;
+			pOpenGLWinUI->fMousePosOldX = 0.0f;
+			pOpenGLWinUI->fMousePosOldY = 0.0f;
 
 			pOpenGLWinUI->fMouseWheel = 0.0f;
+
+			// Declared static (no need for object reference
+			pOpenGLWinUI->X = 0.0f;        
+			pOpenGLWinUI->Y = 0.0f;        
+			pOpenGLWinUI->Z = 2.0f;       
+
+			pOpenGLWinUI->rotX = 0.0f;    
+			pOpenGLWinUI->rotY = 0.0f;    
+			pOpenGLWinUI->rotZ = 0.0f;    
+
+			pOpenGLWinUI->rotLx = 0.0f;                           
+			pOpenGLWinUI->rotLy = 0.0f;  
+			pOpenGLWinUI->rotLz = 5.0f;   
+                                    
 
 		return TRUE;
 
 		/* Controlle Message for Mouse */
 		case WM_LBUTTONDOWN:
 		
-			fMousePosOldX = GET_X_LPARAM(lParam);
-			fMousePosOldY = GET_Y_LPARAM(lParam);
+			pOpenGLWinUI->fMousePosOldX = GET_X_LPARAM(lParam);
+			pOpenGLWinUI->fMousePosOldY = GET_Y_LPARAM(lParam);
 
 		return TRUE;						
 		
 
 		case WM_RBUTTONDOWN:
 		
-			fMousePosOldX = GET_X_LPARAM(lParam);
-			fMousePosOldY = GET_Y_LPARAM(lParam);
+			pOpenGLWinUI->fMousePosOldX = GET_X_LPARAM(lParam);
+			pOpenGLWinUI->fMousePosOldY = GET_Y_LPARAM(lParam);
 
 		return TRUE;						
 
@@ -282,41 +342,35 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 		
 			if(wParam == MK_LBUTTON)
 			{
-				fMousePosX = GET_X_LPARAM(lParam);
-				fMousePosY = GET_Y_LPARAM(lParam);
-
-				pOpenGLWinUI->fMouseMoveLBX -= (fMousePosX - fMousePosOldX);
-				pOpenGLWinUI->fMouseMoveLBY -= (fMousePosY - fMousePosOldY);
+				pOpenGLWinUI->fMousePosX = GET_X_LPARAM(lParam);
+				pOpenGLWinUI->fMousePosY = GET_Y_LPARAM(lParam);
 
 				/*
 				 * Horizontal displacement displayed the rotation around Z axis and 
 				 * Vertical displacement displayed the rotation around X axis
 				 */
-				if(rotLz!=0){
-					float angleZ = (fMousePosX - fMousePosOldX)/rotLz;
-					float angleX = (fMousePosY - fMousePosOldY)/rotLz;
+				if(pOpenGLWinUI->rotLz!=0){
+					float angleZ = (pOpenGLWinUI->fMousePosX - pOpenGLWinUI->fMousePosOldX)/pOpenGLWinUI->rotLz;
+					float angleX = (pOpenGLWinUI->fMousePosY - pOpenGLWinUI->fMousePosOldY)/pOpenGLWinUI->rotLz;
 					//calculate the Radian
-					rotZ +=angleZ/1;
-					rotX +=angleX/1;
+					pOpenGLWinUI->rotZ +=angleZ/1;
+					pOpenGLWinUI->rotX +=angleX/1;
 					//cout<<(fMousePosY - fMousePosOldY)<<"   "<<angleZ<<endl;
 				}
 			
-				fMousePosOldX = fMousePosX;
-				fMousePosOldY = fMousePosY;
+				pOpenGLWinUI->fMousePosOldX = pOpenGLWinUI->fMousePosX;
+				pOpenGLWinUI->fMousePosOldY = pOpenGLWinUI->fMousePosY;
 
 				PostMessage(hWnd, WM_PAINT, 0, 0);	
 			}
 
 			if(wParam == MK_RBUTTON)
 			{
-				fMousePosX = GET_X_LPARAM(lParam);
-				fMousePosY = GET_Y_LPARAM(lParam);
-
-				pOpenGLWinUI->fMouseMoveRBX -= (fMousePosX - fMousePosOldX);
-				pOpenGLWinUI->fMouseMoveRBY -= (fMousePosY - fMousePosOldY);
+				pOpenGLWinUI->fMousePosX = GET_X_LPARAM(lParam);
+				pOpenGLWinUI->fMousePosY = GET_Y_LPARAM(lParam);
 			
-				fMousePosOldX = fMousePosX;
-				fMousePosOldY = fMousePosY;
+				pOpenGLWinUI->fMousePosOldX = pOpenGLWinUI->fMousePosX;
+				pOpenGLWinUI->fMousePosOldY = pOpenGLWinUI->fMousePosY;
 			}
 		
 		
@@ -326,11 +380,11 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 		case WM_LBUTTONDBLCLK:
 		
 			/* Init */
-			pOpenGLWinUI->fMouseMoveLBX = 0.0f;
-			pOpenGLWinUI->fMouseMoveLBY = 0.0f;
+			pOpenGLWinUI->fMousePosX = 0.0f;
+			pOpenGLWinUI->fMousePosY = 0.0f;
 			
-			pOpenGLWinUI->fMouseMoveRBX = 0.0f;
-			pOpenGLWinUI->fMouseMoveRBY = 0.0f;
+			pOpenGLWinUI->fMousePosOldX = 0.0f;
+			pOpenGLWinUI->fMousePosOldY = 0.0f;
 
 			pOpenGLWinUI->fMouseWheel = 0.0f;
 
@@ -342,18 +396,18 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 			if(isZChanged){
 				if((int)wParam > 0){
 					pOpenGLWinUI->fMouseWheel += 1.0f;
-					Z += 0.3;
+					pOpenGLWinUI->Z += 0.3;
 				} else {
 					pOpenGLWinUI->fMouseWheel -= 1.0f;
-					Z -= 0.3;
+					pOpenGLWinUI->Z -= 0.3;
 				}
 			} else {
 				if((int)wParam > 0){
 					pOpenGLWinUI->fMouseWheel += 1.0f;
-					rotLz += 0.3;
+					pOpenGLWinUI->rotLz += 0.3;
 				} else {
 					pOpenGLWinUI->fMouseWheel -= 1.0f;
-					rotLz -= 0.3;
+					pOpenGLWinUI->rotLz -= 0.3;
 				}
 			}
 		PostMessage(hWnd, WM_PAINT, 0, 0);	
@@ -366,22 +420,22 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 			switch(wParam)
 			{
 				case 120:    // x             // Rotates screen on x axis 
-                    rotX -= 2.0f;
+                    pOpenGLWinUI->rotX -= 2.0f;
                     break;
                 case 88:    // X            // Opposite way 
-                    rotX += 2.0f;
+                    pOpenGLWinUI->rotX += 2.0f;
                     break;
                 case 121:    // y            // Rotates screen on y axis
-                    rotY -= 2.0f;
+                    pOpenGLWinUI->rotY -= 2.0f;
                     break;
                 case 89:    // Y            // Opposite way
-                    rotY += 2.0f;
+                    pOpenGLWinUI->rotY += 2.0f;
                     break;
                 case 122:    // z            // Rotates screen on z axis
-                    rotZ -= 2.0f;
+                    pOpenGLWinUI->rotZ -= 2.0f;
                     break;
                 case 90:    // Z            // Opposite way
-                    rotZ += 2.0f;
+                    pOpenGLWinUI->rotZ += 2.0f;
                     break;
 
 				// the input value of case must be a capital letter 
@@ -437,13 +491,15 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 			return 0;
 
 		case WM_PAINT:	
-			display();
 			BeginPaint(hWnd, &ps);	
+			//display(pOpenGLWinUI);
 			EndPaint(hWnd, &ps);	
 			return 0;  
 
 		case WM_SIZE:	
-			ReSizeGLScene(LOWORD(lParam), HIWORD(lParam));	
+			ReSizeGLScene(LOWORD(lParam), HIWORD(lParam));
+			pOpenGLWinUI->width = LOWORD(lParam);
+			pOpenGLWinUI->height = HIWORD(lParam);
 			PostMessage(hWnd, WM_PAINT, 0, 0);	
 			return 0;
 
@@ -464,8 +520,8 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 HWND CreateOpenGLWindow(char* title, int x, int y, int iWidth, int iHeight, 		   
 					   BYTE type, DWORD flags, OpenGLWinUI *pOpenGLWinUI){    
 
-	width = iWidth;
-	height = iHeight;
+	pOpenGLWinUI->width = iWidth;
+	pOpenGLWinUI->height = iHeight;
 
 	GLuint         PixelFormat;    
 	//HDC         hDC;    

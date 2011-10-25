@@ -4,10 +4,10 @@
 using namespace std;
 
 //the path of the saved Data
-const char *defaultSavePath = "data/4/";
+const char *defaultSavePath = "data/7/";
 
 //default load path
-const char *defaultLoadPath = "data/4/";
+const char *defaultLoadPath = "data/7/";
 
 bool isDirectoryExist(const char *directory){
 	int returnvalue;
@@ -126,5 +126,26 @@ void loadNormalDataFromFile(const char *type,int frameCount, float *data){
 	} else {
 		cout<<"data "<<frameCount<<" successful load!"<<endl;
 	}
+}
+
+unsigned char * loadNormalDataForAR(int frameCount){
+	float *temp = new float[204*204];
+	loadNormalDataFromFile("intensity", frameCount, temp);
+	int balance = 4900;
+	int contrast = 35;
+	unsigned char data[166464];
+	for(int i=0;i<204*204;i++){
+		float gray = (temp[i]-balance)/contrast;
+		if(gray>100){
+			gray = 255;
+		/*} else if(gray <129){
+			gray = 0;*/
+		} else gray = 0;
+	
+		data[4*i] = data[4*i+1] = data[4*i+2] = int(gray);
+		data[4*i+3] = 0;
+	}
+	delete []temp;
+	return data;
 }
 

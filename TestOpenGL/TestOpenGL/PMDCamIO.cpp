@@ -18,6 +18,8 @@ PMDHandle hnd;
 
 int frameCount = 0;
 
+bool isDataSaved = false;
+
 
 BOOL createPMDCon(){
 	res = pmdOpen (&hnd, "plugin\\camcube0", "", "plugin\\camcubeproc0", "");
@@ -146,7 +148,7 @@ void getPMDData(float *disData, float *intData, float *ampData){
 	float intDataL[204*204];
 
 	/* Take a picture with the short integration time */
-	res = pmdSetIntegrationTime (hnd, 0, SHORT_TIME);
+	res = pmdSetIntegrationTime (hnd, 0, LONG_TIME);
 	checkError (hnd, res);
 
 	res = pmdUpdate (hnd);
@@ -167,45 +169,52 @@ void getPMDData(float *disData, float *intData, float *ampData){
 
 	
 	/* Take a picture with the long integration time */
-	res = pmdSetIntegrationTime (hnd, 0, LONG_TIME);
-	checkError (hnd, res);
+	//res = pmdSetIntegrationTime (hnd, 0, LONG_TIME);
+	//checkError (hnd, res);
 
-	res = pmdUpdate (hnd);
-	checkError (hnd, res);
+	//res = pmdUpdate (hnd);
+	//checkError (hnd, res);
 
-	res = pmdGetAmplitudes (hnd, ampDataL,
-							  sizeof (float) * 204 * 204);
-	checkError (hnd, res);
+	//res = pmdGetAmplitudes (hnd, ampDataL,
+	//						  sizeof (float) * 204 * 204);
+	//checkError (hnd, res);
 
-	res = pmdGetDistances (hnd, disDataL,
-								  sizeof (float) * 204 * 204);
-	checkError (hnd, res);
+	//res = pmdGetDistances (hnd, disDataL,
+	//							  sizeof (float) * 204 * 204);
+	//checkError (hnd, res);
 
-	res = pmdGetIntensities (hnd, intDataL, 
-								  sizeof (float) * 204 * 204);
-	checkError (hnd, res);
+	//res = pmdGetIntensities (hnd, intDataL, 
+	//							  sizeof (float) * 204 * 204);
+	//checkError (hnd, res);
 
 	/* 
 	 * Check every pixel: If the amplitude is too low, use
 	 * the long measurement, otherwise keep the short one 
 	 */
-	for (unsigned i = 0; i < 204 * 204; ++i)
-	{
-	  if (ampData[i] < AMPL_THRESHOLD)
-		{
-		  ampData[i] = ampDataL[i];
-		  disData[i] = disDataL[i];
-		  intData[i] = intDataL[i];
-		  //float temp = distance[0][i] + distance[1][i];
-		  //distance[0][i] = temp/2;
-		}
+	//for (unsigned i = 0; i < 204 * 204; ++i)
+	//{
+	//  if (ampData[i] < AMPL_THRESHOLD)
+	//	{
+	//	  ampData[i] = ampDataL[i];
+	//	  disData[i] = disDataL[i];
+	//	  intData[i] = intDataL[i];
+	//	  //float temp = distance[0][i] + distance[1][i];
+	//	  //distance[0][i] = temp/2;
+	//	}
+	//}
+
+	if(isDataSaved){
+		saveNormalDataToFile("distance", frameCount, disData);
+		saveNormalDataToFile("amplitude", frameCount, ampData);
+		saveNormalDataToFile("intensity", frameCount, intData);
 	}
-	saveNormalDataToFile("distance", frameCount, disData);
-	saveNormalDataToFile("amplitude", frameCount, ampData);
-	saveNormalDataToFile("intensity", frameCount, intData);
 	frameCount++;
 }
 
+void setIsDataSaved(bool isSaved){
+	isDataSaved = isSaved;
+}
+	
 float* getPMDDataPointer(){
 	return ptrPMDData;
 }
