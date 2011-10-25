@@ -13,9 +13,7 @@
 
 const int DATA_SIZE = 204*204;
 
-// Das einzige Anwendungsobjekt
-
-CWinApp theApp;
+DWORD ThreadIndex = 1001;
 
 using namespace std;
 
@@ -50,6 +48,8 @@ void openGLThreadPorc( void *param )
 	//BOOL done = FALSE;
 	static OpenGLWinUI *pOpenGLWinUI = new OpenGLWinUI;
 
+	TlsSetValue(ThreadIndex, pOpenGLWinUI);
+
 	EnterCriticalSection (&crs);
 
 	//if(!CreateOpenGLWindow("minimal", 0, 0, 800, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI)){
@@ -61,7 +61,8 @@ void openGLThreadPorc( void *param )
 
 	LeaveCriticalSection (&crs);
 
-
+	// call the display function and send the data direct with the pointer of array as parameter
+	display(pOpenGLWinUI, disData, intData, ampData);
 
 	//parameter to mark, whether the input process is in pause
 	bool isPause = false;
@@ -85,10 +86,14 @@ void openGLThreadPorc( void *param )
 			} else{
 				TranslateMessage(&msg);
 				DispatchMessage(&msg);
+				//display(pOpenGLWinUI, disData, intData, ampData);
 			}
 		}
+		display(pOpenGLWinUI, disData, intData, ampData);
 			
 	}
+
+	delete pOpenGLWinUI;
 
 		//SetTimer(hWnd,101,50,NULL);
 
@@ -118,6 +123,47 @@ void openGLThreadPorc( void *param )
 		//DestroyWindow(hWnd); 
 } 
 
+
+void arToolKitThreadProc(void *param){
+	MSG msg;
+	static OpenGLWinUI *pARToolKitUI = new OpenGLWinUI;
+
+	TlsSetValue(ThreadIndex, pARToolKitUI);
+
+	EnterCriticalSection (&crs);
+
+	//if(!CreateOpenGLWindow("minimal", 0, 0, 800, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI)){
+	if((openGLhnd=CreateOpenGLWindow("ARToolKit", 500, 0, 400, 400, PFD_TYPE_RGBA, 0, pARToolKitUI))==NULL){
+		exit(0);
+	}
+
+	cout<<"Thread OpenGL running"<<endl;
+
+	LeaveCriticalSection (&crs);
+
+	// call the display function and send the data direct with the pointer of array as parameter
+	display(pARToolKitUI);
+
+	//parameter to mark, whether the input process is in pause
+	bool isPause = false;
+
+	while(!bDone){
+		if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
+		//if(GetMessage(&msg, openGLhnd, 0, 0)){
+			if(msg.message==WM_QUIT){
+				bDone = TRUE;
+			} else{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+				display(pARToolKitUI);
+			}
+		}
+			
+	}
+
+	delete pARToolKitUI;
+}
+
 void inputThreadProc(void *param){
 	//EnterCriticalSection (&crs);
 	//cout<<"input thread running!"<<endl;
@@ -130,7 +176,7 @@ void inputThreadProc(void *param){
 		loadNormalDataFromFile("distance", i, disData);
 		loadNormalDataFromFile("intensity", i, intData);
 		loadNormalDataFromFile("amplitude", i, ampData);
-		openGLLoadData(disData, intData, ampData);	
+		//openGLLoadData(disData, intData, ampData);	
 		//updata the OpenGL Window
 		PostMessage(openGLhnd, WM_PAINT, 0, 0);	
 		LeaveCriticalSection(&frameCrs);
@@ -140,6 +186,7 @@ void inputThreadProc(void *param){
 #else
 	EnterCriticalSection (&crs);
 	createDefaultPMDDataDirectory();
+	setIsDataSaved(true);
 	if(!createPMDCon()){
 		exit(1);
 		//cout<<"input thread running!"<<endl;
@@ -152,14 +199,15 @@ void inputThreadProc(void *param){
 	while(!bDone){
 		EnterCriticalSection(&frameCrs);
 		getPMDData(disData, intData, ampData);
+		setARData(intData);
 		//disData = getPMDDataPointer();
 		
-		openGLLoadData(disData, intData, ampData);
+		//openGLLoadData(disData, intData, ampData);
 		
-		PostMessage(openGLhnd, WM_PAINT, 0, 0);
+		//PostMessage(openGLhnd, WM_PAINT, 0, 0);
 		//cout<<"Input Process with PMD Cam is running!"<<endl;
 		LeaveCriticalSection(&frameCrs);
-		Sleep(30);
+		Sleep(100);
 	}
 	closePMDCon();
 #endif
@@ -201,23 +249,51 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			cout<<"Failed to create openGL thread"<<endl;
 		}
 
-		//static OpenGLWinUI *pOpenGLWinUI2 = new OpenGLWinUI;
-		//if((grayScalehnd=CreateOpenGLWindow("Garyscale Window", 0, 0, 400, 300, PFD_TYPE_RGBA, 0, pOpenGLWinUI2))==NULL){
-		//	exit(0);
+		// Start ARToolKit Window Thread 
+		//if(_beginthread (arToolKitThreadProc, 0, NULL)==-1){
+		//	cout<<"Failed to create ARToolKit thread"<<endl;
 		//}
-		//
-		//MSG msg;
-		//while(!bDone){
-		//	if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
-		//	//if(GetMessage(&msg, grayScalehnd, 0, 0)){
-		//		if(msg.message==WM_QUIT){
-		//			bDone = TRUE;
-		//		} else {
-		//			TranslateMessage(&msg);
-		//			DispatchMessage(&msg);
-		//		}
-		//	}
-		//		
+
+		// Draw for ARToolKit
+		glutInit(&argc, argv);
+
+		ARParam  wparam;
+		ARParam  cparam;
+		char     *cparam_name    = "data/AR/camera_para.dat";
+		char     *patt_name      = "data/AR/patt.sample1";
+		int		  patt_id;
+
+		//* set the initial camera parameters */
+		if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
+			printf("Camera parameter load error !!\n");
+			exit(0);
+		}
+
+		arParamChangeSize( &wparam, 204, 204, &cparam );
+		arInitCparam( &cparam );
+		printf("*** Camera Parameter ***\n");
+		arParamDisp( &cparam );
+
+		if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
+			printf("pattern load error !!\n");
+			exit(0);
+		}
+
+		setPattID(patt_id);
+
+		//* open the graphics window */
+		argInit( &cparam, 1.0, 0, 0, 0, 0 );
+
+		EnterCriticalSection (&crs);
+
+		arVideoCapStart();
+		//argMainLoop( NULL, keyEvent, mainLoop );
+
+		LeaveCriticalSection (&crs);
+
+		// Start OpenGL Window Thread 
+		//if(_beginthread (mainLoop, 0, NULL)==-1){
+		//	cout<<"Failed to create ARToolKit thread"<<endl;
 		//}
 
 		//Main Thread
@@ -225,7 +301,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		{ 
 			//EnterCriticalSection (&crs);
 			// sleep 3 seonds 
-			::Sleep(3000); 
+			::Sleep(3000);
+
 			printf("main thread running\n"); 
 			//LeaveCriticalSection (&crs);
 		} 
@@ -242,3 +319,4 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 	return nRetCode;
 }
+

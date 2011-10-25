@@ -1,0 +1,171 @@
+#include "stdafx.h"
+#include "ARToolKit.hpp"
+
+using namespace std;
+
+char           *patt_name      = "Data/patt.hiro";
+int				patt_id;
+double          patt_width     = 80.0;
+double          patt_center[2] = {0.0, 0.0};
+double          patt_trans[3][4];
+
+int             xsize, ysize;
+int             thresh = 100;
+int             count = 0;
+
+void setPattID(int pattID){
+	patt_id = pattID;
+}
+
+void setARData(float *temp){
+	//int balance = 4900;
+	//int contrast = 38;
+	//unsigned char data[166464];
+	//for(int i=0;i<204*204;i++){
+	//	float gray = (temp[i]-balance)/contrast;
+	//	if(gray>255){
+	//		gray = 255;
+	//	} else if(gray <0){
+	//		gray = 0;
+	//	}
+
+	//	data[4*i] = data[4*i+1] = data[4*i+2] = int(gray);
+	//	data[4*i+3] = 0;
+	//}
+	//dataPtr = data;
+}
+
+void keyEvent(unsigned char key, int x, int y)
+{
+    /* quit if the ESC key is pressed */
+    if( key == 0x1b ) {
+        printf("*** %f (frame/sec)\n", (double)count/arUtilTimer());
+        cleanup();
+        exit(0);
+    }
+}
+
+/* main loop */
+void mainLoop(void)
+{
+    ARUint8         *dataPtr;
+    ARMarkerInfo    *marker_info;
+    int             marker_num;
+    int             j, k;
+
+    /* grab a vide frame */
+    //if( (dataPtr = (ARUint8 *)arVideoGetImage()) == NULL ) {
+    //    arUtilSleep(2);
+    //    return;
+    //}
+	//saveARDataToFile(count,dataPtr);
+	if( count == 0 ) {
+		arUtilTimerReset();
+	}
+
+	//if( count == 10) {
+	//	long ii = 0;
+	//	unsigned char c = dataPtr[0];
+	//	//cout<<"c is: "<<c<<endl;
+	//	while(ii<76850){
+	//		ii++;
+	//		if(ii>=76780){
+	//			c = dataPtr[ii];
+	//			cout<<ii<<" c is: "<<int(c)<<endl;
+	//		}
+	//	}
+	//	cout<<"Size of array: "<<ii<<endl;
+	//}
+
+
+	if(count < 374){
+		if((dataPtr = loadNormalDataForAR(count)) == NULL){
+			arUtilSleep(2);
+			return;
+		}
+	
+	} else {
+		return;
+	}
+
+	//dataPtr = loadARDataFromFile(count);
+		Sleep(100);
+    count++;
+
+    argDrawMode2D();
+    argDispImage( dataPtr, 0,0 );
+
+    //* detect the markers in the video frame */
+    if( arDetectMarker(dataPtr, thresh, &marker_info, &marker_num) < 0 ) {
+        cleanup();
+        exit(0);
+    }
+
+    arVideoCapNext();
+
+    //* check for object visibility */
+    k = -1;
+    for( j = 0; j < marker_num; j++ ) {
+        if( patt_id == marker_info[j].id ) {
+            if( k == -1 ) k = j;
+            else if( marker_info[k].cf < marker_info[j].cf ) k = j;
+        }
+    }
+    if( k == -1 ) {
+        argSwapBuffers();
+        return;
+    }
+
+    //* get the transformation between the marker and the real camera */
+    arGetTransMat(&marker_info[k], patt_center, patt_width, patt_trans);
+
+    draw();
+
+    argSwapBuffers();
+}
+
+void cleanup(void)
+{
+    arVideoCapStop();
+    arVideoClose();
+    argCleanup();
+}
+
+void draw( void )
+{
+    double    gl_para[16];
+    GLfloat   mat_ambient[]     = {0.0, 0.0, 1.0, 1.0};
+    GLfloat   mat_flash[]       = {0.0, 0.0, 1.0, 1.0};
+    GLfloat   mat_flash_shiny[] = {50.0};
+    GLfloat   light_position[]  = {100.0,-200.0,200.0,0.0};
+    GLfloat   ambi[]            = {0.1, 0.1, 0.1, 0.1};
+    GLfloat   lightZeroColor[]  = {0.9, 0.9, 0.9, 0.1};
+    
+    argDrawMode3D();
+    argDraw3dCamera( 0, 0 );
+    glClearDepth( 1.0 );
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+    
+    /* load the camera transformation matrix */
+    argConvGlpara(patt_trans, gl_para);
+    glMatrixMode(GL_MODELVIEW);
+    glLoadMatrixd( gl_para );
+
+    glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, ambi);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightZeroColor);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_flash);
+    glMaterialfv(GL_FRONT, GL_SHININESS, mat_flash_shiny);	
+    glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+    glMatrixMode(GL_MODELVIEW);
+    glTranslatef( 0.0, 0.0, 25.0 );
+    glutSolidCube(50.0);
+    glDisable( GL_LIGHTING );
+
+    glDisable( GL_DEPTH_TEST );
+}
+
