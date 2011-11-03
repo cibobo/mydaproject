@@ -29,4 +29,8 @@ void mainLoop(void);
 
 void cleanup(void);
 
+void draw2(float *temp, int patt_id);
+
+void drawFrame(unsigned char *intData);
+
 void draw( void );
