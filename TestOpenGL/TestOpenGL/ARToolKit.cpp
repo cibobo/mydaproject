@@ -3,6 +3,8 @@
 
 using namespace std;
 
+#define VAR_PARAM
+
 char           *patt_name      = "Data/patt.hiro";
 int				patt_id;
 double          patt_width     = 80.0;
@@ -13,6 +15,10 @@ int             xsize, ysize;
 int             thresh = 100;
 int             count = 0;
 ARUint8         *dataPtr;
+
+
+//test data
+int kCount = 0;
 
 void setPattID(int pattID){
 	patt_id = pattID;
@@ -36,6 +42,22 @@ void setARData(float *temp){
 		data[i] = gray;
 	}
 	dataPtr = data;
+}
+
+void thresholding(int param){
+	CvSize size;
+	size.height=204;
+	size.width=204;
+	IplImage* src = cvCreateImage(size, IPL_DEPTH_8U, 1);
+	IplImage* dst = cvCreateImage(size, IPL_DEPTH_8U, 1);
+	//cout<<"the size of imageData is: "<<sizeof(src->imageData)<<endl;
+	src->imageData = (char*)dataPtr;
+
+	cvThreshold(src, dst, param, param, CV_THRESH_TOZERO);
+	dataPtr = (ARUint8*)dst->imageData;
+	//dst->imageData = NULL;
+	cvReleaseImage(&src);
+	//cvReleaseImage(&dst);
 }
 
 void keyEvent(unsigned char key, int x, int y)
@@ -92,41 +114,67 @@ void mainLoop(void)
 	//}
 
 	//dataPtr = loadARDataFromFile(count);
-		//Sleep(100);
+		Sleep(100);
     count++;
+	drawFrame(dataPtr);
 
-    //argDrawMode2D();
-    //argDispImage( dataPtr, 0,0 );
+	//start a loop to find the best contrast for Tracking
+	int startParam = 100;
+	
+#ifdef VAR_PARAM
+	for(int i=0;i<5;i++){
+		//add the parameter of thredhold 10 everytime
+		thresholding(startParam + 10*i);
+#else
+	thresholding(100);
+#endif
+		//argDrawMode2D();
+		//argDispImage( dataPtr, 0,0 );
 
-    //* detect the markers in the video frame */
-    if( arDetectMarker(dataPtr, thresh, &marker_info, &marker_num) < 0 ) {
-        cleanup();
-        exit(0);
-    }
 
-    arVideoCapNext();
+		//* detect the markers in the video frame */
+		if( arDetectMarker(dataPtr, thresh, &marker_info, &marker_num) < 0 ) {
+			cleanup();
+			exit(0);
+		}
+		//cout<<"find "<<marker_num<<" markers!"<<endl;
+		arVideoCapNext();
+		
 
-    //* check for object visibility */
-    k = -1;
-    for( j = 0; j < marker_num; j++ ) {
-        if( patt_id == marker_info[j].id ) {
-            if( k == -1 ) k = j;
-            else if( marker_info[k].cf < marker_info[j].cf ) k = j;
-        }
-    }
+		//* check for object visibility */
+		k = -1;
+		for( j = 0; j < marker_num; j++ ) {
+			if( patt_id == marker_info[j].id ) {
+				if( k == -1 ) k = j;
+				else if( marker_info[k].cf < marker_info[j].cf ) k = j;
+			}
+		}
+
+		//if there is a marker found, break the loop; else, continue
+#ifdef VAR_PARAM
+		if(k!=-1){
+			kCount++;
+			break; 
+		}
+	}
+#else
+	if(k!=-1) kCount++;
+#endif
     if( k == -1 ) {
         argSwapBuffers();
         return;
-    }
+    } 
+	
+	
 
     //* get the transformation between the marker and the real camera */
     arGetTransMat(&marker_info[k], patt_center, patt_width, patt_trans);
 
-	drawFrame(dataPtr);
     draw();
 
 
     argSwapBuffers();
+	cout<<"kCount = "<<kCount<<endl;
 }
 
 void cleanup(void)
@@ -196,7 +244,7 @@ void drawFrame(unsigned char *intData){
 	
 	float factor = 40.8/204;
 	glPushMatrix();   // It is important to push the Matrix before 
-	glRotatef(3.1416/2, 0.0, 0.0, 1.0);
+	glRotatef(90, 0.0, 0.0, 1.0);
 	glTranslatef(0, 0, 50);
 
 	float grayValue;
@@ -206,7 +254,7 @@ void drawFrame(unsigned char *intData){
 		for(int j=0;j<204;j++) {
 			grayValue = intData[i*204+j]/256.0;
 			glColor3f(grayValue,grayValue,grayValue);
-			glVertex3f((i-102)*factor, (j-102)*factor, 0);
+			glVertex3f((i-102)*factor, -(j-102)*factor, 0);
 		}
 	}
 	//glVertex3f(0,0,-3);

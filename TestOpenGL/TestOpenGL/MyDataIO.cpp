@@ -119,12 +119,12 @@ void loadNormalDataFromFile(const char *type,int frameCount, float *data){
 	fullPath.append(".dat");
 
 	const char *ch = fullPath.data();
-	cout<<"Path: "<<ch<<endl;
+	//cout<<"Path: "<<ch<<endl;
 	if(!loadData<float>(ch, data, 204*204)){
 		cout<<"data "<<frameCount<<" load error!"<<endl;
 		//exit(0);
 	} else {
-		cout<<"data "<<frameCount<<" successful load!"<<endl;
+		//cout<<"data "<<frameCount<<" successful load!"<<endl;
 	}
 }
 

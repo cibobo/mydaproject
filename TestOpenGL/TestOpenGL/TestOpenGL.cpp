@@ -94,33 +94,6 @@ void openGLThreadPorc( void *param )
 	}
 
 	delete pOpenGLWinUI;
-
-		//SetTimer(hWnd,101,50,NULL);
-
-
-	//KillGLWindow();
-
-
-		//HDC hDC;				/* device context */    
-		//HGLRC hRC;				/* opengl context */    
-		//HWND  hWnd;				/* window */    
-		//MSG   msg;				/* message */
-
-		//hWnd = CreateOpenGLWindow("minimal", 0, 0, 256, 256, PFD_TYPE_RGBA, 0, NULL);    
-		//if (hWnd == NULL)	
-		//	exit(1);    
-		//hDC = GetDC(hWnd);    
-		//hRC = wglCreateContext(hDC);    
-		//wglMakeCurrent(hDC, hRC);    
-		//ShowWindow(hWnd, SW_SHOW);    
-		//while(GetMessage(&msg, hWnd, 0, 0)) {	
-		//	TranslateMessage(&msg);	
-		//	DispatchMessage(&msg);    
-		//}    
-		//wglMakeCurrent(NULL, NULL);    
-		//ReleaseDC(hWnd, hDC);    
-		//wglDeleteContext(hRC);    
-		//DestroyWindow(hWnd); 
 } 
 
 
@@ -208,7 +181,7 @@ void inputThreadProc(void *param){
 	//LeaveCriticalSection (&crs);
 
 #ifdef OFFLINE
-	for(int i=0;i<700;i++){
+	for(int i=0;i<349;i++){
 		EnterCriticalSection(&frameCrs);
 		loadNormalDataFromFile("distance", i, disData);
 		loadNormalDataFromFile("intensity", i, intData);
@@ -292,48 +265,6 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			cout<<"Failed to create ARToolKit thread"<<endl;
 		}
 
-		// Draw for ARToolKit
-		//glutInit(&argc, argv);
-
-		//ARParam  wparam;
-		//ARParam  cparam;
-		//char     *cparam_name    = "data/AR/camera_para.dat";
-		//char     *patt_name      = "data/AR/patt.hiro";
-		//int		  patt_id;
-
-		////* set the initial camera parameters */
-		//if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
-		//	printf("Camera parameter load error !!\n");
-		//	exit(0);
-		//}
-
-		//arParamChangeSize( &wparam, 204, 204, &cparam );
-		//arInitCparam( &cparam );
-		//printf("*** Camera Parameter ***\n");
-		//arParamDisp( &cparam );
-
-		//if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
-		//	printf("pattern load error !!\n");
-		//	exit(0);
-		//}
-
-		//setPattID(patt_id);
-
-		////* open the graphics window */
-		//argInit( &cparam, 1.0, 0, 0, 0, 0 );
-
-		//EnterCriticalSection (&crs);
-
-		//arVideoCapStart();
-		//argMainLoop( NULL, keyEvent, mainLoop );
-
-		//LeaveCriticalSection (&crs);
-
-		// Start OpenGL Window Thread 
-		//if(_beginthread (mainLoop, 0, NULL)==-1){
-		//	cout<<"Failed to create ARToolKit thread"<<endl;
-		//}
-
 		//Main Thread
 		while (!bDone ) 
 		{ 
@@ -344,9 +275,6 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			printf("main thread running\n"); 
 			//LeaveCriticalSection (&crs);
 		} 
-
-		//Sleep(3000);
-		//KillGLWindow();
 		
 		// release the memory block of the data
 		delete [] disData;
