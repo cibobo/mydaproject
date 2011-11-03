@@ -130,36 +130,73 @@ void arToolKitThreadProc(void *param){
 
 	TlsSetValue(ThreadIndex, pARToolKitUI);
 
-	EnterCriticalSection (&crs);
+	//EnterCriticalSection (&crs);
 
-	//if(!CreateOpenGLWindow("minimal", 0, 0, 800, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI)){
-	if((openGLhnd=CreateOpenGLWindow("ARToolKit", 500, 0, 400, 400, PFD_TYPE_RGBA, 0, pARToolKitUI))==NULL){
+	////if(!CreateOpenGLWindow("minimal", 0, 0, 800, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI)){
+	//if((openGLhnd=CreateOpenGLWindow("ARToolKit", 500, 0, 204, 204, PFD_TYPE_RGBA, 0, pARToolKitUI))==NULL){
+	//	exit(0);
+	//}
+
+	//cout<<"Thread OpenGL running"<<endl;
+
+	//LeaveCriticalSection (&crs);
+
+	ARParam  wparam;
+	ARParam  cparam;
+	char     *cparam_name    = "data/AR/camera_para.dat";
+	char     *patt_name      = "data/AR/patt.hiro";
+	int		  patt_id;
+
+	//* set the initial camera parameters */
+	if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
+		printf("Camera parameter load error !!\n");
 		exit(0);
 	}
 
-	cout<<"Thread OpenGL running"<<endl;
+	arParamChangeSize( &wparam, 204, 204, &cparam );
+	arInitCparam( &cparam );
+	printf("*** Camera Parameter ***\n");
+	arParamDisp( &cparam );
 
-	LeaveCriticalSection (&crs);
+	if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
+		printf("pattern load error !!\n");
+		exit(0);
+	}
+
+	argInit( &cparam, 1.0, 0, 0, 0, 0 );
+
+	//EnterCriticalSection (&crs);
+
+	arVideoCapStart();
+	argMainLoop( NULL, keyEvent, mainLoop );
+
+	//LeaveCriticalSection (&crs);
+
 
 	// call the display function and send the data direct with the pointer of array as parameter
-	display(pARToolKitUI);
+	//draw2(intData, patt_id);
+	////mainLoop();
+	////draw();
 
-	//parameter to mark, whether the input process is in pause
-	bool isPause = false;
+	////parameter to mark, whether the input process is in pause
+	//bool isPause = false;
 
-	while(!bDone){
-		if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
-		//if(GetMessage(&msg, openGLhnd, 0, 0)){
-			if(msg.message==WM_QUIT){
-				bDone = TRUE;
-			} else{
-				TranslateMessage(&msg);
-				DispatchMessage(&msg);
-				display(pARToolKitUI);
-			}
-		}
-			
-	}
+	//while(!bDone){
+	//	if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
+	//	//if(GetMessage(&msg, openGLhnd, 0, 0)){
+	//		if(msg.message==WM_QUIT){
+	//			bDone = TRUE;
+	//		} else{
+	//			TranslateMessage(&msg);
+	//			DispatchMessage(&msg);
+	//			draw2(intData, patt_id);
+	//			//mainLoop();
+	//			//draw();
+	//		}
+	//	}
+	//	
+	//		
+	//}
 
 	delete pARToolKitUI;
 }
@@ -179,6 +216,7 @@ void inputThreadProc(void *param){
 		//openGLLoadData(disData, intData, ampData);	
 		//updata the OpenGL Window
 		PostMessage(openGLhnd, WM_PAINT, 0, 0);	
+		setARData(intData);
 		LeaveCriticalSection(&frameCrs);
 		Sleep(100);
 	}
@@ -245,51 +283,51 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		}
 
 		// Start OpenGL Window Thread 
-		if(_beginthread (openGLThreadPorc, 0, NULL)==-1){
-			cout<<"Failed to create openGL thread"<<endl;
-		}
-
-		// Start ARToolKit Window Thread 
-		//if(_beginthread (arToolKitThreadProc, 0, NULL)==-1){
-		//	cout<<"Failed to create ARToolKit thread"<<endl;
+		//if(_beginthread (openGLThreadPorc, 0, NULL)==-1){
+		//	cout<<"Failed to create openGL thread"<<endl;
 		//}
 
+		// Start ARToolKit Window Thread 
+		if(_beginthread (arToolKitThreadProc, 0, NULL)==-1){
+			cout<<"Failed to create ARToolKit thread"<<endl;
+		}
+
 		// Draw for ARToolKit
-		glutInit(&argc, argv);
+		//glutInit(&argc, argv);
 
-		ARParam  wparam;
-		ARParam  cparam;
-		char     *cparam_name    = "data/AR/camera_para.dat";
-		char     *patt_name      = "data/AR/patt.sample1";
-		int		  patt_id;
+		//ARParam  wparam;
+		//ARParam  cparam;
+		//char     *cparam_name    = "data/AR/camera_para.dat";
+		//char     *patt_name      = "data/AR/patt.hiro";
+		//int		  patt_id;
 
-		//* set the initial camera parameters */
-		if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
-			printf("Camera parameter load error !!\n");
-			exit(0);
-		}
+		////* set the initial camera parameters */
+		//if( arParamLoad(cparam_name, 1, &wparam) < 0 ) {
+		//	printf("Camera parameter load error !!\n");
+		//	exit(0);
+		//}
 
-		arParamChangeSize( &wparam, 204, 204, &cparam );
-		arInitCparam( &cparam );
-		printf("*** Camera Parameter ***\n");
-		arParamDisp( &cparam );
+		//arParamChangeSize( &wparam, 204, 204, &cparam );
+		//arInitCparam( &cparam );
+		//printf("*** Camera Parameter ***\n");
+		//arParamDisp( &cparam );
 
-		if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
-			printf("pattern load error !!\n");
-			exit(0);
-		}
+		//if( (patt_id=arLoadPatt(patt_name)) < 0 ) {
+		//	printf("pattern load error !!\n");
+		//	exit(0);
+		//}
 
-		setPattID(patt_id);
+		//setPattID(patt_id);
 
-		//* open the graphics window */
-		argInit( &cparam, 1.0, 0, 0, 0, 0 );
+		////* open the graphics window */
+		//argInit( &cparam, 1.0, 0, 0, 0, 0 );
 
-		EnterCriticalSection (&crs);
+		//EnterCriticalSection (&crs);
 
-		arVideoCapStart();
+		//arVideoCapStart();
 		//argMainLoop( NULL, keyEvent, mainLoop );
 
-		LeaveCriticalSection (&crs);
+		//LeaveCriticalSection (&crs);
 
 		// Start OpenGL Window Thread 
 		//if(_beginthread (mainLoop, 0, NULL)==-1){

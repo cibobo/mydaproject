@@ -12,27 +12,30 @@ double          patt_trans[3][4];
 int             xsize, ysize;
 int             thresh = 100;
 int             count = 0;
+ARUint8         *dataPtr;
 
 void setPattID(int pattID){
 	patt_id = pattID;
 }
 
 void setARData(float *temp){
-	//int balance = 4900;
-	//int contrast = 38;
+	int balance = 4900;
+	int contrast = 38;
 	//unsigned char data[166464];
-	//for(int i=0;i<204*204;i++){
-	//	float gray = (temp[i]-balance)/contrast;
-	//	if(gray>255){
-	//		gray = 255;
-	//	} else if(gray <0){
-	//		gray = 0;
-	//	}
+	unsigned char data[41616];
+	for(int i=0;i<204*204;i++){
+		float gray = (temp[i]-balance)/contrast;
+		if(gray>255){
+			gray = 255;
+		} else if(gray <0){
+			gray = 0;
+		}
 
-	//	data[4*i] = data[4*i+1] = data[4*i+2] = int(gray);
-	//	data[4*i+3] = 0;
-	//}
-	//dataPtr = data;
+		//data[4*i] = data[4*i+1] = data[4*i+2] = int(gray);
+		//data[4*i+3] = 0;
+		data[i] = gray;
+	}
+	dataPtr = data;
 }
 
 void keyEvent(unsigned char key, int x, int y)
@@ -48,7 +51,7 @@ void keyEvent(unsigned char key, int x, int y)
 /* main loop */
 void mainLoop(void)
 {
-    ARUint8         *dataPtr;
+    
     ARMarkerInfo    *marker_info;
     int             marker_num;
     int             j, k;
@@ -78,22 +81,22 @@ void mainLoop(void)
 	//}
 
 
-	if(count < 374){
-		if((dataPtr = loadNormalDataForAR(count)) == NULL){
-			arUtilSleep(2);
-			return;
-		}
-	
-	} else {
-		return;
-	}
+	//if(count < 374){
+	//	if((dataPtr = loadNormalDataForAR(count)) == NULL){
+	//		arUtilSleep(2);
+	//		return;
+	//	}
+	//
+	//} else {
+	//	return;
+	//}
 
 	//dataPtr = loadARDataFromFile(count);
-		Sleep(100);
+		//Sleep(100);
     count++;
 
-    argDrawMode2D();
-    argDispImage( dataPtr, 0,0 );
+    //argDrawMode2D();
+    //argDispImage( dataPtr, 0,0 );
 
     //* detect the markers in the video frame */
     if( arDetectMarker(dataPtr, thresh, &marker_info, &marker_num) < 0 ) {
@@ -119,7 +122,9 @@ void mainLoop(void)
     //* get the transformation between the marker and the real camera */
     arGetTransMat(&marker_info[k], patt_center, patt_width, patt_trans);
 
+	drawFrame(dataPtr);
     draw();
+
 
     argSwapBuffers();
 }
@@ -131,8 +136,88 @@ void cleanup(void)
     argCleanup();
 }
 
-void draw( void )
+void draw2(float *temp, int patt_id){
+	//ARUint8 *dataPtr;
+	//ARMarkerInfo    *marker_info;
+ //   int             marker_num;
+ //   int             j, k;
+
+	//int balance = 4900;
+	//int contrast = 38;
+	////dataPtr = new unsigned char[41616];
+	////for(int i=0;i<204*204;i++){
+	////	float gray = (temp[i]-balance)/contrast;
+	////	if(gray>255){
+	////		gray = 255;
+	////	} else if(gray <0){
+	////		gray = 0;
+	////	}
+	////	dataPtr[i] = gray;
+	////}
+
+	//argDrawMode2D();
+ //   argDispImage( dataPtr, 0,0 );
+	//
+	//if( arDetectMarker(dataPtr, thresh, &marker_info, &marker_num) < 0 ) {
+ //       cleanup();
+ //       exit(0);
+ //   }
+
+	//k = -1;
+ //   for( j = 0; j < marker_num; j++ ) {
+ //       if( patt_id == marker_info[j].id ) {
+ //           if( k == -1 ) k = j;
+ //           else if( marker_info[k].cf < marker_info[j].cf ) k = j;
+ //       }
+ //   }
+ //   if( k == -1 ) {
+ //       argSwapBuffers();
+ //        return;
+ //   }
+
+ //   //* get the transformation between the marker and the real camera */
+ //   arGetTransMat(&marker_info[k], patt_center, patt_width, patt_trans);
+
+ //   draw();
+
+ //   argSwapBuffers();
+	////delete []dataPtr;
+}
+
+	
+
+void drawFrame(unsigned char *intData){
+	argDrawMode3D();
+    argDraw3dCamera( 0, 0 );
+    glClearDepth( 1.0 );
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
+	
+	float factor = 40.8/204;
+	glPushMatrix();   // It is important to push the Matrix before 
+	glRotatef(3.1416/2, 0.0, 0.0, 1.0);
+	glTranslatef(0, 0, 50);
+
+	float grayValue;
+	//cout<<"Balance: "<<gBalance<<"    Contrast: "<<gContrast<<endl;
+	glBegin(GL_POINTS);
+	for(int i=0;i<204;i++) {
+		for(int j=0;j<204;j++) {
+			grayValue = intData[i*204+j]/256.0;
+			glColor3f(grayValue,grayValue,grayValue);
+			glVertex3f((i-102)*factor, (j-102)*factor, 0);
+		}
+	}
+	//glVertex3f(0,0,-3);
+	glEnd();
+	glPopMatrix();        
+}
+
+void draw(void)
 {
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glLoadIdentity();
     double    gl_para[16];
     GLfloat   mat_ambient[]     = {0.0, 0.0, 1.0, 1.0};
     GLfloat   mat_flash[]       = {0.0, 0.0, 1.0, 1.0};
@@ -147,6 +232,8 @@ void draw( void )
     glClear(GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
+
+    
     
     /* load the camera transformation matrix */
     argConvGlpara(patt_trans, gl_para);
