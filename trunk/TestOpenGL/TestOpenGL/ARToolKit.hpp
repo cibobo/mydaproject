@@ -15,6 +15,8 @@
 #include <AR/param.h>
 #include <AR/ar.h>
 
+#include <cv.h>
+
 #include "MyDataIO.hpp"
 
 #include <iostream>
