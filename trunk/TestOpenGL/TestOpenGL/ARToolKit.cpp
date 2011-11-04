@@ -122,7 +122,8 @@ void mainLoop(void)
 	int startParam = 100;
 	
 #ifdef VAR_PARAM
-	for(int i=0;i<5;i++){
+	int i;
+	for(i=0;i<10;i++){
 		//add the parameter of thredhold 10 everytime
 		thresholding(startParam + 10*i);
 #else
@@ -157,6 +158,7 @@ void mainLoop(void)
 			break; 
 		}
 	}
+	cout<<"Usedddddddddddddddd  "<<i<<"  steps"<<endl;
 #else
 	if(k!=-1) kCount++;
 #endif
@@ -169,7 +171,7 @@ void mainLoop(void)
 
     //* get the transformation between the marker and the real camera */
     arGetTransMat(&marker_info[k], patt_center, patt_width, patt_trans);
-
+	cout<<"The transforation vektor: ("<<patt_trans[0][3]<<", "<<patt_trans[1][3]<<", "<<patt_trans[2][3]<<") "<<endl;   
     draw();
 
 

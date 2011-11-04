@@ -16,6 +16,8 @@ void saveNormalDataToFile(const char *type, int frameCount, float *data);
 
 void loadNormalDataFromFile(const char *type, int frameCount, float *data);
 
+void setDefaultLoadPath(const char* subPath);
+
 unsigned char * loadNormalDataForAR(int frameCount);
 
 /*

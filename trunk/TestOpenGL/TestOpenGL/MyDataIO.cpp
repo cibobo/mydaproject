@@ -4,10 +4,11 @@
 using namespace std;
 
 //the path of the saved Data
-const char *defaultSavePath = "data/7/";
+const char *defaultSavePath = "data/translate/";
 
 //default load path
-const char *defaultLoadPath = "data/5/";
+const char *defaultRootPath = "data/";
+string defaultLoadPath;
 
 bool isDirectoryExist(const char *directory){
 	int returnvalue;
@@ -128,8 +129,18 @@ void loadNormalDataFromFile(const char *type,int frameCount, float *data){
 	}
 }
 
+void setDefaultLoadPath(const char* subPath){
+	//string loadPath;
+	defaultLoadPath.append(defaultRootPath);
+	defaultLoadPath.append(subPath);
+	defaultLoadPath.append("/");
+	//defaultLoadPath = (char*)loadPath.data();
+	//cout<<"load path "<<defaultLoadPath<<endl;
+}
+
 unsigned char * loadNormalDataForAR(int frameCount){
 	float *temp = new float[204*204];
+	setDefaultLoadPath("5");
 	loadNormalDataFromFile("intensity", frameCount, temp);
 	int balance = 4900;
 	int contrast = 35;
