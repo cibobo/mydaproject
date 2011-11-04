@@ -138,12 +138,12 @@ void arToolKitThreadProc(void *param){
 
 	argInit( &cparam, 1.0, 0, 0, 0, 0 );
 
-	//EnterCriticalSection (&crs);
+	EnterCriticalSection (&crs);
 
 	arVideoCapStart();
 	argMainLoop( NULL, keyEvent, mainLoop );
 
-	//LeaveCriticalSection (&crs);
+	LeaveCriticalSection (&crs);
 
 
 	// call the display function and send the data direct with the pointer of array as parameter
@@ -181,6 +181,7 @@ void inputThreadProc(void *param){
 	//LeaveCriticalSection (&crs);
 
 #ifdef OFFLINE
+	setDefaultLoadPath("translate");
 	for(int i=0;i<349;i++){
 		EnterCriticalSection(&frameCrs);
 		loadNormalDataFromFile("distance", i, disData);
