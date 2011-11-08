@@ -128,7 +128,8 @@ void display(OpenGLWinUI *pOpenGLWinUI, float *disData, float *intData, float *a
 
 	// Grayscale View Port
 	glLoadIdentity();
-	glViewport(height, height/2, (width-height), height/2.0);
+	//glViewport(height, height/2, (width-height), height/2.0);
+	glViewport(height, height/2, 204, 204);
 	glPushMatrix();   // It is important to push the Matrix before 
 	glTranslatef(0, 0, -3);
 	float grayValue;
@@ -154,7 +155,8 @@ void display(OpenGLWinUI *pOpenGLWinUI, float *disData, float *intData, float *a
 
 
 	glLoadIdentity();
-	glViewport(height, 0, (width-height), height/2.0);
+	//glViewport(height, 0, (width-height), height/2.0);
+	glViewport(height, 0, 204, 204);
 	glPushMatrix();   // It is important to push the Matrix before 
 	glTranslatef(0, 0, -3);
 	//cout<<"Balance: "<<aBalance<<"    Contrast: "<<aContrast<<endl;

@@ -187,6 +187,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MarkerDetection.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\MyDataIO.cpp"
 				>
 			</File>
@@ -230,6 +234,10 @@
 			>
 			<File
 				RelativePath=".\ARToolKit.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MarkerDetection.hpp"
 				>
 			</File>
 			<File

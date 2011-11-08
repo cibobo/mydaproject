@@ -19,6 +19,7 @@ using namespace std;
 
 CRITICAL_SECTION crs;
 CRITICAL_SECTION frameCrs;
+CRITICAL_SECTION calcCrs;
 
 // global flag 
 bool bDone = false;
@@ -181,7 +182,7 @@ void inputThreadProc(void *param){
 	//LeaveCriticalSection (&crs);
 
 #ifdef OFFLINE
-	setDefaultLoadPath("translate");
+	setDefaultLoadPath("MarkerSize");
 	for(int i=0;i<349;i++){
 		EnterCriticalSection(&frameCrs);
 		loadNormalDataFromFile("distance", i, disData);
@@ -257,24 +258,24 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		}
 
 		// Start OpenGL Window Thread 
-		//if(_beginthread (openGLThreadPorc, 0, NULL)==-1){
-		//	cout<<"Failed to create openGL thread"<<endl;
-		//}
+		if(_beginthread (openGLThreadPorc, 0, NULL)==-1){
+			cout<<"Failed to create openGL thread"<<endl;
+		}
 
 		// Start ARToolKit Window Thread 
-		if(_beginthread (arToolKitThreadProc, 0, NULL)==-1){
-			cout<<"Failed to create ARToolKit thread"<<endl;
-		}
+		//if(_beginthread (arToolKitThreadProc, 0, NULL)==-1){
+		//	cout<<"Failed to create ARToolKit thread"<<endl;
+		//}
 
 		//Main Thread
 		while (!bDone ) 
 		{ 
-			//EnterCriticalSection (&crs);
+			//EnterCriticalSection (&frameCrs);
 			// sleep 3 seonds 
 			::Sleep(3000);
 
 			printf("main thread running\n"); 
-			//LeaveCriticalSection (&crs);
+			//LeaveCriticalSection (&frameCrs);
 		} 
 		
 		// release the memory block of the data
