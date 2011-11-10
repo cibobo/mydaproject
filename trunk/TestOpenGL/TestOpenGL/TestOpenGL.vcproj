@@ -41,7 +41,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;C:\Program Files\OpenCV\otherlibs\highgui&quot;;&quot;C:\Program Files\OpenCV\cxcore\include&quot;;&quot;C:\Program Files\OpenCV\cv\include&quot;;.\include\;.\include\PMD_Cam\"
+				AdditionalIncludeDirectories=".\include\opencv2;.\include\opencv;.\include\;.\include\PMD_Cam\"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -62,9 +62,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="glut32.lib pmdaccess2.lib libARd.lib libARgsubd.lib libARvideod.lib cv.lib cxcore.lib highgui.lib ml.lib"
+				AdditionalDependencies="glut32.lib pmdaccess2.lib libARd.lib libARgsubd.lib libARvideod.lib opencv_core231d.lib opencv_highgui231d.lib opencv_ml231d.lib opencv_imgproc231d.lib opencv_features2d231d.lib"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories=".\lib\glut;.\lib\PMD_Cam;.\lib\AR;&quot;C:\Program Files\OpenCV\lib&quot;"
+				AdditionalLibraryDirectories=".\lib\glut;.\lib\PMD_Cam;.\lib\AR;.\lib\OpenCV\debug"
 				GenerateDebugInformation="true"
 				SubSystem="1"
 				TargetMachine="1"
