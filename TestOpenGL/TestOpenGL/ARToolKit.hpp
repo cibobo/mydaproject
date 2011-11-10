@@ -20,6 +20,7 @@
 #include "MyDataIO.hpp"
 
 #include <iostream>
+#include <Math.h>
 
 void setPattID(int pattID);
 

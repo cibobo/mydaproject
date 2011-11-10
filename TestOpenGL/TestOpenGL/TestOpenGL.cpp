@@ -258,9 +258,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		}
 
 		// Start OpenGL Window Thread 
-		if(_beginthread (openGLThreadPorc, 0, NULL)==-1){
-			cout<<"Failed to create openGL thread"<<endl;
-		}
+		//if(_beginthread (openGLThreadPorc, 0, NULL)==-1){
+		//	cout<<"Failed to create openGL thread"<<endl;
+		//}
 
 		// Start ARToolKit Window Thread 
 		//if(_beginthread (arToolKitThreadProc, 0, NULL)==-1){
@@ -268,15 +268,84 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		//}
 
 		//Main Thread
-		while (!bDone ) 
-		{ 
-			//EnterCriticalSection (&frameCrs);
-			// sleep 3 seonds 
-			::Sleep(3000);
+		{
+			using namespace cv; 
+			namedWindow("OpenCVWindow", CV_WINDOW_AUTOSIZE);
+			Size size = Size(204, 204);
+			Mat img;
+			bool isPause = false;
+			int balance = 250;
+			int contrast = 12;
+			
+			while (!bDone) 
+			{ 
+				//EnterCriticalSection (&frameCrs);
+				// sleep 3 seonds 
+				//::Sleep(100);
+				
 
-			printf("main thread running\n"); 
-			//LeaveCriticalSection (&frameCrs);
-		} 
+				//unsigned char data[166464];
+				unsigned char data[41616];
+				for(int i=0;i<204*204;i++){
+					float gray = (ampData[i]-balance)/contrast;
+					if(gray>255){
+						gray = 255;
+					} else if(gray <0){
+						gray = 0;
+					}
+					data[i] = gray;
+				}
+				img = Mat(size, CV_8UC1, data);
+				
+				//detecting
+				int featureSize = 32;
+				std::vector<KeyPoint> features;
+				StarDetector detector = StarDetector(featureSize, 100, 10, 10, 5);
+				detector(img, features);
+				
+				//draw features
+				int vectorSize = features.size();
+				cout<<"find "<<vectorSize<<" features!"<<endl;
+				for(int i=0;i<vectorSize;i++){
+					circle(img, features[i].pt, 5, Scalar(255,255,255,0), -1); 
+				}
+				//draw
+				imshow("OpenCVWindow", img);
+				
+				char c = waitKey(100);
+				if(c == 27) break;
+				switch(c){
+					case 'p':
+						if(isPause){
+							cout<<"frame running!"<<endl;
+							LeaveCriticalSection(&frameCrs);
+							isPause = false;
+						} else {
+							cout<<"frame pause!"<<endl;
+							EnterCriticalSection(&frameCrs);
+							isPause = true;
+						}
+						break;
+					case 'b':
+						balance += 10;
+						break;
+					case 'v':
+						balance -= 10;
+						break;
+					case 'n':
+						contrast += 3;
+						break;
+					case 'm':
+						contrast -= 3;
+						break;
+				}
+				cout<<"The balance and contrast are: "<<balance<<"   "<<contrast<<endl;
+
+				//printf("main thread running\n"); 
+				//LeaveCriticalSection (&frameCrs);
+			}
+			destroyWindow("OpenCVWindow");
+		}
 		
 		// release the memory block of the data
 		delete [] disData;

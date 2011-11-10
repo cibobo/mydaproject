@@ -2,6 +2,7 @@
 #include "ARToolKit.hpp"
 
 using namespace std;
+using namespace cv;
 
 #define VAR_PARAM
 
@@ -13,7 +14,7 @@ double          patt_trans[3][4];
 
 int             xsize, ysize;
 int             thresh = 100;
-int             count = 0;
+int             Count = 0;
 ARUint8         *dataPtr;
 
 
@@ -44,19 +45,23 @@ void setARData(float *temp){
 	dataPtr = data;
 }
 
-void thresholding(int param){
+void thresholding(double param, Mat dst){
 	CvSize size;
 	size.height=204;
 	size.width=204;
-	IplImage* src = cvCreateImage(size, IPL_DEPTH_8U, 1);
-	IplImage* dst = cvCreateImage(size, IPL_DEPTH_8U, 1);
+	//IplImage* src = cvCreateImage(size, IPL_DEPTH_8U, 1);
+	//IplImage* dst = cvCreateImage(size, IPL_DEPTH_8U, 1);
+	
+	const cv::Mat src = cv::Mat(size, CV_8UC1, dataPtr);
+	//cv::Mat dst = cv::Mat(size, CV_8UC1);
 	//cout<<"the size of imageData is: "<<sizeof(src->imageData)<<endl;
-	src->imageData = (char*)dataPtr;
+	//src->imageData = (char*)dataPtr;
 
-	cvThreshold(src, dst, param, param, CV_THRESH_TOZERO);
-	dataPtr = (ARUint8*)dst->imageData;
+	cv::threshold(src, dst, param, param, cv::THRESH_TOZERO);
+	//dataPtr = (ARUint8*)dst->imageData;
+	//dataPtr = (ARUint8*)dst.data;
 	//dst->imageData = NULL;
-	cvReleaseImage(&src);
+	//cvReleaseImage(&src);
 	//cvReleaseImage(&dst);
 }
 
@@ -64,7 +69,7 @@ void keyEvent(unsigned char key, int x, int y)
 {
     /* quit if the ESC key is pressed */
     if( key == 0x1b ) {
-        printf("*** %f (frame/sec)\n", (double)count/arUtilTimer());
+        printf("*** %f (frame/sec)\n", (double)Count/arUtilTimer());
         cleanup();
         exit(0);
     }
@@ -83,12 +88,12 @@ void mainLoop(void)
     //    arUtilSleep(2);
     //    return;
     //}
-	//saveARDataToFile(count,dataPtr);
-	if( count == 0 ) {
+	//saveARDataToFile(Count,dataPtr);
+	if( Count == 0 ) {
 		arUtilTimerReset();
 	}
 
-	//if( count == 10) {
+	//if( Count == 10) {
 	//	long ii = 0;
 	//	unsigned char c = dataPtr[0];
 	//	//cout<<"c is: "<<c<<endl;
@@ -103,8 +108,8 @@ void mainLoop(void)
 	//}
 
 
-	//if(count < 374){
-	//	if((dataPtr = loadNormalDataForAR(count)) == NULL){
+	//if(Count < 374){
+	//	if((dataPtr = loadNormalDataForAR(Count)) == NULL){
 	//		arUtilSleep(2);
 	//		return;
 	//	}
@@ -113,28 +118,29 @@ void mainLoop(void)
 	//	return;
 	//}
 
-	//dataPtr = loadARDataFromFile(count);
+	//dataPtr = loadARDataFromFile(Count);
 		Sleep(100);
-    count++;
-	drawFrame(dataPtr);
+    Count++;
+	
 
 	//start a loop to find the best contrast for Tracking
-	int startParam = 100;
+	double startParam = 150.0;
+	cv::Mat dst = cv::Mat(204, 204, CV_8UC1);
 	
 #ifdef VAR_PARAM
 	int i;
 	for(i=0;i<10;i++){
 		//add the parameter of thredhold 10 everytime
-		thresholding(startParam + 10*i);
+		thresholding(startParam + 10*i*pow(-1.0,i), dst);
 #else
-	thresholding(100);
+		thresholding(100,dst);
 #endif
 		//argDrawMode2D();
 		//argDispImage( dataPtr, 0,0 );
 
-
+		ARUint8 *temp = (ARUint8*)dst.data;
 		//* detect the markers in the video frame */
-		if( arDetectMarker(dataPtr, thresh, &marker_info, &marker_num) < 0 ) {
+		if( arDetectMarker(temp, thresh, &marker_info, &marker_num) < 0 ) {
 			cleanup();
 			exit(0);
 		}
@@ -150,7 +156,7 @@ void mainLoop(void)
 				else if( marker_info[k].cf < marker_info[j].cf ) k = j;
 			}
 		}
-
+	drawFrame(temp);
 		//if there is a marker found, break the loop; else, continue
 #ifdef VAR_PARAM
 		if(k!=-1){

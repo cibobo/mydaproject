@@ -8,6 +8,9 @@
 #include "ARToolKit.hpp"
 #include "MarkerDetection.hpp"
 
+#include <cv.h>
+#include <highgui.h>
+
 #include "stdio.h" 
 #include "windows.h" 
 #include "process.h" 
