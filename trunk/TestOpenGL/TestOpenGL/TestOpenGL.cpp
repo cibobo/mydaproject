@@ -182,8 +182,8 @@ void inputThreadProc(void *param){
 	//LeaveCriticalSection (&crs);
 
 #ifdef OFFLINE
-	setDefaultLoadPath("MarkerSize");
-	for(int i=0;i<349;i++){
+	setDefaultLoadPath("Markers1");
+	for(int i=0;i<415;i++){
 		EnterCriticalSection(&frameCrs);
 		loadNormalDataFromFile("distance", i, disData);
 		loadNormalDataFromFile("intensity", i, intData);
@@ -198,8 +198,9 @@ void inputThreadProc(void *param){
 
 #else
 	EnterCriticalSection (&crs);
-	createDefaultPMDDataDirectory();
+	createDefaultPMDDataDirectory("Markers1");
 	setIsDataSaved(true);
+	cout<<"PMD Camera Connecting..."<<endl;
 	if(!createPMDCon()){
 		exit(1);
 		//cout<<"input thread running!"<<endl;
@@ -274,8 +275,12 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			Size size = Size(204, 204);
 			Mat img;
 			bool isPause = false;
-			int balance = 250;
-			int contrast = 12;
+			int balance = 500;
+			int contrast = 10;
+			int detecParam = 80;
+			
+			//call the calculate function after the init of PMD Camera
+			EnterCriticalSection (&crs);
 			
 			while (!bDone) 
 			{ 
@@ -299,8 +304,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				
 				//detecting
 				int featureSize = 32;
+				
 				std::vector<KeyPoint> features;
-				StarDetector detector = StarDetector(featureSize, 100, 10, 10, 5);
+				StarDetector detector = StarDetector(featureSize, detecParam, 10, 10, 5);
 				detector(img, features);
 				
 				//draw features
@@ -333,17 +339,25 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						balance -= 10;
 						break;
 					case 'n':
-						contrast += 3;
+						contrast += 2;
 						break;
 					case 'm':
-						contrast -= 3;
+						contrast -= 2;
+						break;
+					case 't':
+						detecParam +=2;
+						break;
+					case 'r':
+						detecParam -=2;
 						break;
 				}
 				cout<<"The balance and contrast are: "<<balance<<"   "<<contrast<<endl;
+				cout<<"The parameter of detection is: "<<detecParam<<endl;
 
 				//printf("main thread running\n"); 
 				//LeaveCriticalSection (&frameCrs);
 			}
+			LeaveCriticalSection (&crs);
 			destroyWindow("OpenCVWindow");
 		}
 		
