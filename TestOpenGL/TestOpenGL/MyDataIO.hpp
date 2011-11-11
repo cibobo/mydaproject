@@ -10,7 +10,7 @@ bool isDirectoryExist(const char *directory);
 
 bool createDirectory(const char *directory);
 
-void createDefaultPMDDataDirectory();
+void createDefaultPMDDataDirectory(char *subPath);
 
 void saveNormalDataToFile(const char *type, int frameCount, float *data);
 

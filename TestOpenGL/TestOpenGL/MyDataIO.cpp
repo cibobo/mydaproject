@@ -4,11 +4,12 @@
 using namespace std;
 
 //the path of the saved Data
-const char *defaultSavePath = "data/translate/";
+//const char *defaultSavePath = "data/translate/";
 
 //default load path
 const char *defaultRootPath = "data/";
 string defaultLoadPath;
+string defaultSavePath;
 
 bool isDirectoryExist(const char *directory){
 	int returnvalue;
@@ -30,13 +31,17 @@ bool createDirectory(const char *directory){
 	}
 }
 
-void createDefaultPMDDataDirectory(){
+void createDefaultPMDDataDirectory(char *subPath){
+	defaultSavePath.append(defaultRootPath);
+	defaultSavePath.append(subPath);
+	defaultSavePath.append("/");
+	const char* ptrSavePath = defaultSavePath.data();
 	//check the root path of the new data
-	if(isDirectoryExist(defaultSavePath)){
+	if(isDirectoryExist(ptrSavePath)){
 		cout<<"The root directory: "<<defaultSavePath<<" has been already exist!"<<endl;
 		exit(3);
 	} else {
-		CreateDirectory(defaultSavePath, NULL);
+		CreateDirectory(ptrSavePath, NULL);
 		
 		string disPath;
 		disPath.append(defaultSavePath);
