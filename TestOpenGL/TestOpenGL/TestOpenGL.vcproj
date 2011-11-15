@@ -62,7 +62,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="glut32.lib pmdaccess2.lib libARd.lib libARgsubd.lib libARvideod.lib opencv_core231d.lib opencv_highgui231d.lib opencv_ml231d.lib opencv_imgproc231d.lib opencv_features2d231d.lib"
+				AdditionalDependencies="glut32.lib pmdaccess2.lib libARd.lib libARgsubd.lib libARvideod.lib opencv_core231d.lib opencv_highgui231d.lib opencv_ml231d.lib opencv_imgproc231d.lib opencv_features2d231d.lib opencv_calib3d231d.lib"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories=".\lib\glut;.\lib\PMD_Cam;.\lib\AR;.\lib\OpenCV\debug"
 				GenerateDebugInformation="true"
@@ -187,6 +187,14 @@
 				>
 			</File>
 			<File
+				RelativePath=".\DistanceFilter.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ImageProcess.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\MarkerDetection.cpp"
 				>
 			</File>
@@ -234,6 +242,14 @@
 			>
 			<File
 				RelativePath=".\ARToolKit.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\DistanceFilter.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\ImageProcess.hpp"
 				>
 			</File>
 			<File

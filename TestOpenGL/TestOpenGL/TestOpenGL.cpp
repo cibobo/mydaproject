@@ -30,16 +30,18 @@ HWND grayScalehnd;
 
 //TODO: direct pointer define
 // Array and the Pointer of Distance Data
-float dData[DATA_SIZE];
+//float dData[DATA_SIZE];
 float *disData;// = dData;
 
 // Array and the Pointer of Intensity Data
-float iData[DATA_SIZE];
+//float iData[DATA_SIZE];
 float *intData;
 
 // Array and the Pointer of Amplitude Data
-float aData[DATA_SIZE];
+//float aData[DATA_SIZE];
 float *ampData;
+
+DistanceFilter dFilter;
 
 
 // this function is called by a new thread 
@@ -183,6 +185,12 @@ void inputThreadProc(void *param){
 
 #ifdef OFFLINE
 	setDefaultLoadPath("Markers1");
+
+	//get the distance data for the first step
+	loadNormalDataFromFile("distance", 0, disData);
+	//init a distance filter
+	dFilter = DistanceFilter(disData);
+
 	for(int i=0;i<415;i++){
 		EnterCriticalSection(&frameCrs);
 		loadNormalDataFromFile("distance", i, disData);
@@ -191,15 +199,15 @@ void inputThreadProc(void *param){
 		//openGLLoadData(disData, intData, ampData);	
 		//updata the OpenGL Window
 		PostMessage(openGLhnd, WM_PAINT, 0, 0);	
-		setARData(intData);
+		//setARData(intData);
 		LeaveCriticalSection(&frameCrs);
 		Sleep(100);
 	}
 
 #else
 	EnterCriticalSection (&crs);
-	createDefaultPMDDataDirectory("Markers1");
-	setIsDataSaved(true);
+	//createDefaultPMDDataDirectory("Markers1");
+	//setIsDataSaved(true);
 	cout<<"PMD Camera Connecting..."<<endl;
 	if(!createPMDCon()){
 		exit(1);
@@ -210,10 +218,12 @@ void inputThreadProc(void *param){
 	//cout<<"input thread running!!!!"<<endl;
 	LeaveCriticalSection (&crs);
 
+	calibration();
+
 	while(!bDone){
 		EnterCriticalSection(&frameCrs);
 		getPMDData(disData, intData, ampData);
-		setARData(intData);
+		//setARData(intData);
 		//disData = getPMDDataPointer();
 		
 		//openGLLoadData(disData, intData, ampData);
@@ -259,9 +269,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		}
 
 		// Start OpenGL Window Thread 
-		//if(_beginthread (openGLThreadPorc, 0, NULL)==-1){
-		//	cout<<"Failed to create openGL thread"<<endl;
-		//}
+		if(_beginthread (openGLThreadPorc, 0, NULL)==-1){
+			cout<<"Failed to create openGL thread"<<endl;
+		}
 
 		// Start ARToolKit Window Thread 
 		//if(_beginthread (arToolKitThreadProc, 0, NULL)==-1){
@@ -288,18 +298,20 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				// sleep 3 seonds 
 				//::Sleep(100);
 				
-
+				float filteData[204*204];
+				dFilter.Filte(disData, ampData, filteData);
 				//unsigned char data[166464];
 				unsigned char data[41616];
-				for(int i=0;i<204*204;i++){
-					float gray = (ampData[i]-balance)/contrast;
-					if(gray>255){
-						gray = 255;
-					} else if(gray <0){
-						gray = 0;
-					}
-					data[i] = gray;
-				}
+				//for(int i=0;i<204*204;i++){
+				//	float gray = (ampData[i]-balance)/contrast;
+				//	if(gray>255){
+				//		gray = 255;
+				//	} else if(gray <0){
+				//		gray = 0;
+				//	}
+				//	data[i] = gray;
+				//}
+				transFloatToChar(ampData, data, balance, contrast);
 				img = Mat(size, CV_8UC1, data);
 				
 				//detecting
@@ -311,7 +323,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				
 				//draw features
 				int vectorSize = features.size();
-				cout<<"find "<<vectorSize<<" features!"<<endl;
+				//cout<<"find "<<vectorSize<<" features!"<<endl;
 				for(int i=0;i<vectorSize;i++){
 					circle(img, features[i].pt, 5, Scalar(255,255,255,0), -1); 
 				}
@@ -351,8 +363,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						detecParam -=2;
 						break;
 				}
-				cout<<"The balance and contrast are: "<<balance<<"   "<<contrast<<endl;
-				cout<<"The parameter of detection is: "<<detecParam<<endl;
+				//cout<<"The balance and contrast are: "<<balance<<"   "<<contrast<<endl;
+				//cout<<"The parameter of detection is: "<<detecParam<<endl;
 
 				//printf("main thread running\n"); 
 				//LeaveCriticalSection (&frameCrs);
