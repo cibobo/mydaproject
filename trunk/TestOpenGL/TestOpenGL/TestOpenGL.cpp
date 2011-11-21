@@ -41,7 +41,7 @@ float *intData;
 //float aData[DATA_SIZE];
 float *ampData;
 
-DistanceFilter dFilter;
+DistanceFilter *dFilter;
 
 
 // this function is called by a new thread 
@@ -189,7 +189,7 @@ void inputThreadProc(void *param){
 	//get the distance data for the first step
 	loadNormalDataFromFile("distance", 0, disData);
 	//init a distance filter
-	dFilter = DistanceFilter(disData);
+	dFilter = new DistanceFilter(disData);
 
 	for(int i=0;i<415;i++){
 		EnterCriticalSection(&frameCrs);
@@ -283,11 +283,14 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			using namespace cv; 
 			namedWindow("OpenCVWindow", CV_WINDOW_AUTOSIZE);
 			Size size = Size(204, 204);
-			Mat img;
+			Mat img, showimg;
 			bool isPause = false;
-			int balance = 500;
+			int balance = 200;
 			int contrast = 10;
-			int detecParam = 80;
+			int detecParam = 70;
+
+			double energie = 0;
+			float maxValue = 0;
 			
 			//call the calculate function after the init of PMD Camera
 			EnterCriticalSection (&crs);
@@ -297,38 +300,45 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//EnterCriticalSection (&frameCrs);
 				// sleep 3 seonds 
 				//::Sleep(100);
-				
+
+				// create the array to save the filted data
 				float filteData[204*204];
-				dFilter.Filte(disData, ampData, filteData);
-				//unsigned char data[166464];
+				dFilter->Filte(disData, ampData, filteData);
+
+				// translate the filted data to a grayscale image 
 				unsigned char data[41616];
-				//for(int i=0;i<204*204;i++){
-				//	float gray = (ampData[i]-balance)/contrast;
-				//	if(gray>255){
-				//		gray = 255;
-				//	} else if(gray <0){
-				//		gray = 0;
-				//	}
-				//	data[i] = gray;
-				//}
-				transFloatToChar(ampData, data, balance, contrast);
+				transFloatToChar(filteData, data, balance, contrast);
 				img = Mat(size, CV_8UC1, data);
+
+				// create the data for a RGB image
+				unsigned char showdata[41616*3];
+				for(int i=0;i<204*204;i++){
+					float gray = (ampData[i]-balance)/contrast;
+					if(gray>255){
+						gray = 255;
+					} else if(gray <0){
+						gray = 0;
+					}
+					showdata[3*i] = showdata[3*i+1] = showdata[3*i+2] = gray;
+				}
+				// set the data to the RGB image
+				showimg = Mat(size, CV_8UC3, showdata);
 				
 				//detecting
-				int featureSize = 32;
+				int featureSize = 8;
 				
 				std::vector<KeyPoint> features;
-				StarDetector detector = StarDetector(featureSize, detecParam, 10, 10, 5);
+				StarDetector detector = StarDetector(featureSize, detecParam, 8, 6, 5);
 				detector(img, features);
 				
 				//draw features
 				int vectorSize = features.size();
-				//cout<<"find "<<vectorSize<<" features!"<<endl;
+				cout<<"find "<<vectorSize<<" features!"<<endl;
 				for(int i=0;i<vectorSize;i++){
-					circle(img, features[i].pt, 5, Scalar(255,255,255,0), -1); 
+					circle(showimg, features[i].pt, 5, Scalar(255,0,0,0), -1); 
 				}
 				//draw
-				imshow("OpenCVWindow", img);
+				imshow("OpenCVWindow", showimg);
 				
 				char c = waitKey(100);
 				if(c == 27) break;
@@ -351,10 +361,10 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						balance -= 10;
 						break;
 					case 'n':
-						contrast += 2;
+						contrast += 1;
 						break;
 					case 'm':
-						contrast -= 2;
+						contrast -= 1;
 						break;
 					case 't':
 						detecParam +=2;
@@ -362,9 +372,23 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					case 'r':
 						detecParam -=2;
 						break;
+					case 'e':
+						//calculate energie
+						energie = 0;
+						maxValue = 0;
+						for(int k = 0;k<204*204;k++){
+							energie += data[k];
+							if(filteData[k] > maxValue){
+								maxValue = filteData[k];
+							}
+						}
+						//energie = energie/(204*204);
+						break;
 				}
-				//cout<<"The balance and contrast are: "<<balance<<"   "<<contrast<<endl;
-				//cout<<"The parameter of detection is: "<<detecParam<<endl;
+				cout<<"The balance and contrast are: "<<balance<<"   "<<contrast<<endl;
+				cout<<"The parameter of detection is: "<<detecParam<<endl;
+				cout<<"The energie of the data is: "<<energie<<endl;
+				cout<<"The maximal value of the data is "<<maxValue<<endl;
 
 				//printf("main thread running\n"); 
 				//LeaveCriticalSection (&frameCrs);
@@ -377,6 +401,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		delete [] disData;
 		delete [] intData;
 		delete [] ampData;
+		
+		delete dFilter;
 		
 	}
 
