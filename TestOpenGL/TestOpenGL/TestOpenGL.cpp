@@ -5,7 +5,7 @@
 #include "TestOpenGL.h"
 
 
-#define OFFLINE
+//#define OFFLINE
 
 #ifndef _MT 
 #define _MT 
@@ -191,7 +191,14 @@ void inputThreadProc(void *param){
 	//init a distance filter
 	dFilter = new DistanceFilter(disData);
 
-	for(int i=0;i<415;i++){
+	cout<<"Upgrading Distance Filter....."<<endl;
+	for(int i=1;i<10;i++){
+		loadNormalDataFromFile("distance", i, disData);
+		dFilter->Upgrade(disData);
+	}
+	cout<<"Upgrading complete!"<<endl;
+
+	for(int i=20;i<415;i++){
 		EnterCriticalSection(&frameCrs);
 		loadNormalDataFromFile("distance", i, disData);
 		loadNormalDataFromFile("intensity", i, intData);
@@ -216,9 +223,22 @@ void inputThreadProc(void *param){
 	}
 	//Sleep(3000);
 	//cout<<"input thread running!!!!"<<endl;
-	LeaveCriticalSection (&crs);
 
-	calibration();
+
+	//calibration();
+
+	// init distance filter
+	getPMDData(disData, intData, ampData);
+	dFilter = new DistanceFilter(disData);
+
+	cout<<"Upgrading Distance Filter....."<<endl;
+	for(int i=1;i<10;i++){
+		getPMDData(disData, intData, ampData);
+		dFilter->Upgrade(disData);
+	}
+	cout<<"Upgrading complete!"<<endl;
+
+	LeaveCriticalSection (&crs);
 
 	while(!bDone){
 		EnterCriticalSection(&frameCrs);
@@ -268,7 +288,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			cout<<"Failed to create input thread"<<endl;
 		}
 
-		// Start OpenGL Window Thread 
+		 //Start OpenGL Window Thread 
 		if(_beginthread (openGLThreadPorc, 0, NULL)==-1){
 			cout<<"Failed to create openGL thread"<<endl;
 		}
@@ -281,65 +301,144 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		//Main Thread
 		{
 			using namespace cv; 
-			namedWindow("OpenCVWindow", CV_WINDOW_AUTOSIZE);
+			namedWindow("OpenCVGrayScale", CV_WINDOW_AUTOSIZE);
+			namedWindow("OpenCVRGBResult", CV_WINDOW_AUTOSIZE);
 			Size size = Size(204, 204);
 			Mat img, showimg;
 			bool isPause = false;
 			int balance = 200;
-			int contrast = 10;
+			float contrast = 10;
 			int detecParam = 70;
 
 			double energie = 0;
 			float maxValue = 0;
+
+			int MINFEATURECOUNT = 7;
+			int MAXFEATURECOUNT = 12;
+
+			float MINSTANDARDENERGY = 300000.0;
+			float MAXSTANDARDENERGY = 450000.0;
+
+			float MINCONTRAST = 2;
+			float MAXCONTRAST = 18;
+
+			float MINRESPONSETHRESHOLD = 60;
+			float MAXRESPONSETHRESHOLD = 130;
 			
 			//call the calculate function after the init of PMD Camera
 			EnterCriticalSection (&crs);
 			
 			while (!bDone) 
-			{ 
-				//EnterCriticalSection (&frameCrs);
-				// sleep 3 seonds 
-				//::Sleep(100);
+			{ 	
+				// create the data for a RGB image
+				unsigned char showdata[41616*3];
+				//for(int i=0;i<204*204;i++){
+				//	float gray = (ampData[i]-balance)/contrast;
+				//	if(gray>255){
+				//		gray = 255;
+				//	} else if(gray <0){
+				//		gray = 0;
+				//	}
+				//	showdata[3*i] = showdata[3*i+1] = showdata[3*i+2] = gray;
+				//}
+				transFloatTo3Char(ampData, showdata, balance, contrast);
+				// set the data to the RGB image
+				showimg = Mat(size, CV_8UC3, showdata);
 
 				// create the array to save the filted data
 				float filteData[204*204];
-				dFilter->Filte(disData, ampData, filteData);
+				bool isDiff = dFilter->Filte(disData, ampData, filteData);
 
-				// translate the filted data to a grayscale image 
+
+				
 				unsigned char data[41616];
-				transFloatToChar(filteData, data, balance, contrast);
-				img = Mat(size, CV_8UC1, data);
 
-				// create the data for a RGB image
-				unsigned char showdata[41616*3];
-				for(int i=0;i<204*204;i++){
-					float gray = (ampData[i]-balance)/contrast;
-					if(gray>255){
-						gray = 255;
-					} else if(gray <0){
-						gray = 0;
+				int safeCount = 0;
+
+				while(safeCount < 30){
+					safeCount ++;
+					//Sleep(500);
+					// translate the filted data to a grayscale image 
+					transFloatToChar(filteData, data, balance, contrast);
+					img = Mat(size, CV_8UC1, data);
+					
+					std::vector<KeyPoint> features;
+					StarDetector detector = StarDetector(8, detecParam, 8, 6, 5);
+					detector(img, features);
+					
+					//draw features
+					int vectorSize = features.size();
+					cout<<"find "<<vectorSize<<" features!"<<endl;
+					for(int i=0;i<vectorSize;i++){
+						circle(showimg, features[i].pt, 3, Scalar(0,0,255,0), -1); 
 					}
-					showdata[3*i] = showdata[3*i+1] = showdata[3*i+2] = gray;
+					//draw
+					imshow("OpenCVGrayScale", img);
+					imshow("OpenCVRGBResult", showimg);
+					
+					if(!isDiff) break;
+
+					//if lesser than 7 features have been found
+					if(vectorSize < MINFEATURECOUNT){
+						cout<<"Case 1111111111111111111111111111111"<<endl;
+
+						//calculate the Energy of the frame
+						energie = 0;
+						for(int k = 0;k<204*204;k++){
+							energie += data[k];
+						}
+						cout<<"The energy of the data is: "<<energie<<endl;
+						//if(energie < 50000) break;
+
+						//compare the energy with the standard energy
+						if(energie < MINSTANDARDENERGY){
+							//if the frame is too dark
+							//float eFactor = energie/MINSTANDARDENERGY;
+							contrast -= 0.5;
+							//cout<<"Too Dark!! The energy factor is: "<<eFactor<<endl;
+							cout<<"Too Dark! The current contrast is "<<contrast<<endl;
+							if(contrast<MINCONTRAST) {
+								cout<<"Algo fehld, break!"<<endl;
+								contrast = MINCONTRAST;
+								break;
+							}
+						} else if(energie > MAXSTANDARDENERGY){
+							//if the frame is too bright
+							//float eFactor = energie/MAXSTANDARDENERGY;
+							//contrast *= eFactor;
+							//cout<<"Too Bright!! The energy factor is: "<<eFactor<<endl;
+							
+							contrast += 0.5;
+							cout<<"Too Bright! The current contrast is "<<contrast<<endl;
+							if(contrast>MAXCONTRAST) {
+								cout<<"Algo fehld, break!"<<endl;
+								contrast = MAXCONTRAST;
+								break;
+							}
+						} else {
+							//the energy is acceptable, but still can not find enough features. So change the parameter of STAR Detector
+							detecParam -= 5;
+							cout<<"Brightness is OK!! The current detecParam is "<<detecParam<<endl;
+							if(detecParam < MINRESPONSETHRESHOLD){
+								break;
+							}
+						}						
+					} else if(vectorSize > MAXFEATURECOUNT){
+						cout<<"Case 222222222222222222222222222"<<endl;
+						if(detecParam > MAXRESPONSETHRESHOLD){
+							//if the detecParam is too big
+							break;
+						} else {
+							//else increase the detecParam
+							detecParam += 5;
+						}
+						cout<<"Too Many Features!! The current detecParam is "<<detecParam<<endl;
+					} else {
+						cout<<"Case 333333333333333333333333333"<<endl;
+						break;
+					}
 				}
-				// set the data to the RGB image
-				showimg = Mat(size, CV_8UC3, showdata);
-				
-				//detecting
-				int featureSize = 8;
-				
-				std::vector<KeyPoint> features;
-				StarDetector detector = StarDetector(featureSize, detecParam, 8, 6, 5);
-				detector(img, features);
-				
-				//draw features
-				int vectorSize = features.size();
-				cout<<"find "<<vectorSize<<" features!"<<endl;
-				for(int i=0;i<vectorSize;i++){
-					circle(showimg, features[i].pt, 5, Scalar(255,0,0,0), -1); 
-				}
-				//draw
-				imshow("OpenCVWindow", showimg);
-				
+
 				char c = waitKey(100);
 				if(c == 27) break;
 				switch(c){
@@ -385,10 +484,10 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						//energie = energie/(204*204);
 						break;
 				}
-				cout<<"The balance and contrast are: "<<balance<<"   "<<contrast<<endl;
-				cout<<"The parameter of detection is: "<<detecParam<<endl;
-				cout<<"The energie of the data is: "<<energie<<endl;
-				cout<<"The maximal value of the data is "<<maxValue<<endl;
+				//cout<<"The balance and contrast are: "<<balance<<"   "<<contrast<<endl;
+				//cout<<"The parameter of detection is: "<<detecParam<<endl;
+				//cout<<"The energie of the data is: "<<energie<<endl;
+				//cout<<"The maximal value of the data is "<<maxValue<<endl;
 
 				//printf("main thread running\n"); 
 				//LeaveCriticalSection (&frameCrs);

@@ -21,6 +21,21 @@ void transFloatToChar(float *src, unsigned char *dst, float balance, float contr
 	}
 }
 
+/*
+ * translate the Float data to a array with the size of 3 times
+ */
+void transFloatTo3Char(float *src, unsigned char *dst, float balance, float contrast){
+	for(int i=0;i<cRow*cCol;i++){
+		float gray = (src[i]-balance)/contrast;
+		if(gray>255){
+			gray = 255;
+		} else if(gray <0){
+			gray = 0;
+		}
+		dst[3*i] = dst[3*i+1] = dst[3*i+2] = gray;
+	}
+}
+
 void transIntensityToGrayValue(float *src, unsigned char *dst){
 	//default parameter for Intensity data
 	float balance = 4900;
