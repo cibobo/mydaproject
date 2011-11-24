@@ -5,7 +5,7 @@
 #include "TestOpenGL.h"
 
 
-//#define OFFLINE
+#define OFFLINE
 
 #ifndef _MT 
 #define _MT 
@@ -184,7 +184,7 @@ void inputThreadProc(void *param){
 	//LeaveCriticalSection (&crs);
 
 #ifdef OFFLINE
-	setDefaultLoadPath("Markers1");
+	setDefaultLoadPath("FestLow");
 
 	//get the distance data for the first step
 	loadNormalDataFromFile("distance", 0, disData);
@@ -198,7 +198,7 @@ void inputThreadProc(void *param){
 	}
 	cout<<"Upgrading complete!"<<endl;
 
-	for(int i=20;i<415;i++){
+	for(int i=20;i<700;i++){
 		EnterCriticalSection(&frameCrs);
 		loadNormalDataFromFile("distance", i, disData);
 		loadNormalDataFromFile("intensity", i, intData);
@@ -213,8 +213,8 @@ void inputThreadProc(void *param){
 
 #else
 	EnterCriticalSection (&crs);
-	//createDefaultPMDDataDirectory("Markers1");
-	//setIsDataSaved(true);
+	createDefaultPMDDataDirectory("FestLow");
+	setIsDataSaved(true);
 	cout<<"PMD Camera Connecting..."<<endl;
 	if(!createPMDCon()){
 		exit(1);
@@ -232,7 +232,7 @@ void inputThreadProc(void *param){
 	dFilter = new DistanceFilter(disData);
 
 	cout<<"Upgrading Distance Filter....."<<endl;
-	for(int i=1;i<10;i++){
+	for(int i=1;i<20;i++){
 		getPMDData(disData, intData, ampData);
 		dFilter->Upgrade(disData);
 	}
@@ -308,13 +308,13 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			bool isPause = false;
 			int balance = 200;
 			float contrast = 10;
-			int detecParam = 70;
+
 
 			double energie = 0;
 			float maxValue = 0;
 
 			int MINFEATURECOUNT = 7;
-			int MAXFEATURECOUNT = 12;
+			int MAXFEATURECOUNT = 18;
 
 			float MINSTANDARDENERGY = 300000.0;
 			float MAXSTANDARDENERGY = 450000.0;
@@ -324,12 +324,26 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 			float MINRESPONSETHRESHOLD = 60;
 			float MAXRESPONSETHRESHOLD = 130;
+
+			//parameter for STAR Detector
+			int MAXSIZE = 8;
+			//int RESPONSETHRESHOLD = 70;
+			int detecParam = 70;
+			int LINETHRESHOLDPROJECTED = 5;
+			int LINETHRESHOLDBINARIZED = 5;
+			int SUPPRESSNONMAXSIZE = 1;
 			
-			//call the calculate function after the init of PMD Camera
-			EnterCriticalSection (&crs);
+
+			//Test
+			int testP1 = 5;
+			int testP2 = 6;
+			int testP3 = 1;
 			
 			while (!bDone) 
 			{ 	
+				//call the calculate function after the init of PMD Camera
+				EnterCriticalSection (&crs);
+				
 				// create the data for a RGB image
 				unsigned char showdata[41616*3];
 				//for(int i=0;i<204*204;i++){
@@ -353,6 +367,26 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				
 				unsigned char data[41616];
 
+				////Sleep(500);
+				//// translate the filted data to a grayscale image 
+				//transFloatToChar(filteData, data, balance, contrast);
+				//img = Mat(size, CV_8UC1, data);
+				//
+				//std::vector<KeyPoint> features;
+				//StarDetector detector = StarDetector(8, detecParam, testP1, testP2, testP3);
+				//detector(img, features);
+				//
+				////draw features
+				//int vectorSize = features.size();
+				//cout<<"find "<<vectorSize<<" features!"<<endl;
+				//for(int i=0;i<vectorSize;i++){
+				//	circle(showimg, features[i].pt, 3, Scalar(0,0,255,0), -1); 
+				//}
+				////draw
+				//imshow("OpenCVGrayScale", img);
+				//imshow("OpenCVRGBResult", showimg);
+
+
 				int safeCount = 0;
 
 				while(safeCount < 30){
@@ -363,7 +397,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					img = Mat(size, CV_8UC1, data);
 					
 					std::vector<KeyPoint> features;
-					StarDetector detector = StarDetector(8, detecParam, 8, 6, 5);
+					//set the parameter of the STAR Detector
+					StarDetector detector = StarDetector(MAXSIZE, detecParam, LINETHRESHOLDPROJECTED, LINETHRESHOLDBINARIZED, SUPPRESSNONMAXSIZE);
 					detector(img, features);
 					
 					//draw features
@@ -471,7 +506,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					case 'r':
 						detecParam -=2;
 						break;
-					case 'e':
+					case 'o':
 						//calculate energie
 						energie = 0;
 						maxValue = 0;
@@ -483,11 +518,31 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						}
 						//energie = energie/(204*204);
 						break;
+
+					case '1':
+						testP1 +=1;
+						break;
+					case 'q':
+						testP1 -=1;
+						break;
+					case '2':
+						testP2 +=1;
+						break;
+					case 'w':
+						testP2 -=1;
+						break;
+					case '3':
+						testP3 +=1;
+						break;
+					case 'e':
+						testP3 -=1;
+						break;
 				}
 				//cout<<"The balance and contrast are: "<<balance<<"   "<<contrast<<endl;
 				//cout<<"The parameter of detection is: "<<detecParam<<endl;
 				//cout<<"The energie of the data is: "<<energie<<endl;
 				//cout<<"The maximal value of the data is "<<maxValue<<endl;
+				//cout<<"Test Parameters: "<<testP1<<"    "<<testP2<<"    "<<testP3<<endl;
 
 				//printf("main thread running\n"); 
 				//LeaveCriticalSection (&frameCrs);
@@ -495,6 +550,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			LeaveCriticalSection (&crs);
 			destroyWindow("OpenCVWindow");
 		}
+		
 		
 		// release the memory block of the data
 		delete [] disData;
