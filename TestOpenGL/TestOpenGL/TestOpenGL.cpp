@@ -7,6 +7,8 @@
 
 #define OFFLINE
 
+#define TEST
+
 #ifndef _MT 
 #define _MT 
 #endif 
@@ -18,6 +20,8 @@ DWORD ThreadIndex = 1001;
 using namespace std;
 
 CRITICAL_SECTION crs;
+CRITICAL_SECTION glInitCrs;
+CRITICAL_SECTION cvInitCrs;
 CRITICAL_SECTION frameCrs;
 CRITICAL_SECTION calcCrs;
 
@@ -53,7 +57,7 @@ void openGLThreadPorc( void *param )
 
 	TlsSetValue(ThreadIndex, pOpenGLWinUI);
 
-	EnterCriticalSection (&crs);
+	EnterCriticalSection (&glInitCrs);
 
 	//if(!CreateOpenGLWindow("minimal", 0, 0, 800, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI)){
 	if((openGLhnd=CreateOpenGLWindow("OpenGL Window", 0, 0, 900, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI))==NULL){
@@ -62,7 +66,7 @@ void openGLThreadPorc( void *param )
 
 	cout<<"Thread OpenGL running"<<endl;
 
-	LeaveCriticalSection (&crs);
+	LeaveCriticalSection (&glInitCrs);
 
 	// call the display function and send the data direct with the pointer of array as parameter
 	display(pOpenGLWinUI, disData, intData, ampData);
@@ -184,21 +188,24 @@ void inputThreadProc(void *param){
 	//LeaveCriticalSection (&crs);
 
 #ifdef OFFLINE
-	setDefaultLoadPath("FestLow");
+
+	EnterCriticalSection (&cvInitCrs);
+	setDefaultLoadPath("PeopleAndObj");
 
 	//get the distance data for the first step
-	loadNormalDataFromFile("distance", 0, disData);
+	loadNormalDataFromFile("distance", 3, disData);
 	//init a distance filter
 	dFilter = new DistanceFilter(disData);
 
 	cout<<"Upgrading Distance Filter....."<<endl;
-	for(int i=1;i<10;i++){
+	for(int i=1;i<20;i++){
 		loadNormalDataFromFile("distance", i, disData);
 		dFilter->Upgrade(disData);
 	}
 	cout<<"Upgrading complete!"<<endl;
+	LeaveCriticalSection (&cvInitCrs);
 
-	for(int i=20;i<700;i++){
+	for(int i=20;i<750;i++){
 		EnterCriticalSection(&frameCrs);
 		loadNormalDataFromFile("distance", i, disData);
 		loadNormalDataFromFile("intensity", i, intData);
@@ -212,9 +219,10 @@ void inputThreadProc(void *param){
 	}
 
 #else
-	EnterCriticalSection (&crs);
-	createDefaultPMDDataDirectory("FestLow");
-	setIsDataSaved(true);
+	EnterCriticalSection (&glInitCrs);
+	EnterCriticalSection (&cvInitCrs);
+	//createDefaultPMDDataDirectory("PeopleAndObj");
+	//setIsDataSaved(true);
 	cout<<"PMD Camera Connecting..."<<endl;
 	if(!createPMDCon()){
 		exit(1);
@@ -232,13 +240,14 @@ void inputThreadProc(void *param){
 	dFilter = new DistanceFilter(disData);
 
 	cout<<"Upgrading Distance Filter....."<<endl;
-	for(int i=1;i<20;i++){
+	for(int i=0;i<20;i++){
 		getPMDData(disData, intData, ampData);
 		dFilter->Upgrade(disData);
 	}
 	cout<<"Upgrading complete!"<<endl;
 
-	LeaveCriticalSection (&crs);
+	LeaveCriticalSection (&glInitCrs);
+	LeaveCriticalSection (&cvInitCrs);
 
 	while(!bDone){
 		EnterCriticalSection(&frameCrs);
@@ -263,6 +272,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	int nRetCode = 0;
 	//just for the situation, that more than one threads are calling the same data at the same time
 	InitializeCriticalSection (&crs);
+	InitializeCriticalSection (&glInitCrs);
+	InitializeCriticalSection (&cvInitCrs);
 	InitializeCriticalSection (&frameCrs);
 
 	// MFC initialisieren und drucken. Bei Fehlschlag Fehlermeldung aufrufen.
@@ -289,9 +300,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		}
 
 		 //Start OpenGL Window Thread 
-		if(_beginthread (openGLThreadPorc, 0, NULL)==-1){
-			cout<<"Failed to create openGL thread"<<endl;
-		}
+		//if(_beginthread (openGLThreadPorc, 0, NULL)==-1){
+		//	cout<<"Failed to create openGL thread"<<endl;
+		//}
 
 		// Start ARToolKit Window Thread 
 		//if(_beginthread (arToolKitThreadProc, 0, NULL)==-1){
@@ -302,9 +313,10 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		{
 			using namespace cv; 
 			namedWindow("OpenCVGrayScale", CV_WINDOW_AUTOSIZE);
+			namedWindow("OpenCVRGBTest", CV_WINDOW_AUTOSIZE);
 			namedWindow("OpenCVRGBResult", CV_WINDOW_AUTOSIZE);
 			Size size = Size(204, 204);
-			Mat img, showimg;
+			Mat img, showimg, testimg;
 			bool isPause = false;
 			int balance = 200;
 			float contrast = 10;
@@ -314,7 +326,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			float maxValue = 0;
 
 			int MINFEATURECOUNT = 7;
-			int MAXFEATURECOUNT = 18;
+			int MAXFEATURECOUNT = 11;
 
 			float MINSTANDARDENERGY = 300000.0;
 			float MAXSTANDARDENERGY = 450000.0;
@@ -322,7 +334,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			float MINCONTRAST = 2;
 			float MAXCONTRAST = 18;
 
-			float MINRESPONSETHRESHOLD = 60;
+			float MINRESPONSETHRESHOLD = 40;
 			float MAXRESPONSETHRESHOLD = 130;
 
 			//parameter for STAR Detector
@@ -330,34 +342,49 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			//int RESPONSETHRESHOLD = 70;
 			int detecParam = 70;
 			int LINETHRESHOLDPROJECTED = 5;
-			int LINETHRESHOLDBINARIZED = 5;
+			int LINETHRESHOLDBINARIZED = 6;
 			int SUPPRESSNONMAXSIZE = 1;
+
+			//the maximal loop times
+			int MAXLOOPS = 30;
 			
 
 			//Test
 			int testP1 = 5;
 			int testP2 = 6;
 			int testP3 = 1;
+
+			float eps = 5;
+
+			//The summerized KeyPoint fot the current frame
+			std::vector<KeyPoint> sumFeatures;
+
+			//The KeyPoint for the last frame
+			std::vector<KeyPoint> hisFeatures;
+			unsigned char hisShowdata[41616*3];
 			
 			while (!bDone) 
 			{ 	
 				//call the calculate function after the init of PMD Camera
-				EnterCriticalSection (&crs);
+				EnterCriticalSection (&cvInitCrs);
 				
 				// create the data for a RGB image
 				unsigned char showdata[41616*3];
-				//for(int i=0;i<204*204;i++){
-				//	float gray = (ampData[i]-balance)/contrast;
-				//	if(gray>255){
-				//		gray = 255;
-				//	} else if(gray <0){
-				//		gray = 0;
-				//	}
-				//	showdata[3*i] = showdata[3*i+1] = showdata[3*i+2] = gray;
-				//}
+				
+
 				transFloatTo3Char(ampData, showdata, balance, contrast);
+				transFloatTo3Char(ampData, hisShowdata, balance, contrast);
+
 				// set the data to the RGB image
 				showimg = Mat(size, CV_8UC3, showdata);
+				//testimg = Mat(size, CV_8UC3, showdata2);
+				testimg = Mat(204, 204*2, CV_8UC3);
+				Mat left = Mat(testimg, Range::all(), Range(0,204));
+				Mat right = Mat(testimg, Range::all(), Range(204,204*2));
+				showimg.copyTo(left);
+				showimg.copyTo(right);
+				
+
 
 				// create the array to save the filted data
 				float filteData[204*204];
@@ -367,29 +394,58 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				
 				unsigned char data[41616];
 
-				////Sleep(500);
-				//// translate the filted data to a grayscale image 
-				//transFloatToChar(filteData, data, balance, contrast);
-				//img = Mat(size, CV_8UC1, data);
-				//
-				//std::vector<KeyPoint> features;
-				//StarDetector detector = StarDetector(8, detecParam, testP1, testP2, testP3);
-				//detector(img, features);
-				//
-				////draw features
-				//int vectorSize = features.size();
-				//cout<<"find "<<vectorSize<<" features!"<<endl;
-				//for(int i=0;i<vectorSize;i++){
-				//	circle(showimg, features[i].pt, 3, Scalar(0,0,255,0), -1); 
-				//}
-				////draw
-				//imshow("OpenCVGrayScale", img);
-				//imshow("OpenCVRGBResult", showimg);
+#ifdef TEST
+				EnterCriticalSection(&frameCrs);
+				// translate the filted data to a grayscale image 
+				transFloatToChar(filteData, data, balance, contrast);
+				img = Mat(size, CV_8UC1, data);
+				
+				std::vector<KeyPoint> features;
+				//set the parameter of the STAR Detector
+				StarDetector detector = StarDetector(MAXSIZE, detecParam, LINETHRESHOLDPROJECTED, LINETHRESHOLDBINARIZED, SUPPRESSNONMAXSIZE);
+				detector(img, features);
+				
+				//draw features
+				int vectorSize = features.size();
+				cout<<"find "<<vectorSize<<" features!"<<endl;
+				for(int i=0;i<vectorSize;i++){
+					circle(showimg, features[i].pt, 1, Scalar(0,0,255,0), -1); 
+					//sumFeatures.insert(sumFeatures.begin()+i, features[i]);
+				}
 
+				//summarize the near features
+				std::vector<KeyPoint> sumFeatures = features;
+				//The loop of all features
+				for(int i=0;i<sumFeatures.size();i++){
+					//The loop from current features to the others, which is behind the current feature
+					for(int j=i+1;j<sumFeatures.size();j++){
+						//calculate the distance between two features
+						float xDis = sumFeatures[i].pt.x - sumFeatures[j].pt.x;
+						float yDis = sumFeatures[i].pt.y - sumFeatures[j].pt.y;
+						//if they are too close
+						if(fabs(xDis)<eps && fabs(yDis)<eps){
+							//reset the position of the ith feature
+							sumFeatures[i].pt.x = 0.5*(sumFeatures[i].pt.x + sumFeatures[j].pt.x);
+							sumFeatures[i].pt.y = 0.5*(sumFeatures[i].pt.y + sumFeatures[j].pt.y);
+							//delete the feature at jth position
+							sumFeatures.erase(sumFeatures.begin() + j);
+						}
+					}
+					circle(testimg, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
+				}
+				cout<<"After Summerize get "<<sumFeatures.size()<<" features!"<<endl;
 
+				//kmeans(
+
+				//draw
+				imshow("OpenCVGrayScale", img);
+				imshow("OpenCVRGBResult", showimg);
+				imshow("OpenCVRGBTest", testimg);
+
+#else
 				int safeCount = 0;
 
-				while(safeCount < 30){
+				while(safeCount < MAXLOOPS){
 					safeCount ++;
 					//Sleep(500);
 					// translate the filted data to a grayscale image 
@@ -402,17 +458,73 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					detector(img, features);
 					
 					//draw features
-					int vectorSize = features.size();
-					cout<<"find "<<vectorSize<<" features!"<<endl;
-					for(int i=0;i<vectorSize;i++){
-						circle(showimg, features[i].pt, 3, Scalar(0,0,255,0), -1); 
+					//int vectorSize = features.size();
+					cout<<"find "<<features.size()<<" features!"<<endl;
+					for(int i=0;i<features.size();i++){
+						circle(showimg, features[i].pt, 1, Scalar(0,0,255,0), -1); 
+						//sumFeatures.insert(sumFeatures.begin()+i, features[i]);
 					}
+
+					/***********************************
+					 *
+					 * Summarize the near features
+					 * 
+					 * Because the last parameter of STAR detector SUPPRESSNONMAXSIZE set as 1, more features will be found as expected.
+					 * The close features will be set as one feature
+					 *
+					 ***********************************/
+					sumFeatures.clear();
+					sumFeatures = features;
+					//The loop of all features
+					for(int i=0;i<sumFeatures.size();i++){
+						//The loop from current features to the others, which is behind the current feature
+						for(int j=i+1;j<sumFeatures.size();j++){
+							//calculate the distance between two features
+							float xDis = fabs(sumFeatures[i].pt.x - sumFeatures[j].pt.x);
+							float yDis = fabs(sumFeatures[i].pt.y - sumFeatures[j].pt.y);
+							//if they are too close
+							if(xDis<eps && yDis<eps){
+								//delete the feature at jth position
+								sumFeatures.erase(sumFeatures.begin() + j);
+							}
+						}
+						//circle(testimg, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
+						circle(left, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
+						circle(right, sumFeatures[i].pt, 1, Scalar(0,0,255,0), -1);
+
+						//translate vector from left to right
+						Point2f trans(204, 0);
+						line(testimg, sumFeatures[i].pt, sumFeatures[i].pt+trans, Scalar(255, 255, 0, 0));
+					}
+					cout<<"After Summerize get "<<sumFeatures.size()<<" features!"<<endl;
+					int vectorSize = sumFeatures.size();
+
+					//draw historical features
+					//if(hisFeatures.size()>0){
+					//	for(int i=0;i<hisFeatures.size();i++){
+					//		circle(testimg, hisFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
+					//	}
+					//}
+
 					//draw
 					imshow("OpenCVGrayScale", img);
 					imshow("OpenCVRGBResult", showimg);
+					imshow("OpenCVRGBTest", testimg);
+
 					
+					/**********************************
+					 *
+					 * The Distance Filter
+					 *
+					 *********************************/
 					if(!isDiff) break;
 
+
+					/*********************************
+					 * 
+					 * The algorithm for the Brightness and RESPONSETHRESHOLD
+					 *
+					 ********************************/
 					//if lesser than 7 features have been found
 					if(vectorSize < MINFEATURECOUNT){
 						cout<<"Case 1111111111111111111111111111111"<<endl;
@@ -465,7 +577,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 							break;
 						} else {
 							//else increase the detecParam
-							detecParam += 5;
+							detecParam += 4;
 						}
 						cout<<"Too Many Features!! The current detecParam is "<<detecParam<<endl;
 					} else {
@@ -474,6 +586,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					}
 				}
 
+				//save the detected features into the vector of historical features
+				hisFeatures.clear();
+				hisFeatures = sumFeatures;
+
+#endif
 				char c = waitKey(100);
 				if(c == 27) break;
 				switch(c){
@@ -537,17 +654,26 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					case 'e':
 						testP3 -=1;
 						break;
+					case '6':
+						eps +=0.5;
+						break;
+					case 'z':
+						eps -=0.5;
+						break;
 				}
+#ifdef TEST
 				//cout<<"The balance and contrast are: "<<balance<<"   "<<contrast<<endl;
 				//cout<<"The parameter of detection is: "<<detecParam<<endl;
 				//cout<<"The energie of the data is: "<<energie<<endl;
 				//cout<<"The maximal value of the data is "<<maxValue<<endl;
 				//cout<<"Test Parameters: "<<testP1<<"    "<<testP2<<"    "<<testP3<<endl;
-
+				cout<<"Test Parameters eps: "<<eps<<endl;
+				LeaveCriticalSection (&frameCrs);
+#endif
 				//printf("main thread running\n"); 
 				//LeaveCriticalSection (&frameCrs);
 			}
-			LeaveCriticalSection (&crs);
+			LeaveCriticalSection (&cvInitCrs);
 			destroyWindow("OpenCVWindow");
 		}
 		

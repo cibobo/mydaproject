@@ -50,3 +50,11 @@ void transAmplitudeToGrayValue(float *src, unsigned char *dst){
 	transFloatToChar(src, dst,balance, contrast);
 }
 
+void calibration(vector<Point2f> points, vector<Object> &objects){
+	//float eps = 20;
+	//objects.clear();
+
+
+	//for(int i=0;i<points.size();i++){
+		
+}

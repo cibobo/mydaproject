@@ -203,6 +203,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Object.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\OpenGLWin.cpp"
 				>
 			</File>
@@ -258,6 +262,10 @@
 			</File>
 			<File
 				RelativePath=".\MyDataIO.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Object.hpp"
 				>
 			</File>
 			<File
