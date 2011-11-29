@@ -3,6 +3,8 @@
 
 DistanceFilter::DistanceFilter(){
 	this->origArray = new float[204*204];
+	this->eps = 0.05;
+	this->diffRate = 0.05;
 }
 
 DistanceFilter::DistanceFilter(float *dis){
@@ -10,6 +12,17 @@ DistanceFilter::DistanceFilter(float *dis){
 	for(int i=0;i<204*204;i++){
 		origArray[i] = dis[i];
 	}
+	this->eps = 0.05;
+	this->diffRate = 0.05;
+}
+
+DistanceFilter::DistanceFilter(float *dis, float epsilon, float rate){
+	this->origArray = new float[204*204];
+	for(int i=0;i<204*204;i++){
+		origArray[i] = dis[i];
+	}
+	this->eps = epsilon;
+	this->diffRate = rate;
 }
 
 DistanceFilter::~DistanceFilter(){
@@ -18,15 +31,17 @@ DistanceFilter::~DistanceFilter(){
 
 void DistanceFilter::Upgrade(float *dis){
 	for(int i=0;i<204*204;i++){
-		this->origArray[i] = (this->origArray[i] + dis[i])/2;
+		//if(fabs(dis[i]-origArray[i]) < this->eps){
+			this->origArray[i] = (this->origArray[i] + dis[i])/2;
+		//}
 	}
 }
 
 bool DistanceFilter::Filte(float *dis, float *src, float *dst){
-	float eps = 0.1;
+	this->eps = 0.05;
 	// count how many data are different
 	int diffCount = 0;
-	float diffRate = 0.03;
+	this->diffRate = 0.17;
 	for(int i=0;i<204*204;i++){
 		if(fabs(dis[i]-origArray[i]) < eps){
 			dst[i] = 0;
