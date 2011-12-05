@@ -7,7 +7,7 @@
 
 #define OFFLINE
 
-#define TEST
+//#define TEST
 
 #ifndef _MT 
 #define _MT 
@@ -190,7 +190,7 @@ void inputThreadProc(void *param){
 #ifdef OFFLINE
 
 	EnterCriticalSection (&cvInitCrs);
-	setDefaultLoadPath("PeopleAndObj");
+	setDefaultLoadPath("FestLow");
 
 	//get the distance data for the first step
 	loadNormalDataFromFile("distance", 3, disData);
@@ -310,11 +310,14 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		//}
 
 		//Main Thread
+		//using cv namespace
 		{
 			using namespace cv; 
+			using namespace std;
 			namedWindow("OpenCVGrayScale", CV_WINDOW_AUTOSIZE);
 			namedWindow("OpenCVRGBTest", CV_WINDOW_AUTOSIZE);
 			namedWindow("OpenCVRGBResult", CV_WINDOW_AUTOSIZE);
+			namedWindow("OpenCVRGBGraph", CV_WINDOW_AUTOSIZE);
 			Size size = Size(204, 204);
 			Mat img, showimg, testimg;
 			bool isPause = false;
@@ -326,7 +329,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			float maxValue = 0;
 
 			int MINFEATURECOUNT = 7;
-			int MAXFEATURECOUNT = 11;
+			int MAXFEATURECOUNT = 31;
 
 			float MINSTANDARDENERGY = 300000.0;
 			float MAXSTANDARDENERGY = 450000.0;
@@ -357,11 +360,13 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			float eps = 5;
 
 			//The summerized KeyPoint fot the current frame
-			std::vector<KeyPoint> sumFeatures;
+			vector<KeyPoint> sumFeatures;
 
 			//The KeyPoint for the last frame
-			std::vector<KeyPoint> hisFeatures;
+			vector<KeyPoint> hisFeatures;
 			unsigned char hisShowdata[41616*3];
+
+			vector<Point2f> markers;
 			
 			while (!bDone) 
 			{ 	
@@ -400,7 +405,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				transFloatToChar(filteData, data, balance, contrast);
 				img = Mat(size, CV_8UC1, data);
 				
-				std::vector<KeyPoint> features;
+				vector<KeyPoint> features;
 				//set the parameter of the STAR Detector
 				StarDetector detector = StarDetector(MAXSIZE, detecParam, LINETHRESHOLDPROJECTED, LINETHRESHOLDBINARIZED, SUPPRESSNONMAXSIZE);
 				detector(img, features);
@@ -414,28 +419,101 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				}
 
 				//summarize the near features
-				std::vector<KeyPoint> sumFeatures = features;
+				vector<KeyPoint> sumFeatures = features;
 				//The loop of all features
-				for(int i=0;i<sumFeatures.size();i++){
-					//The loop from current features to the others, which is behind the current feature
-					for(int j=i+1;j<sumFeatures.size();j++){
-						//calculate the distance between two features
-						float xDis = sumFeatures[i].pt.x - sumFeatures[j].pt.x;
-						float yDis = sumFeatures[i].pt.y - sumFeatures[j].pt.y;
-						//if they are too close
-						if(fabs(xDis)<eps && fabs(yDis)<eps){
-							//reset the position of the ith feature
-							sumFeatures[i].pt.x = 0.5*(sumFeatures[i].pt.x + sumFeatures[j].pt.x);
-							sumFeatures[i].pt.y = 0.5*(sumFeatures[i].pt.y + sumFeatures[j].pt.y);
-							//delete the feature at jth position
-							sumFeatures.erase(sumFeatures.begin() + j);
+				//for(int i=0;i<sumFeatures.size();i++){
+				//	//The loop from current features to the others, which is behind the current feature
+				//	for(int j=i+1;j<sumFeatures.size();j++){
+				//		//calculate the distance between two features
+				//		float xDis = sumFeatures[i].pt.x - sumFeatures[j].pt.x;
+				//		float yDis = sumFeatures[i].pt.y - sumFeatures[j].pt.y;
+				//		//if they are too close
+				//		if((xDis*xDis + yDis*yDis)<eps*eps){
+				//			//reset the position of the ith feature
+				//			sumFeatures[i].pt.x = 0.5*(sumFeatures[i].pt.x + sumFeatures[j].pt.x);
+				//			sumFeatures[i].pt.y = 0.5*(sumFeatures[i].pt.y + sumFeatures[j].pt.y);
+				//			//delete the feature at jth position
+				//			sumFeatures.erase(sumFeatures.begin() + j);
+				//		}
+				//	}
+				//	circle(left, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
+				//	circle(right, sumFeatures[i].pt, 1, Scalar(0,0,255,0), -1);
+
+				//	//translate vector from left to right
+				//	Point2f trans(204, 0);
+				//	line(testimg, sumFeatures[i].pt, sumFeatures[i].pt+trans, Scalar(255, 255, 0, 0));
+				//}
+				//cout<<"After Summerize get "<<sumFeatures.size()<<" features!"<<endl;
+
+				vector<vector<KeyPoint>> groupFeatures;
+					vector<int> pointer;
+					for(int i=0;i<sumFeatures.size();i++){
+						pointer.push_back(-1);
+					}
+					for(int i=0;i<sumFeatures.size();i++){
+						vector<KeyPoint> temp;
+						int index;
+						//no pointer defined
+						if(pointer.at(i) == -1){
+							temp.push_back(sumFeatures[i]);
+							index = groupFeatures.size();
+							for(int j=0;j<sumFeatures.size();j++){
+								//calculate the distance between two features
+								float xDis = fabs(sumFeatures[i].pt.x - sumFeatures[j].pt.x);
+								float yDis = fabs(sumFeatures[i].pt.y - sumFeatures[j].pt.y);
+								//if they are too close
+								//if(xDis<eps && yDis<eps){
+								if((xDis*xDis + yDis*yDis)<eps*eps){
+									if(pointer.at(j) != index){
+										temp.push_back(sumFeatures[j]);
+										pointer.at(j) = index;
+									}
+								}
+							}
+							groupFeatures.push_back(temp);
+						} else {
+							index = pointer.at(i);
+							temp = groupFeatures.at(index);
+							for(int j=0;j<sumFeatures.size();j++){
+								//calculate the distance between two features
+								float xDis = fabs(sumFeatures[i].pt.x - sumFeatures[j].pt.x);
+								float yDis = fabs(sumFeatures[i].pt.y - sumFeatures[j].pt.y);
+								//if they are too close
+								//if(xDis<eps && yDis<eps){
+								if((xDis*xDis + yDis*yDis)<eps*eps){
+									if(pointer.at(j) != index){
+										temp.push_back(sumFeatures[j]);
+										pointer.at(j) = index;
+									}
+								}
+							}
+							groupFeatures.at(index) = temp;
 						}
 					}
-					circle(testimg, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
-				}
-				cout<<"After Summerize get "<<sumFeatures.size()<<" features!"<<endl;
+					cout<<"After Summerize get "<<groupFeatures.size()<<" features!"<<endl;
 
-				//kmeans(
+					for(int i=0;i<groupFeatures.size();i++){
+						float avrX = 0;
+						float avrY = 0;
+						int size = groupFeatures[i].size();
+						for(int j=0;j<size;j++){
+							avrX += groupFeatures[i][j].pt.x;
+							avrY += groupFeatures[i][j].pt.y;
+						}
+
+						Point2f p(avrX/size, avrY/size);
+						circle(left, p, 1, Scalar(0,255,0,0), -1);
+						circle(right, p, 1, Scalar(0,0,255,0), -1);
+
+						//translate vector from left to right
+						Point2f trans(204, 0);
+						line(testimg, p, p+trans, Scalar(255, 255, 0, 0));
+					}
+
+				//Mat sampleLables = Mat(sumFeatures.size(), 1, CV_32FC1);
+				//TermCriteria criteria;
+				//criteria.epsilon = 0.01;
+				//kmeans(sumFeatures, 3, sampleLables, criteria, 2, KMEANS_RANDOM_CENTERS); 
 
 				//draw
 				imshow("OpenCVGrayScale", img);
@@ -444,6 +522,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 #else
 				int safeCount = 0;
+				vector<vector<KeyPoint>> groupFeatures;
 
 				while(safeCount < MAXLOOPS){
 					safeCount ++;
@@ -452,13 +531,13 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					transFloatToChar(filteData, data, balance, contrast);
 					img = Mat(size, CV_8UC1, data);
 					
-					std::vector<KeyPoint> features;
+					vector<KeyPoint> features;
 					//set the parameter of the STAR Detector
 					StarDetector detector = StarDetector(MAXSIZE, detecParam, LINETHRESHOLDPROJECTED, LINETHRESHOLDBINARIZED, SUPPRESSNONMAXSIZE);
 					detector(img, features);
 					
 					//draw features
-					//int vectorSize = features.size();
+					int vectorSize = features.size();
 					cout<<"find "<<features.size()<<" features!"<<endl;
 					for(int i=0;i<features.size();i++){
 						circle(showimg, features[i].pt, 1, Scalar(0,0,255,0), -1); 
@@ -476,29 +555,126 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					sumFeatures.clear();
 					sumFeatures = features;
 					//The loop of all features
-					for(int i=0;i<sumFeatures.size();i++){
-						//The loop from current features to the others, which is behind the current feature
-						for(int j=i+1;j<sumFeatures.size();j++){
-							//calculate the distance between two features
-							float xDis = fabs(sumFeatures[i].pt.x - sumFeatures[j].pt.x);
-							float yDis = fabs(sumFeatures[i].pt.y - sumFeatures[j].pt.y);
-							//if they are too close
-							if(xDis<eps && yDis<eps){
-								//delete the feature at jth position
-								sumFeatures.erase(sumFeatures.begin() + j);
+					//for(int i=0;i<sumFeatures.size();i++){
+					//	//The loop from current features to the others, which is behind the current feature
+					//	for(int j=i+1;j<sumFeatures.size();j++){
+					//		//calculate the distance between two features
+					//		float xDis = fabs(sumFeatures[i].pt.x - sumFeatures[j].pt.x);
+					//		float yDis = fabs(sumFeatures[i].pt.y - sumFeatures[j].pt.y);
+					//		//if they are too close
+					//		//if(xDis<eps && yDis<eps){
+					//		if((xDis*xDis + yDis*yDis)<eps*eps){
+					//			sumFeatures[i].pt.x = 0.5*(sumFeatures[i].pt.x + sumFeatures[j].pt.x);
+					//			sumFeatures[i].pt.y = 0.5*(sumFeatures[i].pt.y + sumFeatures[j].pt.y);
+					//			//delete the feature at jth position
+					//			sumFeatures.erase(sumFeatures.begin() + j);
+					//			//j=i+1;
+					//		}
+					//		//cout<<xDis<<"  ";
+					//	}
+					//	//circle(testimg, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
+					//	circle(left, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
+					//	circle(right, sumFeatures[i].pt, 1, Scalar(0,0,255,0), -1);
+
+					//	//translate vector from left to right
+					//	Point2f trans(204, 0);
+					//	line(testimg, sumFeatures[i].pt, sumFeatures[i].pt+trans, Scalar(255, 255, 0, 0));
+					//}
+					//cout<<"After Summerize get "<<sumFeatures.size()<<" features!"<<endl;
+					//int vectorSize = sumFeatures.size();
+
+					/**************************************************
+					 *
+					 * A new Algorithm to make sure, that every marker will be as a just one KeyPoint recognized
+					 *
+					 * 1. Spread the features to different set, which are close to each others. The parameter eps set the size of the area
+					 * 2. Calculate the middel point of each set and show them
+					 *************************************************/
+					// to save the sets and the elements of set
+					//vector<vector<KeyPoint>> groupFeatures;
+					// to save the set Nr. for each feature
+					vector<int> pointer;
+					// the beginning set Nr. is -1 
+					for(int i=0;i<features.size();i++){
+						pointer.push_back(-1);
+					}
+					for(int i=0;i<features.size();i++){
+						vector<KeyPoint> temp;
+						int index;
+						// if the set Nr. for the current feature is not be set
+						if(pointer.at(i) == -1){
+							// create a new set, and add the current feature to it
+							temp.push_back(features[i]);
+							// get the set Nr.
+							index = groupFeatures.size();
+							for(int j=0;j<features.size();j++){
+								//calculate the distance between two features
+								float xDis = fabs(features[i].pt.x - features[j].pt.x);
+								float yDis = fabs(features[i].pt.y - features[j].pt.y);
+								//if they are too close
+								if((xDis*xDis + yDis*yDis)<eps*eps){
+									// if the feature j is not include in this set
+									if(pointer.at(j) != index){
+										// add the feature j into the set of close features for feature i 
+										temp.push_back(features[j]);
+										// set the set Nr. for feature j
+										pointer.at(j) = index;
+									}
+								}
 							}
+							// add the new set to the groupFeatures
+							groupFeatures.push_back(temp);
+						// if the set Nr. for the current feature has been already set 
+						} else {
+							// get the set Nr.
+							index = pointer.at(i);
+							// get the set
+							temp = groupFeatures.at(index);
+							for(int j=0;j<features.size();j++){
+								//calculate the distance between two features
+								float xDis = fabs(features[i].pt.x - features[j].pt.x);
+								float yDis = fabs(features[i].pt.y - features[j].pt.y);
+								//if they are too close
+								//if(xDis<eps && yDis<eps){
+								if((xDis*xDis + yDis*yDis)<eps*eps){
+									// if the feature j is not include in this set
+									if(pointer.at(j) != index){
+										temp.push_back(features[j]);
+										pointer.at(j) = index;
+									}
+								}
+							}
+							// reset the set of groupFeatures 
+							groupFeatures.at(index) = temp;
 						}
-						//circle(testimg, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
-						circle(left, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
-						circle(right, sumFeatures[i].pt, 1, Scalar(0,0,255,0), -1);
+					}
+					cout<<"After Summerize get "<<groupFeatures.size()<<" features!"<<endl;
+					//int vectorSize = groupFeatures.size();
+
+					markers.clear();
+					for(int i=0;i<groupFeatures.size();i++){
+						float avrX = 0;
+						float avrY = 0;
+						int size = groupFeatures[i].size();
+						for(int j=0;j<size;j++){
+							avrX += groupFeatures[i][j].pt.x;
+							avrY += groupFeatures[i][j].pt.y;
+						}
+
+						Point2f p(avrX/size, avrY/size);
+						
+						markers.push_back(p);
+						circle(left, p, 1, Scalar(0,255,0,0), -1);
+						circle(right, p, 1, Scalar(0,0,255,0), -1);
 
 						//translate vector from left to right
 						Point2f trans(204, 0);
-						line(testimg, sumFeatures[i].pt, sumFeatures[i].pt+trans, Scalar(255, 255, 0, 0));
+						line(testimg, p, p+trans, Scalar(255, 255, 0, 0));
 					}
-					cout<<"After Summerize get "<<sumFeatures.size()<<" features!"<<endl;
-					int vectorSize = sumFeatures.size();
+						
+						
 
+								
 					//draw historical features
 					//if(hisFeatures.size()>0){
 					//	for(int i=0;i<hisFeatures.size();i++){
@@ -590,9 +766,38 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				hisFeatures.clear();
 				hisFeatures = sumFeatures;
 
+				//unsigned char graphData[41616*3];	
+				//transFloatTo3Char(ampData, graphData, balance, contrast);
+
+				//call calibration
+				vector<vector<Point2f>> caliResult;
+				calibration(caliResult, markers, 20);
+
+				Mat graphImg = Mat(size, CV_8UC3, showdata);
+				//Mat graphImg = Mat(left);
+				//for(int i=0;i<markers.size();i++){
+				//	for(int j=0;j<markers.size();j++){
+				//		line(graphImg, markers[i], markers[j], Scalar(0, 255, 255, 0));
+				//	}
+				//}
+				
+				for(int k=0;k<caliResult.size();k++){
+					int firstSize = caliResult[k].size();
+					for(int i=0;i<firstSize;i++){
+						for(int j=0;j<firstSize;j++){
+							line(graphImg, caliResult[k][i], caliResult[k][j], Scalar(0, 255, 255, 0));
+						}
+					}
+				}
+				imshow("OpenCVRGBGraph", graphImg);
+
+
 #endif
+	
+
 				char c = waitKey(100);
 				if(c == 27) break;
+
 				switch(c){
 					case 'p':
 						if(isPause){
@@ -661,7 +866,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						eps -=0.5;
 						break;
 				}
-#ifdef TEST
+#ifdef TEST	
 				//cout<<"The balance and contrast are: "<<balance<<"   "<<contrast<<endl;
 				//cout<<"The parameter of detection is: "<<detecParam<<endl;
 				//cout<<"The energie of the data is: "<<energie<<endl;
@@ -673,9 +878,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//printf("main thread running\n"); 
 				//LeaveCriticalSection (&frameCrs);
 			}
+
+
 			LeaveCriticalSection (&cvInitCrs);
 			destroyWindow("OpenCVWindow");
-		}
+		}//end cv namesapce
 		
 		
 		// release the memory block of the data

@@ -58,3 +58,70 @@ void calibration(vector<Point2f> points, vector<Object> &objects){
 	//for(int i=0;i<points.size();i++){
 		
 }
+
+/**************************************************
+ *
+ * A new Algorithm to make sure, that every marker will be as a just one KeyPoint recognized
+ *
+ * 1. Spread the features to different set, which are close to each others. The parameter eps set the size of the area
+ * 2. Calculate the middel point of each set and show them
+ *
+ *************************************************/
+void calibration(vector<vector<Point2f>> &result, vector<Point2f> points, float eps){
+	vector<int> pointer;
+	// the beginning set Nr. is -1 
+	for(int i=0;i<points.size();i++){
+		pointer.push_back(-1);
+	}
+	// the loop for all points
+	for(int i=0;i<points.size();i++){
+		vector<Point2f> temp;
+		int index;
+		// if the set Nr. for the current feature is not be set
+		if(pointer.at(i) == -1){
+			// create a new set, and add the current feature to it
+			temp.push_back(points[i]);
+			// get the set Nr.
+			index = result.size();
+			for(int j=0;j<points.size();j++){
+				//calculate the distance between two features
+				float xDis = fabs(points[i].x - points[j].x);
+				float yDis = fabs(points[i].y - points[j].y);
+				//if they are too close
+				if((xDis*xDis + yDis*yDis)<eps*eps){
+					// if the feature j is not include in this set
+					if(pointer.at(j) != index){
+						// add the feature j into the set of close features for feature i 
+						temp.push_back(points[j]);
+						// set the set Nr. for feature j
+						pointer.at(j) = index;
+					}
+				}
+			}
+			// add the new set to the groupFeatures
+			result.push_back(temp);
+		// if the set Nr. for the current feature has been already set 
+		} else {
+			// get the set Nr.
+			index = pointer.at(i);
+			// get the set
+			temp = result.at(index);
+			for(int j=0;j<points.size();j++){
+				//calculate the distance between two features
+				float xDis = fabs(points[i].x - points[j].x);
+				float yDis = fabs(points[i].y - points[j].y);
+				//if they are too close
+				//if(xDis<eps && yDis<eps){
+				if((xDis*xDis + yDis*yDis)<eps*eps){
+					// if the feature j is not include in this set
+					if(pointer.at(j) != index){
+						temp.push_back(points[j]);
+						pointer.at(j) = index;
+					}
+				}
+			}
+			// reset the set of groupFeatures 
+			result.at(index) = temp;
+		}
+	}
+}
