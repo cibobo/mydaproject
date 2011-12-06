@@ -1,10 +1,11 @@
 #ifndef _MYDATAIO_
 #define _MYDATAIO_
 
-
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+
+#include "BildData.hpp"
 
 bool isDirectoryExist(const char *directory);
 
@@ -13,6 +14,8 @@ bool createDirectory(const char *directory);
 void createDefaultPMDDataDirectory(char *subPath);
 
 void saveNormalDataToFile(const char *type, int frameCount, float *data);
+
+void loadNormalDataFromFile(int frameCount, BildData *bildData);
 
 void loadNormalDataFromFile(const char *type, int frameCount, float *data);
 

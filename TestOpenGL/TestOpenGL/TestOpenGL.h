@@ -7,6 +7,7 @@
 
 
 #include "ARToolKit.hpp"
+#include "BildData.hpp"
 #include "DistanceFilter.hpp"
 #include "ImageProcess.hpp"
 #include "MarkerDetection.hpp"
