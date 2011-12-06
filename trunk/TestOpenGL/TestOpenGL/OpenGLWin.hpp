@@ -7,6 +7,7 @@
 
 #include "glut/glut.h"
 
+#include "BildData.hpp"
 #include "MyDataIO.hpp"
 
 /*
@@ -77,6 +78,8 @@ struct OpenGLWinUI
 void display(OpenGLWinUI *pOpenGLWinUI);
 
 void display(OpenGLWinUI *pOpenGLWinUI, float *disData, float *intData, float *ampData);
+
+void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData);    
 
 void openGLLoadData(int index);
 

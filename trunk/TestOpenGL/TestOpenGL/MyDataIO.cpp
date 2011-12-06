@@ -94,8 +94,73 @@ void saveNormalDataToFile(const char *type, int frameCount, float *data){
 	cout<<"The "<<frameCount<<" frame successful saved in "<<fullPath.data()<<endl;
 }
 
+void loadNormalDataFromFile(int frameCount, BildData *bildData){
+	//string path("data/2/distance/");
+	string prefix;
+	string suffix;
+	string fullPath;
+	string fileName;
+	if(frameCount<10){
+		fileName.append(3,'0');
+		fileName.append(1,char(frameCount+48));
+	} else if(frameCount>=10 && frameCount<100){
+		fileName.append(2,'0');
+		fileName.append(1,char((frameCount/10)+48));
+		fileName.append(1,char((frameCount%10)+48));
+	} else if(frameCount>=100 && frameCount<1000){
+		fileName.append(1,'0');
+		fileName.append(1,char((frameCount/100)+48));
+		fileName.append(1,char(((frameCount%100)/10)+48));
+		fileName.append(1,char((frameCount%10)+48));
+	} else {
+		cout<<"the file name is bigger than 1000"<<endl;
+		exit(0);
+	}
+	prefix.append(defaultLoadPath);
+	
+	suffix.append("/");
+	suffix.append(fileName);
+	suffix.append(".dat");
+
+	string disPath(prefix);
+	disPath.append("distance");
+	disPath.append(suffix);
+	
+	//cout<<"Path: "<<ch<<endl;
+	if(!loadData<float>(disPath.data(), bildData->disData, 204*204)){
+		cout<<"Distance Data "<<frameCount<<" load error!"<<endl;
+		//exit(0);
+	} else {
+		//cout<<"Distance Data "<<frameCount<<" successful load!"<<endl;
+	}
+
+	string intPath(prefix);
+	intPath.append("intensity");
+	intPath.append(suffix);
+	
+	//cout<<"Path: "<<ch<<endl;
+	if(!loadData<float>(intPath.data(), bildData->intData, 204*204)){
+		cout<<"Intensity Data "<<frameCount<<" load error!"<<endl;
+		//exit(0);
+	} else {
+		//cout<<"Intensity Data "<<frameCount<<" successful load!"<<endl;
+	}
+
+	string ampPath(prefix);
+	ampPath.append("amplitude");
+	ampPath.append(suffix);
+	
+	//cout<<"Path: "<<ch<<endl;
+	if(!loadData<float>(ampPath.data(), bildData->ampData, 204*204)){
+		cout<<"Amplitude Data "<<frameCount<<" load error!"<<endl;
+		//exit(0);
+	} else {
+		//cout<<"Amplitude Data "<<frameCount<<" successful load!"<<endl;
+	}
+}
+
 /**
- * Load data with the index of the data file
+ * Load data with the index of the data file with the data type
  */
 void loadNormalDataFromFile(const char *type,int frameCount, float *data){
 	//string path("data/2/distance/");

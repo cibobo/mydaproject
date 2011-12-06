@@ -201,6 +201,116 @@ void display(OpenGLWinUI *pOpenGLWinUI, float *disData, float *intData, float *a
 	glFlush();
 }
 
+void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData){    
+	  
+	int height = pOpenGLWinUI->height;
+	int width = pOpenGLWinUI->width;
+
+	// Clear the Color Buffer and Depth Buffer
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glLoadIdentity();
+	// 3D View Port
+	glViewport(0, 0, height, height);
+
+	//set the view point
+	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	glPushMatrix();   // It is important to push the Matrix before 
+                                 
+	// calling glRotatef and glTranslatef
+	glRotatef(pOpenGLWinUI->rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
+    glRotatef(pOpenGLWinUI->rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
+    glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
+
+	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
+	glColor3f(1.0f,1.0f,1.0f);
+ 
+	float factor = 2.04/204;
+
+	glBegin(GL_POINTS);
+	for(int i=0;i<204;i++) {
+		for(int j=0;j<204;j++) {
+			glVertex3f((i-102)*factor, (j-102)*factor, -bildData->disData[i*204+j]);
+		}
+	}
+			
+	glEnd();    
+
+    glPopMatrix();                   // Don't forget to pop the Matrix
+
+	// Grayscale View Port
+	glLoadIdentity();
+	//glViewport(height, height/2, (width-height), height/2.0);
+	glViewport(height, height/2, 204, 204);
+	glPushMatrix();   // It is important to push the Matrix before 
+	glTranslatef(0, 0, -3);
+	float grayValue;
+	//cout<<"Balance: "<<gBalance<<"    Contrast: "<<gContrast<<endl;
+	glBegin(GL_POINTS);
+	for(int i=0;i<204;i++) {
+		for(int j=0;j<204;j++) {
+			grayValue = (bildData->intData[i*204+j]-gBalance)/gContrast;
+			if(grayValue>1){
+				grayValue = 1;
+			}
+			if(grayValue<0){
+				grayValue = 0;
+			}
+			glColor3f(grayValue,grayValue,grayValue);
+			glVertex3f((i-102)*factor, (j-102)*factor, 0);
+		}
+	}
+	//glVertex3f(0,0,-3);
+	glEnd();
+	glPopMatrix();        
+	//cout<<"Gray Value: "<<pglDisData[204*201]<<endl;
+
+
+	glLoadIdentity();
+	//glViewport(height, 0, (width-height), height/2.0);
+	glViewport(height, 0, 204, 204);
+	glPushMatrix();   // It is important to push the Matrix before 
+	glTranslatef(0, 0, -3);
+	//cout<<"Balance: "<<aBalance<<"    Contrast: "<<aContrast<<endl;
+	glBegin(GL_POINTS);
+	for(int i=0;i<204;i++) {
+		for(int j=0;j<204;j++) {
+			//using HSV color mode. some variables has been omited
+			float h = aBalance-bildData->ampData[i*204+j]/aContrast;
+			//if(h<0) h=0;
+			int hi = int(h/60);
+			float f = h/60-hi;
+			switch(hi){
+				case 0:
+					glColor3f(1,f,0);
+					break;
+				case 1:
+					glColor3f(1-f,1,0);
+					break;
+				case 2:
+					glColor3f(0,1,f);
+					break;
+				case 3:
+					glColor3f(0,1-f,1);
+					break;
+				case 4:
+					glColor3f(f,0,1);
+					break;
+				default:
+					glColor3f(1,0,1-f);
+			}
+			glVertex3f((i-102)*factor, (j-102)*factor, 0);
+		}
+	}
+	glEnd();
+	glPopMatrix();  
+	
+	
+	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
+    //glutPostRedisplay();           // Redraw the scene
+
+	//glutSwapBuffers();
+	glFlush();
+}
 
 
 /**

@@ -32,18 +32,14 @@ HWND openGLhnd;
 // The handle for Grayscale Window
 HWND grayScalehnd;
 
-//TODO: direct pointer define
-// Array and the Pointer of Distance Data
-//float dData[DATA_SIZE];
-float *disData;// = dData;
 
-// Array and the Pointer of Intensity Data
-//float iData[DATA_SIZE];
-float *intData;
+// All data for a frame, include the distance, amplitude and intensity
+float *hisAmpData;
 
-// Array and the Pointer of Amplitude Data
-//float aData[DATA_SIZE];
-float *ampData;
+BildData *bildData;
+
+int MAXBUFFERSIZE = 5;
+vector<BildData> bufferBildData;
 
 DistanceFilter *dFilter;
 
@@ -69,7 +65,8 @@ void openGLThreadPorc( void *param )
 	LeaveCriticalSection (&glInitCrs);
 
 	// call the display function and send the data direct with the pointer of array as parameter
-	display(pOpenGLWinUI, disData, intData, ampData);
+	//display(pOpenGLWinUI, disData, intData, ampData);
+	display(pOpenGLWinUI, bildData);
 
 	//parameter to mark, whether the input process is in pause
 	bool isPause = false;
@@ -96,7 +93,8 @@ void openGLThreadPorc( void *param )
 				//display(pOpenGLWinUI, disData, intData, ampData);
 			}
 		}
-		display(pOpenGLWinUI, disData, intData, ampData);
+		//display(pOpenGLWinUI, disData, intData, ampData);
+		display(pOpenGLWinUI, bildData);
 			
 	}
 
@@ -190,26 +188,29 @@ void inputThreadProc(void *param){
 #ifdef OFFLINE
 
 	EnterCriticalSection (&cvInitCrs);
-	setDefaultLoadPath("FestLow");
+	setDefaultLoadPath("TwoObjects");
 
 	//get the distance data for the first step
-	loadNormalDataFromFile("distance", 3, disData);
+	loadNormalDataFromFile("distance", 3, bildData->disData);
 	//init a distance filter
-	dFilter = new DistanceFilter(disData);
+	dFilter = new DistanceFilter(bildData->disData);
 
 	cout<<"Upgrading Distance Filter....."<<endl;
 	for(int i=1;i<20;i++){
-		loadNormalDataFromFile("distance", i, disData);
-		dFilter->Upgrade(disData);
+		loadNormalDataFromFile("distance", i, bildData->disData);
+		dFilter->Upgrade(bildData->disData);
 	}
 	cout<<"Upgrading complete!"<<endl;
 	LeaveCriticalSection (&cvInitCrs);
 
 	for(int i=20;i<750;i++){
 		EnterCriticalSection(&frameCrs);
-		loadNormalDataFromFile("distance", i, disData);
-		loadNormalDataFromFile("intensity", i, intData);
-		loadNormalDataFromFile("amplitude", i, ampData);
+		//loadNormalDataFromFile("distance", i, bildData->disData);
+		//loadNormalDataFromFile("intensity", i, bildData->intData);
+		//loadNormalDataFromFile("amplitude", i, bildData->ampData);
+		loadNormalDataFromFile(i, bildData);
+
+		loadNormalDataFromFile("amplitude", i-10, hisAmpData);
 		//openGLLoadData(disData, intData, ampData);	
 		//updata the OpenGL Window
 		PostMessage(openGLhnd, WM_PAINT, 0, 0);	
@@ -221,7 +222,7 @@ void inputThreadProc(void *param){
 #else
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	//createDefaultPMDDataDirectory("PeopleAndObj");
+	//createDefaultPMDDataDirectory("TwoObjects");
 	//setIsDataSaved(true);
 	cout<<"PMD Camera Connecting..."<<endl;
 	if(!createPMDCon()){
@@ -236,13 +237,13 @@ void inputThreadProc(void *param){
 	//calibration();
 
 	// init distance filter
-	getPMDData(disData, intData, ampData);
-	dFilter = new DistanceFilter(disData);
+	getPMDData(bildData->disData, bildData->intData, bildData->ampData);
+	dFilter = new DistanceFilter(bildData->disData);
 
 	cout<<"Upgrading Distance Filter....."<<endl;
 	for(int i=0;i<20;i++){
-		getPMDData(disData, intData, ampData);
-		dFilter->Upgrade(disData);
+		getPMDData(bildData->disData, bildData->intData, bildData->ampData);
+		dFilter->Upgrade(bildData->disData);
 	}
 	cout<<"Upgrading complete!"<<endl;
 
@@ -251,7 +252,7 @@ void inputThreadProc(void *param){
 
 	while(!bDone){
 		EnterCriticalSection(&frameCrs);
-		getPMDData(disData, intData, ampData);
+		getPMDData(bildData->disData, bildData->intData, bildData->ampData);
 		//setARData(intData);
 		//disData = getPMDDataPointer();
 		
@@ -285,14 +286,13 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	}
 	else
 	{
-		// create a new array for distance data
-		disData = new float[DATA_SIZE];
 
-		// create a new array for intensity data
-		intData = new float[DATA_SIZE];
 
-		// create a new array for amplitude data
-		ampData = new float[DATA_SIZE];
+		// historical data
+		hisAmpData = new float[DATA_SIZE];
+
+		// create the new data
+		bildData = new BildData();
 
 		//Start Input Thread
 		if(_beginthread (inputThreadProc, 0, NULL) == -1){
@@ -328,7 +328,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			double energie = 0;
 			float maxValue = 0;
 
-			int MINFEATURECOUNT = 7;
+			int MINFEATURECOUNT = 12;
 			int MAXFEATURECOUNT = 31;
 
 			float MINSTANDARDENERGY = 300000.0;
@@ -363,10 +363,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			vector<KeyPoint> sumFeatures;
 
 			//The KeyPoint for the last frame
-			vector<KeyPoint> hisFeatures;
+			vector<Point2f> hisFeatures;
 			unsigned char hisShowdata[41616*3];
-
-			vector<Point2f> markers;
 			
 			while (!bDone) 
 			{ 	
@@ -377,23 +375,23 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				unsigned char showdata[41616*3];
 				
 
-				transFloatTo3Char(ampData, showdata, balance, contrast);
-				transFloatTo3Char(ampData, hisShowdata, balance, contrast);
+				transFloatTo3Char(bildData->ampData, showdata, balance, contrast);
+				transFloatTo3Char(hisAmpData, hisShowdata, balance, contrast);
 
 				// set the data to the RGB image
 				showimg = Mat(size, CV_8UC3, showdata);
-				//testimg = Mat(size, CV_8UC3, showdata2);
+				Mat hisImg = Mat(size, CV_8UC3, hisShowdata);
 				testimg = Mat(204, 204*2, CV_8UC3);
 				Mat left = Mat(testimg, Range::all(), Range(0,204));
 				Mat right = Mat(testimg, Range::all(), Range(204,204*2));
-				showimg.copyTo(left);
+				hisImg.copyTo(left);
 				showimg.copyTo(right);
 				
 
 
 				// create the array to save the filted data
 				float filteData[204*204];
-				bool isDiff = dFilter->Filte(disData, ampData, filteData);
+				bool isDiff = dFilter->Filte(bildData->disData, bildData->ampData, filteData);
 
 
 				
@@ -651,7 +649,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					cout<<"After Summerize get "<<groupFeatures.size()<<" features!"<<endl;
 					//int vectorSize = groupFeatures.size();
 
-					markers.clear();
+					bildData->features.clear();
 					for(int i=0;i<groupFeatures.size();i++){
 						float avrX = 0;
 						float avrY = 0;
@@ -663,7 +661,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 						Point2f p(avrX/size, avrY/size);
 						
-						markers.push_back(p);
+						bildData->features.push_back(p);
 						circle(left, p, 1, Scalar(0,255,0,0), -1);
 						circle(right, p, 1, Scalar(0,0,255,0), -1);
 
@@ -764,14 +762,14 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				//save the detected features into the vector of historical features
 				hisFeatures.clear();
-				hisFeatures = sumFeatures;
+				hisFeatures = bildData->features;
 
 				//unsigned char graphData[41616*3];	
 				//transFloatTo3Char(ampData, graphData, balance, contrast);
 
 				//call calibration
 				vector<vector<Point2f>> caliResult;
-				calibration(caliResult, markers, 20);
+				calibration(caliResult, bildData->features, 18);
 
 				Mat graphImg = Mat(size, CV_8UC3, showdata);
 				//Mat graphImg = Mat(left);
@@ -885,10 +883,10 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		}//end cv namesapce
 		
 		
-		// release the memory block of the data
-		delete [] disData;
-		delete [] intData;
-		delete [] ampData;
+		// release the memory block of the data	
+		delete [] hisAmpData;
+
+		delete bildData;
 		
 		delete dFilter;
 		
