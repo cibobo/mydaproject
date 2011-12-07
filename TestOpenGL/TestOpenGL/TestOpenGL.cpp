@@ -39,7 +39,7 @@ float *hisAmpData;
 BildData *bildData;
 
 int MAXBUFFERSIZE = 5;
-vector<BildData> bufferBildData;
+vector<BildData*> bildDataBuffer;
 
 DistanceFilter *dFilter;
 
@@ -188,17 +188,26 @@ void inputThreadProc(void *param){
 #ifdef OFFLINE
 
 	EnterCriticalSection (&cvInitCrs);
-	setDefaultLoadPath("TwoObjects");
+	setDefaultLoadPath("Markers1");
 
 	//get the distance data for the first step
 	loadNormalDataFromFile("distance", 3, bildData->disData);
 	//init a distance filter
 	dFilter = new DistanceFilter(bildData->disData);
 
-	cout<<"Upgrading Distance Filter....."<<endl;
+	cout<<"Upgrading Distance Filter and Save Data into Buffer....."<<endl;
 	for(int i=1;i<20;i++){
 		loadNormalDataFromFile("distance", i, bildData->disData);
 		dFilter->Upgrade(bildData->disData);
+
+		BildData *temp = new BildData();
+		loadNormalDataFromFile(i, temp);
+		if(bildDataBuffer.size()>=MAXBUFFERSIZE){
+			delete bildDataBuffer[0];
+			bildDataBuffer.erase(bildDataBuffer.begin());
+		}
+		bildDataBuffer.push_back(temp);
+
 	}
 	cout<<"Upgrading complete!"<<endl;
 	LeaveCriticalSection (&cvInitCrs);
@@ -209,6 +218,14 @@ void inputThreadProc(void *param){
 		//loadNormalDataFromFile("intensity", i, bildData->intData);
 		//loadNormalDataFromFile("amplitude", i, bildData->ampData);
 		loadNormalDataFromFile(i, bildData);
+
+
+		BildData *temp = new BildData();
+		loadNormalDataFromFile(i, temp);
+		delete bildDataBuffer[0];
+		bildDataBuffer.erase(bildDataBuffer.begin());
+		bildDataBuffer.push_back(temp);
+
 
 		loadNormalDataFromFile("amplitude", i-10, hisAmpData);
 		//openGLLoadData(disData, intData, ampData);	
@@ -362,8 +379,6 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			//The summerized KeyPoint fot the current frame
 			vector<KeyPoint> sumFeatures;
 
-			//The KeyPoint for the last frame
-			vector<Point2f> hisFeatures;
 			unsigned char hisShowdata[41616*3];
 			
 			while (!bDone) 
@@ -376,7 +391,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				
 
 				transFloatTo3Char(bildData->ampData, showdata, balance, contrast);
-				transFloatTo3Char(hisAmpData, hisShowdata, balance, contrast);
+				transFloatTo3Char(bildDataBuffer[0]->ampData, hisShowdata, balance, contrast);
 
 				// set the data to the RGB image
 				showimg = Mat(size, CV_8UC3, showdata);
@@ -662,6 +677,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						Point2f p(avrX/size, avrY/size);
 						
 						bildData->features.push_back(p);
+						
 						circle(left, p, 1, Scalar(0,255,0,0), -1);
 						circle(right, p, 1, Scalar(0,0,255,0), -1);
 
@@ -761,8 +777,14 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				}
 
 				//save the detected features into the vector of historical features
-				hisFeatures.clear();
-				hisFeatures = bildData->features;
+
+				bildDataBuffer.at(MAXBUFFERSIZE-1)->features = bildData->features;
+
+				vector<Point2f> hisFeatures = bildDataBuffer.at(0)->features;
+				for(int i=0;i<hisFeatures.size();i++){
+					circle(left, hisFeatures[i], 2, Scalar(0,255,0,0), -1);
+				}
+				imshow("OpenCVRGBTest", testimg);
 
 				//unsigned char graphData[41616*3];	
 				//transFloatTo3Char(ampData, graphData, balance, contrast);
@@ -779,20 +801,18 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//	}
 				//}
 				
-				for(int k=0;k<caliResult.size();k++){
-					int firstSize = caliResult[k].size();
-					for(int i=0;i<firstSize;i++){
-						for(int j=0;j<firstSize;j++){
-							line(graphImg, caliResult[k][i], caliResult[k][j], Scalar(0, 255, 255, 0));
-						}
-					}
-				}
-				imshow("OpenCVRGBGraph", graphImg);
+				//for(int k=0;k<caliResult.size();k++){
+				//	int firstSize = caliResult[k].size();
+				//	for(int i=0;i<firstSize;i++){
+				//		for(int j=0;j<firstSize;j++){
+				//			line(graphImg, caliResult[k][i], caliResult[k][j], Scalar(0, 255, 255, 0));
+				//		}
+				//	}
+				//}
+				//imshow("OpenCVRGBGraph", graphImg);
 
 
 #endif
-	
-
 				char c = waitKey(100);
 				if(c == 27) break;
 
