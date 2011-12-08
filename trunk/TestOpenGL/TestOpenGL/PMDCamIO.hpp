@@ -8,7 +8,7 @@
 //#include "calib3d/calib3d.h"
 
 #define SHORT_TIME 200
-#define LONG_TIME 4000
+#define LONG_TIME 5000
 #define AMPL_THRESHOLD 1300.0
 
 
@@ -19,9 +19,9 @@ void closePMDCon();
 
 void checkError (PMDHandle hnd, int code);
 
-void hdrImage();
-
 void getPMDData(float *disData, float *intData, float *ampData);
+
+void getPMDData(BildData *bildData);
 
 //float* getPMDDataPointer();
 

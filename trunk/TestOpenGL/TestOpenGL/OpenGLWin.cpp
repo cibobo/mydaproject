@@ -229,7 +229,8 @@ void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData){
 	glBegin(GL_POINTS);
 	for(int i=0;i<204;i++) {
 		for(int j=0;j<204;j++) {
-			glVertex3f((i-102)*factor, (j-102)*factor, -bildData->disData[i*204+j]);
+			//glVertex3f((i-102)*factor, (j-102)*factor, -bildData->disData[i*204+j]);
+			glVertex3f(bildData->threeDData[(i*204+j)*3], bildData->threeDData[(i*204+j)*3 +1], -bildData->threeDData[(i*204+j)*3 +2]);
 		}
 	}
 			

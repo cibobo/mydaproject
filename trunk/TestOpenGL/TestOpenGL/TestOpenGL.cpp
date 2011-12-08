@@ -33,11 +33,6 @@ HWND openGLhnd;
 HWND grayScalehnd;
 
 
-// All data for a frame, include the distance, amplitude and intensity
-float *hisAmpData;
-
-BildData *bildData;
-
 int MAXBUFFERSIZE = 5;
 vector<BildData*> bildDataBuffer;
 
@@ -66,7 +61,7 @@ void openGLThreadPorc( void *param )
 
 	// call the display function and send the data direct with the pointer of array as parameter
 	//display(pOpenGLWinUI, disData, intData, ampData);
-	display(pOpenGLWinUI, bildData);
+	display(pOpenGLWinUI, bildDataBuffer.at(bildDataBuffer.size()-1));
 
 	//parameter to mark, whether the input process is in pause
 	bool isPause = false;
@@ -94,7 +89,7 @@ void openGLThreadPorc( void *param )
 			}
 		}
 		//display(pOpenGLWinUI, disData, intData, ampData);
-		display(pOpenGLWinUI, bildData);
+		display(pOpenGLWinUI, bildDataBuffer.at(bildDataBuffer.size()-1));
 			
 	}
 
@@ -186,48 +181,51 @@ void inputThreadProc(void *param){
 	//LeaveCriticalSection (&crs);
 
 #ifdef OFFLINE
-
+	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	setDefaultLoadPath("Markers1");
+	setDefaultLoadPath("TwoObjects");
 
 	//get the distance data for the first step
-	loadNormalDataFromFile("distance", 3, bildData->disData);
+	//loadNormalDataFromFile("distance", 3, bildData->disData);
+	BildData *temp = new BildData();
+	loadAllDataFromFile(3, temp);
 	//init a distance filter
-	dFilter = new DistanceFilter(bildData->disData);
+	dFilter = new DistanceFilter(temp->disData);
 
 	cout<<"Upgrading Distance Filter and Save Data into Buffer....."<<endl;
 	for(int i=1;i<20;i++){
-		loadNormalDataFromFile("distance", i, bildData->disData);
-		dFilter->Upgrade(bildData->disData);
-
+		//loadNormalDataFromFile("distance", i, bildData->disData);
 		BildData *temp = new BildData();
-		loadNormalDataFromFile(i, temp);
+		loadAllDataFromFile(i, temp);
 		if(bildDataBuffer.size()>=MAXBUFFERSIZE){
 			delete bildDataBuffer[0];
 			bildDataBuffer.erase(bildDataBuffer.begin());
 		}
 		bildDataBuffer.push_back(temp);
 
+		dFilter->Upgrade(temp->disData);
 	}
 	cout<<"Upgrading complete!"<<endl;
+	
 	LeaveCriticalSection (&cvInitCrs);
+	LeaveCriticalSection (&glInitCrs);
 
 	for(int i=20;i<750;i++){
 		EnterCriticalSection(&frameCrs);
 		//loadNormalDataFromFile("distance", i, bildData->disData);
 		//loadNormalDataFromFile("intensity", i, bildData->intData);
 		//loadNormalDataFromFile("amplitude", i, bildData->ampData);
-		loadNormalDataFromFile(i, bildData);
+		//loadNormalDataFromFile(i, bildData);
+		//bildData->disCorrection();
+		//cout<<"The middel point issssssssssssssssssssssssssssssssssss:"<<sizeof(*bildData)<<endl;
 
 
 		BildData *temp = new BildData();
-		loadNormalDataFromFile(i, temp);
+		loadAllDataFromFile(i, temp);
 		delete bildDataBuffer[0];
 		bildDataBuffer.erase(bildDataBuffer.begin());
 		bildDataBuffer.push_back(temp);
 
-
-		loadNormalDataFromFile("amplitude", i-10, hisAmpData);
 		//openGLLoadData(disData, intData, ampData);	
 		//updata the OpenGL Window
 		PostMessage(openGLhnd, WM_PAINT, 0, 0);	
@@ -239,8 +237,8 @@ void inputThreadProc(void *param){
 #else
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	//createDefaultPMDDataDirectory("TwoObjects");
-	//setIsDataSaved(true);
+	createDefaultPMDDataDirectory("TwoObjects");
+	setIsDataSaved(true);
 	cout<<"PMD Camera Connecting..."<<endl;
 	if(!createPMDCon()){
 		exit(1);
@@ -254,13 +252,21 @@ void inputThreadProc(void *param){
 	//calibration();
 
 	// init distance filter
-	getPMDData(bildData->disData, bildData->intData, bildData->ampData);
-	dFilter = new DistanceFilter(bildData->disData);
+	BildData *temp = new BildData();
+	getPMDData(temp);
+	dFilter = new DistanceFilter(temp->disData);
 
-	cout<<"Upgrading Distance Filter....."<<endl;
+	cout<<"Upgrading Distance Filter and Save Data into Buffer....."<<endl;
 	for(int i=0;i<20;i++){
-		getPMDData(bildData->disData, bildData->intData, bildData->ampData);
-		dFilter->Upgrade(bildData->disData);
+		BildData *temp = new BildData();
+		getPMDData(temp);
+		if(bildDataBuffer.size()>=MAXBUFFERSIZE){
+			delete bildDataBuffer[0];
+			bildDataBuffer.erase(bildDataBuffer.begin());
+		}
+		bildDataBuffer.push_back(temp);
+
+		dFilter->Upgrade(temp->disData);
 	}
 	cout<<"Upgrading complete!"<<endl;
 
@@ -269,14 +275,15 @@ void inputThreadProc(void *param){
 
 	while(!bDone){
 		EnterCriticalSection(&frameCrs);
-		getPMDData(bildData->disData, bildData->intData, bildData->ampData);
+
 		//setARData(intData);
-		//disData = getPMDDataPointer();
-		
-		//openGLLoadData(disData, intData, ampData);
-		
-		//PostMessage(openGLhnd, WM_PAINT, 0, 0);
-		//cout<<"Input Process with PMD Cam is running!"<<endl;
+		BildData *temp = new BildData();
+		getPMDData(temp);
+
+		delete bildDataBuffer[0];
+		bildDataBuffer.erase(bildDataBuffer.begin());
+		bildDataBuffer.push_back(temp);
+
 		LeaveCriticalSection(&frameCrs);
 		Sleep(100);
 	}
@@ -303,23 +310,15 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 	}
 	else
 	{
-
-
-		// historical data
-		hisAmpData = new float[DATA_SIZE];
-
-		// create the new data
-		bildData = new BildData();
-
 		//Start Input Thread
 		if(_beginthread (inputThreadProc, 0, NULL) == -1){
 			cout<<"Failed to create input thread"<<endl;
 		}
 
 		 //Start OpenGL Window Thread 
-		//if(_beginthread (openGLThreadPorc, 0, NULL)==-1){
-		//	cout<<"Failed to create openGL thread"<<endl;
-		//}
+		if(_beginthread (openGLThreadPorc, 0, NULL)==-1){
+			cout<<"Failed to create openGL thread"<<endl;
+		}
 
 		// Start ARToolKit Window Thread 
 		//if(_beginthread (arToolKitThreadProc, 0, NULL)==-1){
@@ -336,7 +335,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			namedWindow("OpenCVRGBResult", CV_WINDOW_AUTOSIZE);
 			namedWindow("OpenCVRGBGraph", CV_WINDOW_AUTOSIZE);
 			Size size = Size(204, 204);
-			Mat img, showimg, testimg;
+			Mat img, featuresImg, testimg;
 			bool isPause = false;
 			int balance = 200;
 			float contrast = 10;
@@ -390,25 +389,27 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				unsigned char showdata[41616*3];
 				
 
-				transFloatTo3Char(bildData->ampData, showdata, balance, contrast);
+				transFloatTo3Char(bildDataBuffer.at(bildDataBuffer.size()-1)->ampData, showdata, balance, contrast);
 				transFloatTo3Char(bildDataBuffer[0]->ampData, hisShowdata, balance, contrast);
 
 				// set the data to the RGB image
-				showimg = Mat(size, CV_8UC3, showdata);
+				featuresImg = Mat(size, CV_8UC3, showdata);
 				Mat hisImg = Mat(size, CV_8UC3, hisShowdata);
 				testimg = Mat(204, 204*2, CV_8UC3);
+
 				Mat left = Mat(testimg, Range::all(), Range(0,204));
 				Mat right = Mat(testimg, Range::all(), Range(204,204*2));
-				hisImg.copyTo(left);
-				showimg.copyTo(right);
-				
 
+				hisImg.copyTo(left);
+				featuresImg.copyTo(right);
+				
 
 				// create the array to save the filted data
 				float filteData[204*204];
-				bool isDiff = dFilter->Filte(bildData->disData, bildData->ampData, filteData);
+				bool isDiff = dFilter->Filte(bildDataBuffer.at(bildDataBuffer.size()-1)->disData, bildDataBuffer.at(bildDataBuffer.size()-1)->ampData, filteData);
 
 
+				vector<KeyPoint> features;
 				
 				unsigned char data[41616];
 
@@ -427,7 +428,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				int vectorSize = features.size();
 				cout<<"find "<<vectorSize<<" features!"<<endl;
 				for(int i=0;i<vectorSize;i++){
-					circle(showimg, features[i].pt, 1, Scalar(0,0,255,0), -1); 
+					circle(featuresImg, features[i].pt, 1, Scalar(0,0,255,0), -1); 
 					//sumFeatures.insert(sumFeatures.begin()+i, features[i]);
 				}
 
@@ -530,13 +531,18 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				//draw
 				imshow("OpenCVGrayScale", img);
-				imshow("OpenCVRGBResult", showimg);
+				imshow("OpenCVRGBResult", featuresImg);
 				imshow("OpenCVRGBTest", testimg);
 
 #else
 				int safeCount = 0;
 				vector<vector<KeyPoint>> groupFeatures;
 
+				/****************************************************************
+				 *
+				 * The Loop for the Features' Detection. The result is just a between solution
+				 *
+				 ***************************************************************/
 				while(safeCount < MAXLOOPS){
 					safeCount ++;
 					//Sleep(500);
@@ -544,7 +550,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					transFloatToChar(filteData, data, balance, contrast);
 					img = Mat(size, CV_8UC1, data);
 					
-					vector<KeyPoint> features;
+					features.clear();
 					//set the parameter of the STAR Detector
 					StarDetector detector = StarDetector(MAXSIZE, detecParam, LINETHRESHOLDPROJECTED, LINETHRESHOLDBINARIZED, SUPPRESSNONMAXSIZE);
 					detector(img, features);
@@ -553,142 +559,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					int vectorSize = features.size();
 					cout<<"find "<<features.size()<<" features!"<<endl;
 					for(int i=0;i<features.size();i++){
-						circle(showimg, features[i].pt, 1, Scalar(0,0,255,0), -1); 
-						//sumFeatures.insert(sumFeatures.begin()+i, features[i]);
+						circle(featuresImg, features[i].pt, 1, Scalar(0,0,255,0), -1); 
 					}
-
-					/***********************************
-					 *
-					 * Summarize the near features
-					 * 
-					 * Because the last parameter of STAR detector SUPPRESSNONMAXSIZE set as 1, more features will be found as expected.
-					 * The close features will be set as one feature
-					 *
-					 ***********************************/
-					sumFeatures.clear();
-					sumFeatures = features;
-					//The loop of all features
-					//for(int i=0;i<sumFeatures.size();i++){
-					//	//The loop from current features to the others, which is behind the current feature
-					//	for(int j=i+1;j<sumFeatures.size();j++){
-					//		//calculate the distance between two features
-					//		float xDis = fabs(sumFeatures[i].pt.x - sumFeatures[j].pt.x);
-					//		float yDis = fabs(sumFeatures[i].pt.y - sumFeatures[j].pt.y);
-					//		//if they are too close
-					//		//if(xDis<eps && yDis<eps){
-					//		if((xDis*xDis + yDis*yDis)<eps*eps){
-					//			sumFeatures[i].pt.x = 0.5*(sumFeatures[i].pt.x + sumFeatures[j].pt.x);
-					//			sumFeatures[i].pt.y = 0.5*(sumFeatures[i].pt.y + sumFeatures[j].pt.y);
-					//			//delete the feature at jth position
-					//			sumFeatures.erase(sumFeatures.begin() + j);
-					//			//j=i+1;
-					//		}
-					//		//cout<<xDis<<"  ";
-					//	}
-					//	//circle(testimg, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
-					//	circle(left, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
-					//	circle(right, sumFeatures[i].pt, 1, Scalar(0,0,255,0), -1);
-
-					//	//translate vector from left to right
-					//	Point2f trans(204, 0);
-					//	line(testimg, sumFeatures[i].pt, sumFeatures[i].pt+trans, Scalar(255, 255, 0, 0));
-					//}
-					//cout<<"After Summerize get "<<sumFeatures.size()<<" features!"<<endl;
-					//int vectorSize = sumFeatures.size();
-
-					/**************************************************
-					 *
-					 * A new Algorithm to make sure, that every marker will be as a just one KeyPoint recognized
-					 *
-					 * 1. Spread the features to different set, which are close to each others. The parameter eps set the size of the area
-					 * 2. Calculate the middel point of each set and show them
-					 *************************************************/
-					// to save the sets and the elements of set
-					//vector<vector<KeyPoint>> groupFeatures;
-					// to save the set Nr. for each feature
-					vector<int> pointer;
-					// the beginning set Nr. is -1 
-					for(int i=0;i<features.size();i++){
-						pointer.push_back(-1);
-					}
-					for(int i=0;i<features.size();i++){
-						vector<KeyPoint> temp;
-						int index;
-						// if the set Nr. for the current feature is not be set
-						if(pointer.at(i) == -1){
-							// create a new set, and add the current feature to it
-							temp.push_back(features[i]);
-							// get the set Nr.
-							index = groupFeatures.size();
-							for(int j=0;j<features.size();j++){
-								//calculate the distance between two features
-								float xDis = fabs(features[i].pt.x - features[j].pt.x);
-								float yDis = fabs(features[i].pt.y - features[j].pt.y);
-								//if they are too close
-								if((xDis*xDis + yDis*yDis)<eps*eps){
-									// if the feature j is not include in this set
-									if(pointer.at(j) != index){
-										// add the feature j into the set of close features for feature i 
-										temp.push_back(features[j]);
-										// set the set Nr. for feature j
-										pointer.at(j) = index;
-									}
-								}
-							}
-							// add the new set to the groupFeatures
-							groupFeatures.push_back(temp);
-						// if the set Nr. for the current feature has been already set 
-						} else {
-							// get the set Nr.
-							index = pointer.at(i);
-							// get the set
-							temp = groupFeatures.at(index);
-							for(int j=0;j<features.size();j++){
-								//calculate the distance between two features
-								float xDis = fabs(features[i].pt.x - features[j].pt.x);
-								float yDis = fabs(features[i].pt.y - features[j].pt.y);
-								//if they are too close
-								//if(xDis<eps && yDis<eps){
-								if((xDis*xDis + yDis*yDis)<eps*eps){
-									// if the feature j is not include in this set
-									if(pointer.at(j) != index){
-										temp.push_back(features[j]);
-										pointer.at(j) = index;
-									}
-								}
-							}
-							// reset the set of groupFeatures 
-							groupFeatures.at(index) = temp;
-						}
-					}
-					cout<<"After Summerize get "<<groupFeatures.size()<<" features!"<<endl;
-					//int vectorSize = groupFeatures.size();
-
-					bildData->features.clear();
-					for(int i=0;i<groupFeatures.size();i++){
-						float avrX = 0;
-						float avrY = 0;
-						int size = groupFeatures[i].size();
-						for(int j=0;j<size;j++){
-							avrX += groupFeatures[i][j].pt.x;
-							avrY += groupFeatures[i][j].pt.y;
-						}
-
-						Point2f p(avrX/size, avrY/size);
-						
-						bildData->features.push_back(p);
-						
-						circle(left, p, 1, Scalar(0,255,0,0), -1);
-						circle(right, p, 1, Scalar(0,0,255,0), -1);
-
-						//translate vector from left to right
-						Point2f trans(204, 0);
-						line(testimg, p, p+trans, Scalar(255, 255, 0, 0));
-					}
-						
-						
-
-								
+							
 					//draw historical features
 					//if(hisFeatures.size()>0){
 					//	for(int i=0;i<hisFeatures.size();i++){
@@ -698,8 +571,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 					//draw
 					imshow("OpenCVGrayScale", img);
-					imshow("OpenCVRGBResult", showimg);
-					imshow("OpenCVRGBTest", testimg);
+					imshow("OpenCVRGBResult", featuresImg);
+					
 
 					
 					/**********************************
@@ -776,10 +649,136 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					}
 				}
 
+				/***********************************
+				 *
+				 * Summarize the near features
+				 * 
+				 * Because the last parameter of STAR detector SUPPRESSNONMAXSIZE set as 1, more features will be found as expected.
+				 * The close features will be set as one feature
+				 *
+				 ***********************************/
+				sumFeatures.clear();
+				sumFeatures = features;
+				//The loop of all features
+				//for(int i=0;i<sumFeatures.size();i++){
+				//	//The loop from current features to the others, which is behind the current feature
+				//	for(int j=i+1;j<sumFeatures.size();j++){
+				//		//calculate the distance between two features
+				//		float xDis = fabs(sumFeatures[i].pt.x - sumFeatures[j].pt.x);
+				//		float yDis = fabs(sumFeatures[i].pt.y - sumFeatures[j].pt.y);
+				//		//if they are too close
+				//		//if(xDis<eps && yDis<eps){
+				//		if((xDis*xDis + yDis*yDis)<eps*eps){
+				//			sumFeatures[i].pt.x = 0.5*(sumFeatures[i].pt.x + sumFeatures[j].pt.x);
+				//			sumFeatures[i].pt.y = 0.5*(sumFeatures[i].pt.y + sumFeatures[j].pt.y);
+				//			//delete the feature at jth position
+				//			sumFeatures.erase(sumFeatures.begin() + j);
+				//			//j=i+1;
+				//		}
+				//		//cout<<xDis<<"  ";
+				//	}
+				//	//circle(testimg, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
+				//	circle(left, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
+				//	circle(right, sumFeatures[i].pt, 1, Scalar(0,0,255,0), -1);
+
+				//	//translate vector from left to right
+				//	Point2f trans(204, 0);
+				//	line(testimg, sumFeatures[i].pt, sumFeatures[i].pt+trans, Scalar(255, 255, 0, 0));
+				//}
+				//cout<<"After Summerize get "<<sumFeatures.size()<<" features!"<<endl;
+				//int vectorSize = sumFeatures.size();
+
+				/**************************************************
+				 *
+				 * A new Algorithm to make sure, that every marker will be as a just one KeyPoint recognized
+				 *
+				 * 1. Spread the features to different set, which are close to each others. The parameter eps set the size of the area
+				 * 2. Calculate the middel point of each set and show them
+				 *************************************************/
+				// to save the sets and the elements of set
+				//vector<vector<KeyPoint>> groupFeatures;
+				// to save the set Nr. for each feature
+				vector<int> pointer;
+				// the beginning set Nr. is -1 
+				for(int i=0;i<features.size();i++){
+					pointer.push_back(-1);
+				}
+				for(int i=0;i<features.size();i++){
+					vector<KeyPoint> temp;
+					int index;
+					// if the set Nr. for the current feature is not be set
+					if(pointer.at(i) == -1){
+						// create a new set, and add the current feature to it
+						temp.push_back(features[i]);
+						// get the set Nr.
+						index = groupFeatures.size();
+						for(int j=0;j<features.size();j++){
+							//calculate the distance between two features
+							float xDis = fabs(features[i].pt.x - features[j].pt.x);
+							float yDis = fabs(features[i].pt.y - features[j].pt.y);
+							//if they are too close
+							if((xDis*xDis + yDis*yDis)<eps*eps){
+								// if the feature j is not include in this set
+								if(pointer.at(j) != index){
+									// add the feature j into the set of close features for feature i 
+									temp.push_back(features[j]);
+									// set the set Nr. for feature j
+									pointer.at(j) = index;
+								}
+							}
+						}
+						// add the new set to the groupFeatures
+						groupFeatures.push_back(temp);
+					// if the set Nr. for the current feature has been already set 
+					} else {
+						// get the set Nr.
+						index = pointer.at(i);
+						// get the set
+						temp = groupFeatures.at(index);
+						for(int j=0;j<features.size();j++){
+							//calculate the distance between two features
+							float xDis = fabs(features[i].pt.x - features[j].pt.x);
+							float yDis = fabs(features[i].pt.y - features[j].pt.y);
+							//if they are too close
+							//if(xDis<eps && yDis<eps){
+							if((xDis*xDis + yDis*yDis)<eps*eps){
+								// if the feature j is not include in this set
+								if(pointer.at(j) != index){
+									temp.push_back(features[j]);
+									pointer.at(j) = index;
+								}
+							}
+						}
+						// reset the set of groupFeatures 
+						groupFeatures.at(index) = temp;
+					}
+				}
+				cout<<"After Summerize get "<<groupFeatures.size()<<" features!"<<endl;
+				//int vectorSize = groupFeatures.size();
+
+				bildDataBuffer.at(bildDataBuffer.size()-1)->features.clear();
+				for(int i=0;i<groupFeatures.size();i++){
+					float avrX = 0;
+					float avrY = 0;
+					int size = groupFeatures[i].size();
+					for(int j=0;j<size;j++){
+						avrX += groupFeatures[i][j].pt.x;
+						avrY += groupFeatures[i][j].pt.y;
+					}
+
+					Point2f p(avrX/size, avrY/size);
+					
+					bildDataBuffer.at(bildDataBuffer.size()-1)->features.push_back(p);
+					
+					circle(left, p, 1, Scalar(0,255,0,0), -1);
+					circle(right, p, 1, Scalar(0,0,255,0), -1);
+
+					//translate vector from left to right
+					Point2f trans(204, 0);
+					line(testimg, p, p+trans, Scalar(255, 255, 0, 0));
+				}
+
 				//save the detected features into the vector of historical features
-
-				bildDataBuffer.at(MAXBUFFERSIZE-1)->features = bildData->features;
-
 				vector<Point2f> hisFeatures = bildDataBuffer.at(0)->features;
 				for(int i=0;i<hisFeatures.size();i++){
 					circle(left, hisFeatures[i], 2, Scalar(0,255,0,0), -1);
@@ -791,7 +790,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				//call calibration
 				vector<vector<Point2f>> caliResult;
-				calibration(caliResult, bildData->features, 18);
+				calibration(caliResult, bildDataBuffer[MAXBUFFERSIZE-1]->features, 18);
 
 				Mat graphImg = Mat(size, CV_8UC3, showdata);
 				//Mat graphImg = Mat(left);
@@ -801,15 +800,15 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//	}
 				//}
 				
-				//for(int k=0;k<caliResult.size();k++){
-				//	int firstSize = caliResult[k].size();
-				//	for(int i=0;i<firstSize;i++){
-				//		for(int j=0;j<firstSize;j++){
-				//			line(graphImg, caliResult[k][i], caliResult[k][j], Scalar(0, 255, 255, 0));
-				//		}
-				//	}
-				//}
-				//imshow("OpenCVRGBGraph", graphImg);
+				for(int k=0;k<caliResult.size();k++){
+					int firstSize = caliResult[k].size();
+					for(int i=0;i<firstSize;i++){
+						for(int j=0;j<firstSize;j++){
+							line(graphImg, caliResult[k][i], caliResult[k][j], Scalar(0, 255, 255, 0));
+						}
+					}
+				}
+				imshow("OpenCVRGBGraph", graphImg);
 
 
 #endif
@@ -903,11 +902,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		}//end cv namesapce
 		
 		
-		// release the memory block of the data	
-		delete [] hisAmpData;
-
-		delete bildData;
-		
+		// release the memory block of the data		
 		delete dFilter;
 		
 	}
