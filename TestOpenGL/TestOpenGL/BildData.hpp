@@ -8,23 +8,29 @@ using namespace cv;
 
 class BildData{
 public:
-	// Array and the Pointer of Distance Data
+	// Pointer of Distance Data
 	float *disData;
 
-	// Array and the Pointer of Intensity Data
+	// Pointer of Intensity Data
 	float *intData;
 
-	// Array and the Pointer of Amplitude Data
+	// Pointer of Amplitude Data
 	float *ampData;
+
+	// Pointer of 3D Data
+	float *threeDData;
 
 	// Features
 	vector<Point2f> features;
 
-	int dataSize;
+	int width;
+	int length;
 
 
 	BildData();
 	~BildData();
+	void disCorrection();
+	//BildData* operator =(BildData* oldData);
 };
 
 #endif

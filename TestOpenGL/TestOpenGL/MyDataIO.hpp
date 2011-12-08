@@ -13,9 +13,11 @@ bool createDirectory(const char *directory);
 
 void createDefaultPMDDataDirectory(char *subPath);
 
+void saveAllDataToFile(int frameCount, BildData *bildData);
+
 void saveNormalDataToFile(const char *type, int frameCount, float *data);
 
-void loadNormalDataFromFile(int frameCount, BildData *bildData);
+void loadAllDataFromFile(int frameCount, BildData *bildData);
 
 void loadNormalDataFromFile(const char *type, int frameCount, float *data);
 

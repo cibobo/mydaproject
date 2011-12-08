@@ -69,76 +69,6 @@ void checkError (PMDHandle hnd, int code)
     }
 }
 
-/* Take two pictures and use the better pixels from both */
-void hdrImage ()
-{
-  int res;
-
-  
-  float amplitude[2][204*204];
-  float distance[2][204*204];
-  float intensity[204*204];
-
-  /* Take a picture with the short integration time */
-  res = pmdSetIntegrationTime (hnd, 0, SHORT_TIME);
-  checkError (hnd, res);
-
-  res = pmdUpdate (hnd);
-  checkError (hnd, res);
-
-  /* space of 204*204 float */
-  res = pmdGetAmplitudes (hnd, amplitude[0],
-                          sizeof (float) * 204 * 204);
-  checkError (hnd, res);
-
-  res = pmdGetDistances (hnd, distance[0],
-                         sizeof (float) * 204 * 204);
-  checkError (hnd, res);
-
-  /* Take a picture with the long integration time */
-  res = pmdSetIntegrationTime (hnd, 0, LONG_TIME);
-  checkError (hnd, res);
-
-  res = pmdUpdate (hnd);
-  checkError (hnd, res);
-
-  res = pmdGetAmplitudes (hnd, amplitude[1],
-                          sizeof (float) * 204 * 204);
-  checkError (hnd, res);
-
-  res = pmdGetDistances (hnd, distance[1],
-                              sizeof (float) * 204 * 204);
-  checkError (hnd, res);
-
-
-  res = pmdGetIntensities (hnd, intensity, sizeof (float) * 204 * 204);
-
-  checkError (hnd, res);
-
-  /* Check every pixel: If the amplitude is too low, use
-     the long measurement, otherwise keep the short one */
-  for (unsigned i = 0; i < 204 * 204; ++i)
-    {
-      if (amplitude[0][i] < AMPL_THRESHOLD)
-        {
-          amplitude[0][i] = amplitude[1][i];
-          distance[0][i] = distance[1][i];
-		  //float temp = distance[0][i] + distance[1][i];
-		  //distance[0][i] = temp/2;
-        }
-    }
-
-  /* amplitude[0] and distance[0] now contain the merged
-     data */
-  //saveNormalDataToFile("distance", frameCount, distance[0]);
-  //saveNormalDataToFile("amplitude", frameCount, amplitude[0]);
-  //saveNormalDataToFile("intensity", frameCount, intensity);
-  frameCount++;
-  ptrPMDData = distance[0];
-  printf ("Selected distance from the middle: %f m\n",
-          distance[0][204 * 102 + 102]);
-}
-
 
 void getAmpData(float *ampData){
 	int res;
@@ -239,6 +169,44 @@ void getPMDData(float *disData, float *intData, float *ampData){
 		saveNormalDataToFile("distance", frameCount, disData);
 		saveNormalDataToFile("amplitude", frameCount, ampData);
 		saveNormalDataToFile("intensity", frameCount, intData);
+	}
+	frameCount++;
+}
+
+void getPMDData(BildData *bildData){
+	int res;
+
+	// array to save the data of long integration time
+	float ampDataL[204*204];
+	float disDataL[204*204];
+	float intDataL[204*204];
+
+	/* Take a picture with the short integration time */
+	res = pmdSetIntegrationTime (hnd, 0, LONG_TIME);
+	checkError (hnd, res);
+
+	res = pmdUpdate (hnd);
+	checkError (hnd, res);
+
+	/* space of 204*204 float */
+	res = pmdGetAmplitudes (hnd, bildData->ampData,
+							  sizeof (float) * 204 * 204);
+	checkError (hnd, res);
+
+	res = pmdGetDistances (hnd, bildData->disData,
+							 sizeof (float) * 204 * 204);
+	checkError (hnd, res);
+
+	res = pmdGetIntensities(hnd, bildData->intData,
+							 sizeof (float) * 204 * 204);
+	checkError (hnd, res);
+
+	res = pmdGet3DCoordinates(hnd, bildData->threeDData,
+							 sizeof (float) * 204 * 204 * 3);
+	checkError (hnd, res);
+
+	if(isDataSaved){
+		saveAllDataToFile(frameCount, bildData);
 	}
 	frameCount++;
 }
