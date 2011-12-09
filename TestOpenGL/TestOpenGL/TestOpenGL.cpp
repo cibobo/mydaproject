@@ -19,7 +19,7 @@ DWORD ThreadIndex = 1001;
 
 using namespace std;
 
-CRITICAL_SECTION crs;
+CRITICAL_SECTION pauseCrs;
 CRITICAL_SECTION glInitCrs;
 CRITICAL_SECTION cvInitCrs;
 CRITICAL_SECTION frameCrs;
@@ -33,8 +33,10 @@ HWND openGLhnd;
 HWND grayScalehnd;
 
 
-int MAXBUFFERSIZE = 5;
+// The Buffer for BildDatas, which is saving the newest BildData at first place and the oldest at the last place.
+// The maximal length of the Buffer is defined with MAXBUFFERSIZE
 vector<BildData*> bildDataBuffer;
+int MAXBUFFERSIZE = 5;
 
 DistanceFilter *dFilter;
 
@@ -61,7 +63,9 @@ void openGLThreadPorc( void *param )
 
 	// call the display function and send the data direct with the pointer of array as parameter
 	//display(pOpenGLWinUI, disData, intData, ampData);
-	display(pOpenGLWinUI, bildDataBuffer.at(bildDataBuffer.size()-1));
+	//EnterCriticalSection(&frameCrs);
+	display(pOpenGLWinUI, bildDataBuffer[0]);
+	//LeaveCriticalSection(&frameCrs);
 
 	//parameter to mark, whether the input process is in pause
 	bool isPause = false;
@@ -89,7 +93,10 @@ void openGLThreadPorc( void *param )
 			}
 		}
 		//display(pOpenGLWinUI, disData, intData, ampData);
-		display(pOpenGLWinUI, bildDataBuffer.at(bildDataBuffer.size()-1));
+		cout<<"The size of the Databuffer isssssssssssssssssssssssssssssssssssss: "<<bildDataBuffer.size()<<endl;
+		//EnterCriticalSection(&frameCrs);
+		display(pOpenGLWinUI, bildDataBuffer[0]);
+		//LeaveCriticalSection(&frameCrs);
 			
 	}
 
@@ -138,12 +145,12 @@ void arToolKitThreadProc(void *param){
 
 	argInit( &cparam, 1.0, 0, 0, 0, 0 );
 
-	EnterCriticalSection (&crs);
+	//EnterCriticalSection (&crs);
 
 	arVideoCapStart();
 	argMainLoop( NULL, keyEvent, mainLoop );
 
-	LeaveCriticalSection (&crs);
+	//LeaveCriticalSection (&crs);
 
 
 	// call the display function and send the data direct with the pointer of array as parameter
@@ -198,10 +205,9 @@ void inputThreadProc(void *param){
 		BildData *temp = new BildData();
 		loadAllDataFromFile(i, temp);
 		if(bildDataBuffer.size()>=MAXBUFFERSIZE){
-			delete bildDataBuffer[0];
-			bildDataBuffer.erase(bildDataBuffer.begin());
+			bildDataBuffer.pop_back();
 		}
-		bildDataBuffer.push_back(temp);
+		bildDataBuffer.insert(bildDataBuffer.begin(), temp);
 
 		dFilter->Upgrade(temp->disData);
 	}
@@ -215,18 +221,14 @@ void inputThreadProc(void *param){
 		//loadNormalDataFromFile("distance", i, bildData->disData);
 		//loadNormalDataFromFile("intensity", i, bildData->intData);
 		//loadNormalDataFromFile("amplitude", i, bildData->ampData);
-		//loadNormalDataFromFile(i, bildData);
-		//bildData->disCorrection();
-		//cout<<"The middel point issssssssssssssssssssssssssssssssssss:"<<sizeof(*bildData)<<endl;
-
 
 		BildData *temp = new BildData();
 		loadAllDataFromFile(i, temp);
-		delete bildDataBuffer[0];
-		bildDataBuffer.erase(bildDataBuffer.begin());
-		bildDataBuffer.push_back(temp);
 
-		//openGLLoadData(disData, intData, ampData);	
+		// Pop the last element of the Buffer, and the destructor will be called automatically 
+		bildDataBuffer.pop_back();
+		bildDataBuffer.insert(bildDataBuffer.begin(), temp);
+
 		//updata the OpenGL Window
 		PostMessage(openGLhnd, WM_PAINT, 0, 0);	
 		//setARData(intData);
@@ -261,10 +263,9 @@ void inputThreadProc(void *param){
 		BildData *temp = new BildData();
 		getPMDData(temp);
 		if(bildDataBuffer.size()>=MAXBUFFERSIZE){
-			delete bildDataBuffer[0];
-			bildDataBuffer.erase(bildDataBuffer.begin());
+			bildDataBuffer.pop_back();
 		}
-		bildDataBuffer.push_back(temp);
+		bildDataBuffer.insert(bildDataBuffer.begin(), temp);
 
 		dFilter->Upgrade(temp->disData);
 	}
@@ -280,9 +281,8 @@ void inputThreadProc(void *param){
 		BildData *temp = new BildData();
 		getPMDData(temp);
 
-		delete bildDataBuffer[0];
-		bildDataBuffer.erase(bildDataBuffer.begin());
-		bildDataBuffer.push_back(temp);
+		bildDataBuffer.pop_back();
+		bildDataBuffer.insert(bildDataBuffer.begin(), temp);
 
 		LeaveCriticalSection(&frameCrs);
 		Sleep(100);
@@ -296,10 +296,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
 	int nRetCode = 0;
 	//just for the situation, that more than one threads are calling the same data at the same time
-	InitializeCriticalSection (&crs);
+	InitializeCriticalSection (&frameCrs);
 	InitializeCriticalSection (&glInitCrs);
 	InitializeCriticalSection (&cvInitCrs);
-	InitializeCriticalSection (&frameCrs);
 
 	// MFC initialisieren und drucken. Bei Fehlschlag Fehlermeldung aufrufen.
 	if (!AfxWinInit(::GetModuleHandle(NULL), NULL, ::GetCommandLine(), 0))
@@ -330,6 +329,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		{
 			using namespace cv; 
 			using namespace std;
+
 			namedWindow("OpenCVGrayScale", CV_WINDOW_AUTOSIZE);
 			namedWindow("OpenCVRGBTest", CV_WINDOW_AUTOSIZE);
 			namedWindow("OpenCVRGBResult", CV_WINDOW_AUTOSIZE);
@@ -384,13 +384,16 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			{ 	
 				//call the calculate function after the init of PMD Camera
 				EnterCriticalSection (&cvInitCrs);
+
+				//get the current Bild Data
+				BildData *currentBildData = bildDataBuffer[0];
 				
 				// create the data for a RGB image
 				unsigned char showdata[41616*3];
 				
 
-				transFloatTo3Char(bildDataBuffer.at(bildDataBuffer.size()-1)->ampData, showdata, balance, contrast);
-				transFloatTo3Char(bildDataBuffer[0]->ampData, hisShowdata, balance, contrast);
+				transFloatTo3Char(currentBildData->ampData, showdata, balance, contrast);
+				transFloatTo3Char(bildDataBuffer[bildDataBuffer.size()-1]->ampData, hisShowdata, balance, contrast);
 
 				// set the data to the RGB image
 				featuresImg = Mat(size, CV_8UC3, showdata);
@@ -406,7 +409,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				// create the array to save the filted data
 				float filteData[204*204];
-				bool isDiff = dFilter->Filte(bildDataBuffer.at(bildDataBuffer.size()-1)->disData, bildDataBuffer.at(bildDataBuffer.size()-1)->ampData, filteData);
+				bool isDiff = dFilter->Filte(currentBildData->disData, currentBildData->ampData, filteData);
 
 
 				vector<KeyPoint> features;
@@ -647,8 +650,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						cout<<"Case 333333333333333333333333333"<<endl;
 						break;
 					}
-				}
-
+				} 
+				// Ende of the Loop for the Features' Detection
+				
 				/***********************************
 				 *
 				 * Summarize the near features
@@ -657,8 +661,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 * The close features will be set as one feature
 				 *
 				 ***********************************/
-				sumFeatures.clear();
-				sumFeatures = features;
+				//sumFeatures.clear();
+				//sumFeatures = features;
 				//The loop of all features
 				//for(int i=0;i<sumFeatures.size();i++){
 				//	//The loop from current features to the others, which is behind the current feature
@@ -754,9 +758,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					}
 				}
 				cout<<"After Summerize get "<<groupFeatures.size()<<" features!"<<endl;
-				//int vectorSize = groupFeatures.size();
 
-				bildDataBuffer.at(bildDataBuffer.size()-1)->features.clear();
+				// Save the features into the first place of data buffer
+				currentBildData->features.clear();
 				for(int i=0;i<groupFeatures.size();i++){
 					float avrX = 0;
 					float avrY = 0;
@@ -768,7 +772,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 					Point2f p(avrX/size, avrY/size);
 					
-					bildDataBuffer.at(bildDataBuffer.size()-1)->features.push_back(p);
+					currentBildData->features.push_back(p);
 					
 					circle(left, p, 1, Scalar(0,255,0,0), -1);
 					circle(right, p, 1, Scalar(0,0,255,0), -1);
@@ -779,7 +783,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				}
 
 				//save the detected features into the vector of historical features
-				vector<Point2f> hisFeatures = bildDataBuffer.at(0)->features;
+				vector<Point2f> hisFeatures = bildDataBuffer[bildDataBuffer.size()-1]->features;
 				for(int i=0;i<hisFeatures.size();i++){
 					circle(left, hisFeatures[i], 2, Scalar(0,255,0,0), -1);
 				}
@@ -790,7 +794,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				//call calibration
 				vector<vector<Point2f>> caliResult;
-				calibration(caliResult, bildDataBuffer[MAXBUFFERSIZE-1]->features, 18);
+				calibration(caliResult, currentBildData->features, 18);
 
 				Mat graphImg = Mat(size, CV_8UC3, showdata);
 				//Mat graphImg = Mat(left);
@@ -899,7 +903,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 			LeaveCriticalSection (&cvInitCrs);
 			destroyWindow("OpenCVWindow");
-		}//end cv namesapce
+		}//end cv and std namespace
 		
 		
 		// release the memory block of the data		
