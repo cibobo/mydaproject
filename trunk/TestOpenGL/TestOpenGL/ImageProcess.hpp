@@ -15,3 +15,5 @@ void transAmplitudeToGrayValue(float *src, unsigned char *dst);
 void calibration(vector<Point2f> points, vector<Object> &objects);
 
 void calibration(vector<vector<Point2f>> &result, vector<Point2f> points, float eps);
+
+void featureAssociate(vector<Point2f> oldFeature, vector<Point2f> newFeature, float sigma);

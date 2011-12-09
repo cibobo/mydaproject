@@ -125,3 +125,27 @@ void calibration(vector<vector<Point2f>> &result, vector<Point2f> points, float 
 		}
 	}
 }
+
+
+/*********************************************************
+ *
+ * The algorithm to tacking the markers in different frames
+ *
+ ********************************************************/
+void featureAssociate(vector<Point2f> oldFeature, vector<Point2f> newFeature, float sigma){
+	//int rowSize = newFeature.size();
+	//int colSize = oldFeature.size();
+
+	//Mat G = Mat(rowSize, colSize, CV_32FC1);
+	//for(int i=0;i<rowSize;i++){
+	//	for(int j=0;j<colSize;j++){
+	//		float r = sqrt(oldFeature[i]
+
+	//	}
+	//}
+	//if(oldSize > newSize){
+	//	matSize = Size(oldSize, newSize);
+	//} else {
+	//	matSize = Size(newSize, oldSize);
+	//}
+}
