@@ -36,7 +36,9 @@ HWND grayScalehnd;
 // The Buffer for BildDatas, which is saving the newest BildData at first place and the oldest at the last place.
 // The maximal length of the Buffer is defined with MAXBUFFERSIZE
 vector<BildData*> bildDataBuffer;
-int MAXBUFFERSIZE = 5;
+int MAXBUFFERSIZE = 3;
+
+//int HISFRAMEINDEX = 3;
 
 DistanceFilter *dFilter;
 
@@ -93,7 +95,6 @@ void openGLThreadPorc( void *param )
 			}
 		}
 		//display(pOpenGLWinUI, disData, intData, ampData);
-		cout<<"The size of the Databuffer isssssssssssssssssssssssssssssssssssss: "<<bildDataBuffer.size()<<endl;
 		//EnterCriticalSection(&frameCrs);
 		display(pOpenGLWinUI, bildDataBuffer[0]);
 		//LeaveCriticalSection(&frameCrs);
@@ -190,7 +191,7 @@ void inputThreadProc(void *param){
 #ifdef OFFLINE
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	setDefaultLoadPath("TwoObjects");
+	setDefaultLoadPath("CircleBlack");
 
 	//get the distance data for the first step
 	//loadNormalDataFromFile("distance", 3, bildData->disData);
@@ -239,7 +240,7 @@ void inputThreadProc(void *param){
 #else
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	createDefaultPMDDataDirectory("TwoObjects");
+	createDefaultPMDDataDirectory("CircleBlack");
 	setIsDataSaved(true);
 	cout<<"PMD Camera Connecting..."<<endl;
 	if(!createPMDCon()){
@@ -774,36 +775,41 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					
 					currentBildData->features.push_back(p);
 					
-					circle(left, p, 1, Scalar(0,255,0,0), -1);
+					// show the current features
 					circle(right, p, 1, Scalar(0,0,255,0), -1);
 
 					//translate vector from left to right
-					Point2f trans(204, 0);
-					line(testimg, p, p+trans, Scalar(255, 255, 0, 0));
+					//Point2f trans(204, 0);
+					//line(testimg, p, p+trans, Scalar(255, 255, 0, 0));
 				}
 
 				//save the detected features into the vector of historical features
 				vector<Point2f> hisFeatures = bildDataBuffer[bildDataBuffer.size()-1]->features;
 				for(int i=0;i<hisFeatures.size();i++){
+					// show the old features
 					circle(left, hisFeatures[i], 2, Scalar(0,255,0,0), -1);
+				}
+				
+
+				// feature Tracking with Singular Value Decomposition
+			
+				vector<int> oldResult, newResult;
+				vector<Point2f> curFeatures = currentBildData->features;
+				if(hisFeatures.size()>0&&curFeatures.size()>0){
+					featureAssociate(hisFeatures, curFeatures, 15, oldResult, newResult);
+					for(int i=0;i<oldResult.size();i++){
+						Point2f trans(204,0);
+						line(testimg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
+					}
+					cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 				}
 				imshow("OpenCVRGBTest", testimg);
 
-				//unsigned char graphData[41616*3];	
-				//transFloatTo3Char(ampData, graphData, balance, contrast);
-
-				//call calibration
+				// call calibration
 				vector<vector<Point2f>> caliResult;
 				calibration(caliResult, currentBildData->features, 18);
 
 				Mat graphImg = Mat(size, CV_8UC3, showdata);
-				//Mat graphImg = Mat(left);
-				//for(int i=0;i<markers.size();i++){
-				//	for(int j=0;j<markers.size();j++){
-				//		line(graphImg, markers[i], markers[j], Scalar(0, 255, 255, 0));
-				//	}
-				//}
-				
 				for(int k=0;k<caliResult.size();k++){
 					int firstSize = caliResult[k].size();
 					for(int i=0;i<firstSize;i++){

@@ -41,7 +41,7 @@ bool DistanceFilter::Filte(float *dis, float *src, float *dst){
 	this->eps = 0.05;
 	// count how many data are different
 	int diffCount = 0;
-	this->diffRate = 0.22;
+	this->diffRate = 0.17;
 	for(int i=0;i<204*204;i++){
 		if(fabs(dis[i]-origArray[i]) < eps){
 			dst[i] = 0;
