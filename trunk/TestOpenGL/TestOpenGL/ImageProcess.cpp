@@ -132,20 +132,83 @@ void calibration(vector<vector<Point2f>> &result, vector<Point2f> points, float 
  * The algorithm to tacking the markers in different frames
  *
  ********************************************************/
-void featureAssociate(vector<Point2f> oldFeature, vector<Point2f> newFeature, float sigma){
-	//int rowSize = newFeature.size();
-	//int colSize = oldFeature.size();
+void featureAssociate(vector<Point2f> oldFeature, vector<Point2f> newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew){
+	// set the number of the old features as the row size
+	int rowSize = oldFeature.size();
+	// set the number of the new features as the column size
+	int colSize = newFeature.size();
+	
 
-	//Mat G = Mat(rowSize, colSize, CV_32FC1);
-	//for(int i=0;i<rowSize;i++){
-	//	for(int j=0;j<colSize;j++){
-	//		float r = sqrt(oldFeature[i]
+	Mat tempG = Mat(rowSize, colSize, CV_32FC1);
+	for(int i=0;i<rowSize;i++){
+		for(int j=0;j<colSize;j++){
+			float rSquare = (oldFeature[i].x-newFeature[j].x)*(oldFeature[i].x-newFeature[j].x) +
+						    (oldFeature[i].y-newFeature[j].y)*(oldFeature[i].y-newFeature[j].y);	
+			tempG.at<float>(i,j) = exp(-rSquare/(2*sigma*sigma));
+		}
+	}
 
-	//	}
-	//}
-	//if(oldSize > newSize){
-	//	matSize = Size(oldSize, newSize);
-	//} else {
-	//	matSize = Size(newSize, oldSize);
-	//}
+	Mat G;
+	Mat E;
+
+	// compare the row size and column size, the row size should bigger than the column size
+	if(rowSize <= colSize){
+		G = Mat(tempG);
+		E = Mat::eye(rowSize, colSize, CV_32FC1);
+	} else {
+		// if the column size is bigger, than set G as the transpose of temp
+		G = Mat(tempG.t());
+		E = Mat::eye(colSize, rowSize, CV_32FC1);
+	}
+
+	// Using the Singular Value Decomposition, using the full_uv molde to get the full-size square orthogonal matrices T and U
+	SVD svd = SVD(G, SVD::FULL_UV);
+	// calculate the new Matrix P
+	Mat P = svd.u * E * svd.vt;
+
+	int m = P.size().height;
+	int n = P.size().width;
+	int *rowMax = new int[m];
+	// find the maximal element for each row, and save the column index into array rowMax
+	for(int i=0;i<m;i++){
+		float maxValue = P.at<float>(i,0);
+		rowMax[i] = 0;
+		for(int j=1;j<n;j++){
+			if(P.at<float>(i,j)>maxValue){
+				maxValue = P.at<float>(i,j);
+				rowMax[i] = j;
+			}
+		}
+	}
+	
+	vector<int> resultM, resultN;
+	// loop for the element, which were found as the biggest one for each row in last step
+	for(int i=0;i<m;i++){
+		int colIndex = rowMax[i];
+		float maxValue = P.at<float>(i, colIndex);
+		int j;
+		for(j=0;j<m;j++){
+			// if the biggest element of row is not the biggest one for the column, break
+			if(P.at<float>(j,colIndex) > maxValue){
+				break;
+			}
+		}
+		// if the loop of the column is complete, a frame coorespondence for two frames are found.
+		if(j==m){
+			// push the result into the vectors
+			resultM.push_back(i);
+			resultN.push_back(colIndex);
+		}
+	}
+
+	findIndexOld.clear();
+	findIndexNew.clear();
+	if(rowSize <= colSize){
+		findIndexOld = resultM;
+		findIndexNew = resultN;
+	} else {
+		findIndexOld = resultN;
+		findIndexNew = resultM;
+	}
+	delete []rowMax;
 }
