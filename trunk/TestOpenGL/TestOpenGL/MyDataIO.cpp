@@ -223,17 +223,17 @@ void loadAllDataFromFile(int frameCount, BildData *bildData){
 		//cout<<"Amplitude Data "<<frameCount<<" successful load!"<<endl;
 	}
 
-	//string threeDPath(prefix);
-	//threeDPath.append("3D");
-	//threeDPath.append(suffix);
-	//
-	////cout<<"Path: "<<ch<<endl;
-	//if(!loadData<float>(threeDPath.data(), bildData->threeDData, 204*204*3)){
-	//	cout<<"3D Data "<<frameCount<<" load error!"<<endl;
-	//	//exit(0);
-	//} else {
-	//	//cout<<"3D Data "<<frameCount<<" successful load!"<<endl;
-	//}
+	string threeDPath(prefix);
+	threeDPath.append("3D");
+	threeDPath.append(suffix);
+	
+	//cout<<"Path: "<<ch<<endl;
+	if(!loadData<float>(threeDPath.data(), bildData->threeDData, 204*204*3)){
+		cout<<"3D Data "<<frameCount<<" load error!"<<endl;
+		//exit(0);
+	} else {
+		//cout<<"3D Data "<<frameCount<<" successful load!"<<endl;
+	}
 }
 
 /**

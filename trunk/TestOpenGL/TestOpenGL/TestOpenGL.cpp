@@ -191,7 +191,7 @@ void inputThreadProc(void *param){
 #ifdef OFFLINE
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	setDefaultLoadPath("Markers1");
+	setDefaultLoadPath("CircleBlack");
 
 	//get the distance data for the first step
 	//loadNormalDataFromFile("distance", 3, bildData->disData);
