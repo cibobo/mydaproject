@@ -229,8 +229,8 @@ void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData){
 	glBegin(GL_POINTS);
 	for(int i=0;i<204;i++) {
 		for(int j=0;j<204;j++) {
-			//glVertex3f((i-102)*factor, (j-102)*factor, -bildData->disData[i*204+j]);
-			glVertex3f(bildData->threeDData[(i*204+j)*3], bildData->threeDData[(i*204+j)*3 +1], -bildData->threeDData[(i*204+j)*3 +2]);
+			glVertex3f((i-102)*factor, (j-102)*factor, -bildData->disData[i*204+j]);
+			//glVertex3f(bildData->threeDData[(i*204+j)*3], bildData->threeDData[(i*204+j)*3 +1], -bildData->threeDData[(i*204+j)*3 +2]);
 		}
 	}
 			
@@ -314,19 +314,50 @@ void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData){
 }
 
 
-/**
- * load data with a pointer of float array
- */
-//void openGLLoadData(float *disData, float *intData, float *ampData){
-//	pglDisData = disData;
-//	pglIntData = intData;
-//	pglAmpData = ampData;
-//	//PostMessage(hWnd, WM_PAINT, 0, 0);
-//}
+void display(OpenGLWinUI *pOpenGLWinUI, vector<Point2f> features){
+	int height = pOpenGLWinUI->height;
+	int width = pOpenGLWinUI->width;
 
-/*
+	// Clear the Color Buffer and Depth Buffer
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glLoadIdentity();
 
- */
+	//set the view point
+	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	glPushMatrix();   // It is important to push the Matrix before 
+                                 
+	// calling glRotatef and glTranslatef
+	glRotatef(pOpenGLWinUI->rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
+    glRotatef(pOpenGLWinUI->rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
+    glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
+
+	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
+	glColor3f(1.0f,1.0f,1.0f);
+ 
+	float factor = 2.04/204;
+
+	glPointSize(5);
+	for(int i=0;i<features.size();i++){
+		glColor3f(1.0,0.0,0.0);
+		glBegin(GL_POINTS);
+			glVertex3f(features[i].x*factor, features[i].y*factor, 0);
+		glEnd();  
+		for(int j=i;j<features.size();j++){
+			glColor3f(0.0,1.0,0.0);
+			glBegin(GL_LINES);
+			    glVertex3f(features[i].x*factor, features[i].y*factor, 0);
+				glVertex3f(features[j].x*factor, features[j].y*factor, 0);
+			glEnd();
+		}
+	}
+			
+    glPopMatrix();                   // Don't forget to pop the Matrix
+	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
+	glFlush();
+
+}
+
+
 int InitGL()
 {
 	/*  */
@@ -340,25 +371,6 @@ int InitGL()
     glDepthFunc(GL_LEQUAL);   // If two objects on the same coordinate 
                                             // show the first drawn
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
-
-	//if(pglDisData ==  NULL){
-	//	pglDisData = glDisData;
-	//}
-	//if(pglIntData ==  NULL){
-	//	pglIntData = glIntData;
-	//}
-	//if(pglAmpData ==  NULL){
-	//	pglAmpData = glAmpData;
-	//}
-
-	//char *ch = "data/3/amplitude/0000.dat";
-	//if(!loadData<float>(ch, pglAmpData, 204*204)){
-	//	cout<<"data 0050 load error!"<<endl;
-	//	//exit(0);
-	//} else {
-	//	cout<<"data 0050 successful load!"<<endl;
-	//	cout<<"The middel is "<<pglAmpData[204*102]<<endl;
-	//}
 
 	return TRUE;
 }
@@ -382,9 +394,6 @@ GLvoid ReSizeGLScene(GLsizei iWidth, GLsizei iHeight)
 	glMatrixMode(GL_MODELVIEW);
 
 	glLoadIdentity();
-
-	//width = iWidth;
-	//height = iHeight;
 
 }
 

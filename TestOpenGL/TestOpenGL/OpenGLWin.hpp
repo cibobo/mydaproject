@@ -4,11 +4,15 @@
 #include <GL/glu.h>			/* OpenGL utilities header file */
 #include <GL/glaux.h>
 #include <stdio.h>
+#include <cv.h>
 
 #include "glut/glut.h"
 
 #include "BildData.hpp"
 #include "MyDataIO.hpp"
+
+using namespace cv;
+using namespace std;
 
 /*
 	the Struct of the conrolle information
@@ -80,6 +84,8 @@ void display(OpenGLWinUI *pOpenGLWinUI);
 void display(OpenGLWinUI *pOpenGLWinUI, float *disData, float *intData, float *ampData);
 
 void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData);    
+
+void display(OpenGLWinUI *pOpenGLWinUI, vector<Point2f> features);
 
 void openGLLoadData(int index);
 
