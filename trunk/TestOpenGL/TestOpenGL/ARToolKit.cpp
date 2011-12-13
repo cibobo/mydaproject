@@ -28,6 +28,9 @@ void setPattID(int pattID){
 void setARData(float *temp){
 	int balance = 4900;
 	int contrast = 38;
+		
+	//int balance = 240;
+	//int contrast = 12;
 	//unsigned char data[166464];
 	unsigned char data[41616];
 	for(int i=0;i<204*204;i++){
@@ -119,7 +122,7 @@ void mainLoop(void)
 	//}
 
 	//dataPtr = loadARDataFromFile(Count);
-		Sleep(100);
+		Sleep(300);
     Count++;
 	
 
@@ -132,6 +135,7 @@ void mainLoop(void)
 	for(i=0;i<10;i++){
 		//add the parameter of thredhold 10 everytime
 		thresholding(startParam + 10*i*pow(-1.0,i), dst);
+		
 #else
 		thresholding(100,dst);
 #endif
@@ -250,7 +254,7 @@ void drawFrame(unsigned char *intData){
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LEQUAL);
 	
-	float factor = 40.8/204;
+	float factor = 43.8/204;
 	glPushMatrix();   // It is important to push the Matrix before 
 	glRotatef(90, 0.0, 0.0, 1.0);
 	glTranslatef(0, 0, 50);

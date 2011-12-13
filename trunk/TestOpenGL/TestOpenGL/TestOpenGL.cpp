@@ -29,8 +29,8 @@ CRITICAL_SECTION calcCrs;
 bool bDone = false;
 // The handle for OpenGL Window
 HWND openGLhnd;	
-// The handle for Grayscale Window
-HWND grayScalehnd;
+// The handle for Objekt structur Window
+HWND objGLhnd;
 
 
 // The Buffer for BildDatas, which is saving the newest BildData at first place and the oldest at the last place.
@@ -191,7 +191,7 @@ void inputThreadProc(void *param){
 #ifdef OFFLINE
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	setDefaultLoadPath("CircleBlack");
+	setDefaultLoadPath("Markers1");
 
 	//get the distance data for the first step
 	//loadNormalDataFromFile("distance", 3, bildData->disData);
@@ -324,6 +324,22 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		//if(_beginthread (arToolKitThreadProc, 0, NULL)==-1){
 		//	cout<<"Failed to create ARToolKit thread"<<endl;
 		//}
+
+		MSG msg;
+		//BOOL done = FALSE;
+		static OpenGLWinUI *pObjGLWinUI = new OpenGLWinUI;
+
+		TlsSetValue(ThreadIndex, pObjGLWinUI);
+
+		//EnterCriticalSection (&glInitCrs);
+
+		if((objGLhnd=CreateOpenGLWindow("Object Window", 0, 0, 400, 400, PFD_TYPE_RGBA, 0, pObjGLWinUI))==NULL){
+			exit(0);
+		}
+
+		cout<<"The Object Structur OpenGL Windows is running"<<endl;
+
+		//LeaveCriticalSection (&glInitCrs);
 
 		//Main Thread
 		//using cv namespace
@@ -792,7 +808,6 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				
 
 				// feature Tracking with Singular Value Decomposition
-			
 				vector<int> oldResult, newResult;
 				vector<Point2f> curFeatures = currentBildData->features;
 				if(hisFeatures.size()>0&&curFeatures.size()>0){
@@ -804,6 +819,30 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 				}
 				imshow("OpenCVRGBTest", testimg);
+
+				// display 3D structur of the Object in an OpenGL Window
+				display(pObjGLWinUI, curFeatures);
+				if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
+					if(msg.message==WM_QUIT){
+						bDone = TRUE;
+					} else if(msg.message==WM_RBUTTONDOWN){
+						// klick right button of mouse to stop and rerun the input of frame
+						if(isPause){
+							cout<<"frame running!"<<endl;
+							LeaveCriticalSection(&frameCrs);
+							isPause = false;
+						} else {
+							cout<<"frame pause!"<<endl;
+							EnterCriticalSection(&frameCrs);
+							isPause = true;
+						}
+					} else{
+						TranslateMessage(&msg);
+						DispatchMessage(&msg);
+						//display(pOpenGLWinUI, disData, intData, ampData);
+					}
+				}
+				display(pObjGLWinUI, curFeatures);
 
 				// call calibration
 				vector<vector<Point2f>> caliResult;
@@ -824,7 +863,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 #endif
 				char c = waitKey(100);
 				if(c == 27) break;
-
+#ifdef TEST
 				switch(c){
 					case 'p':
 						if(isPause){
@@ -893,7 +932,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						eps -=0.5;
 						break;
 				}
-#ifdef TEST	
+	
 				//cout<<"The balance and contrast are: "<<balance<<"   "<<contrast<<endl;
 				//cout<<"The parameter of detection is: "<<detecParam<<endl;
 				//cout<<"The energie of the data is: "<<energie<<endl;
@@ -914,6 +953,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		
 		// release the memory block of the data		
 		delete dFilter;
+		delete pObjGLWinUI;
 		
 	}
 

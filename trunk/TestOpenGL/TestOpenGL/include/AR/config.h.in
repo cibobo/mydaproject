@@ -114,7 +114,7 @@
 #ifdef _WIN32
 #  undef   AR_BIG_ENDIAN
 #  define  AR_LITTLE_ENDIAN
-#  define  AR_DEFAULT_PIXEL_FORMAT AR_PIXEL_FORMAT_BGRA
+#  define  AR_DEFAULT_PIXEL_FORMAT AR_PIXEL_FORMAT_MONO
 #endif
 
 /*------------------------------------------------------------*/
