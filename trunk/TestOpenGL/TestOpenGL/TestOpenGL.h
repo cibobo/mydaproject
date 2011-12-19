@@ -9,6 +9,7 @@
 #include "ARToolKit.hpp"
 #include "BildData.hpp"
 #include "DistanceFilter.hpp"
+#include "Graph.hpp"
 #include "ImageProcess.hpp"
 #include "MarkerDetection.hpp"
 #include "OpenGLWin.hpp"

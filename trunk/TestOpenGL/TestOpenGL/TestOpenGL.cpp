@@ -5,7 +5,7 @@
 #include "TestOpenGL.h"
 
 
-#define OFFLINE
+//#define OFFLINE
 
 //#define TEST
 
@@ -36,11 +36,12 @@ HWND objGLhnd;
 // The Buffer for BildDatas, which is saving the newest BildData at first place and the oldest at the last place.
 // The maximal length of the Buffer is defined with MAXBUFFERSIZE
 vector<BildData*> bildDataBuffer;
-int MAXBUFFERSIZE = 3;
+int MAXBUFFERSIZE = 2;
 
 //int HISFRAMEINDEX = 3;
 
 DistanceFilter *dFilter;
+
 
 
 // this function is called by a new thread 
@@ -240,8 +241,8 @@ void inputThreadProc(void *param){
 #else
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	createDefaultPMDDataDirectory("CircleBlack");
-	setIsDataSaved(true);
+	//createDefaultPMDDataDirectory("CircleBlack");
+	//setIsDataSaved(true);
 	cout<<"PMD Camera Connecting..."<<endl;
 	if(!createPMDCon()){
 		exit(1);
@@ -396,6 +397,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			vector<KeyPoint> sumFeatures;
 
 			unsigned char hisShowdata[41616*3];
+
+			Graph *obj = new Graph();
 			
 			while (!bDone) 
 			{ 	
@@ -427,6 +430,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				// create the array to save the filted data
 				float filteData[204*204];
 				bool isDiff = dFilter->Filte(currentBildData->disData, currentBildData->ampData, filteData);
+
+
+				//if(!isDiff) continue;
 
 
 				vector<KeyPoint> features;
@@ -808,20 +814,53 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				
 
 				// feature Tracking with Singular Value Decomposition
-				vector<int> oldResult, newResult;
+				//vector<int> oldResult, newResult;
+				//vector<Point2f> curFeatures = currentBildData->features;
+				//if(hisFeatures.size()>0&&curFeatures.size()>0){
+				//	featureAssociate(hisFeatures, curFeatures, 15, oldResult, newResult);
+				//	for(int i=0;i<oldResult.size();i++){
+				//		Point2f trans(204,0);
+				//		line(testimg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
+				//	}
+				//	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
+				//}
+
+				vector<Point2f> oldResult, newResult;
 				vector<Point2f> curFeatures = currentBildData->features;
 				if(hisFeatures.size()>0&&curFeatures.size()>0){
-					featureAssociate(hisFeatures, curFeatures, 15, oldResult, newResult);
+					featureAssociate2(hisFeatures, curFeatures, 15, oldResult, newResult);
 					for(int i=0;i<oldResult.size();i++){
 						Point2f trans(204,0);
-						line(testimg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
+						line(testimg, oldResult[i], newResult[i]+trans, Scalar(255,255,0,0));
 					}
 					cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 				}
+
 				imshow("OpenCVRGBTest", testimg);
 
+				// call calibration
+				vector<vector<Point2f>> caliResult;
+				calibration(caliResult, currentBildData->features, 18);
+				//calibration(caliResult, newResult, 18);
+
+				Mat graphImg = Mat(size, CV_8UC3, showdata);
+				for(int k=0;k<caliResult.size();k++){
+					int firstSize = caliResult[k].size();
+					for(int i=0;i<firstSize;i++){
+						for(int j=0;j<firstSize;j++){
+							line(graphImg, caliResult[k][i], caliResult[k][j], Scalar(0, 255, 255, 0));
+						}
+					}
+				}
+				imshow("OpenCVRGBGraph", graphImg);
+
+				vector<Point2f> maxSet;
+				findMaxPointsSet(caliResult, maxSet);
+
+				obj->updateGraph(maxSet);
+				//obj->createCompleteGraph(maxSet);
 				// display 3D structur of the Object in an OpenGL Window
-				display(pObjGLWinUI, curFeatures);
+				display(pObjGLWinUI, obj);
 				if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
 					if(msg.message==WM_QUIT){
 						bDone = TRUE;
@@ -842,22 +881,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						//display(pOpenGLWinUI, disData, intData, ampData);
 					}
 				}
-				display(pObjGLWinUI, curFeatures);
-
-				// call calibration
-				vector<vector<Point2f>> caliResult;
-				calibration(caliResult, currentBildData->features, 18);
-
-				Mat graphImg = Mat(size, CV_8UC3, showdata);
-				for(int k=0;k<caliResult.size();k++){
-					int firstSize = caliResult[k].size();
-					for(int i=0;i<firstSize;i++){
-						for(int j=0;j<firstSize;j++){
-							line(graphImg, caliResult[k][i], caliResult[k][j], Scalar(0, 255, 255, 0));
-						}
-					}
-				}
-				imshow("OpenCVRGBGraph", graphImg);
+				display(pObjGLWinUI, obj);
 
 
 #endif

@@ -332,6 +332,7 @@ void display(OpenGLWinUI *pOpenGLWinUI, vector<Point2f> features){
     glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
 
 	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
+	glTranslatef(-1.02, 1.02, 0);
 	glColor3f(1.0f,1.0f,1.0f);
  
 	float factor = 2.04/204;
@@ -340,13 +341,13 @@ void display(OpenGLWinUI *pOpenGLWinUI, vector<Point2f> features){
 	for(int i=0;i<features.size();i++){
 		glColor3f(1.0,0.0,0.0);
 		glBegin(GL_POINTS);
-			glVertex3f(features[i].x*factor, features[i].y*factor, 0);
+			glVertex3f(features[i].x*factor, -features[i].y*factor, 0);
 		glEnd();  
 		for(int j=i;j<features.size();j++){
 			glColor3f(0.0,1.0,0.0);
 			glBegin(GL_LINES);
-			    glVertex3f(features[i].x*factor, features[i].y*factor, 0);
-				glVertex3f(features[j].x*factor, features[j].y*factor, 0);
+			    glVertex3f(features[i].x*factor, -features[i].y*factor, 0);
+				glVertex3f(features[j].x*factor, -features[j].y*factor, 0);
 			glEnd();
 		}
 	}
@@ -354,7 +355,54 @@ void display(OpenGLWinUI *pOpenGLWinUI, vector<Point2f> features){
     glPopMatrix();                   // Don't forget to pop the Matrix
 	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
 	glFlush();
+}
 
+void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
+	int height = pOpenGLWinUI->height;
+	int width = pOpenGLWinUI->width;
+
+	// Clear the Color Buffer and Depth Buffer
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glLoadIdentity();
+
+	//set the view point
+	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	glPushMatrix();   // It is important to push the Matrix before 
+                                 
+	// calling glRotatef and glTranslatef
+	glRotatef(pOpenGLWinUI->rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
+    glRotatef(pOpenGLWinUI->rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
+    glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
+
+	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
+	glTranslatef(-1.02, 1.02, 0);
+	glColor3f(1.0f,1.0f,1.0f);
+ 
+	float factor = 2.04/204;
+
+	glPointSize(8);
+	for(int i=0;i<graph->nodeList.size();i++){
+		//glColor3f(graph->nodeList[i]->timmer*0.15+0.2,0.0,0.0);
+		if(graph->nodeList[i]->timmer>25){
+			glColor3f(0.0f,1.0f,1.0f);
+		} else {
+			glColor3f(graph->nodeList[i]->timmer*0.15+0.2,0.0,0.0);
+		}
+		glBegin(GL_POINTS);
+			glVertex3f(graph->nodeList[i]->x*factor, -graph->nodeList[i]->y*factor, 0);
+		glEnd();  
+		for(int j=i;j<graph->nodeList.size();j++){
+			glColor3f(0.0,1.0,0.0);
+			glBegin(GL_LINES);
+			    glVertex3f(graph->nodeList[i]->x*factor, -graph->nodeList[i]->y*factor, 0);
+				glVertex3f(graph->nodeList[j]->x*factor, -graph->nodeList[j]->y*factor, 0);
+			glEnd();
+		}
+	}
+			
+    glPopMatrix();                   // Don't forget to pop the Matrix
+	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
+	glFlush();
 }
 
 
