@@ -9,6 +9,7 @@
 #include "glut/glut.h"
 
 #include "BildData.hpp"
+#include "Graph.hpp"
 #include "MyDataIO.hpp"
 
 using namespace cv;
@@ -86,6 +87,8 @@ void display(OpenGLWinUI *pOpenGLWinUI, float *disData, float *intData, float *a
 void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData);    
 
 void display(OpenGLWinUI *pOpenGLWinUI, vector<Point2f> features);
+
+void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph);
 
 void openGLLoadData(int index);
 
