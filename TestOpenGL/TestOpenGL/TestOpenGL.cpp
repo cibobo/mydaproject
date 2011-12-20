@@ -5,7 +5,7 @@
 #include "TestOpenGL.h"
 
 
-//#define OFFLINE
+#define OFFLINE
 
 //#define TEST
 

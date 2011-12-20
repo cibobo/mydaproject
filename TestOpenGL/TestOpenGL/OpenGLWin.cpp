@@ -391,11 +391,17 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 		glBegin(GL_POINTS);
 			glVertex3f(graph->nodeList[i]->x*factor, -graph->nodeList[i]->y*factor, 0);
 		glEnd();  
-		for(int j=i;j<graph->nodeList.size();j++){
-			glColor3f(0.0,1.0,0.0);
+		glColor3f(0.0,1.0,0.0);
+		//for(int j=i;j<graph->nodeList.size();j++){
+		//	glBegin(GL_LINES);
+		//	    glVertex3f(graph->nodeList[i]->x*factor, -graph->nodeList[i]->y*factor, 0);
+		//		glVertex3f(graph->nodeList[j]->x*factor, -graph->nodeList[j]->y*factor, 0);
+		//	glEnd();
+		//}
+		for(int j=0;j<graph->nodeList[i]->edgeList.size();j++){
 			glBegin(GL_LINES);
-			    glVertex3f(graph->nodeList[i]->x*factor, -graph->nodeList[i]->y*factor, 0);
-				glVertex3f(graph->nodeList[j]->x*factor, -graph->nodeList[j]->y*factor, 0);
+				glVertex3f(graph->nodeList[i]->edgeList[j].orgNode->x*factor, -graph->nodeList[i]->edgeList[j].orgNode->y*factor, 0); 
+				glVertex3f(graph->nodeList[i]->edgeList[j].dstNode->x*factor, -graph->nodeList[i]->edgeList[j].dstNode->y*factor, 0); 
 			glEnd();
 		}
 	}

@@ -114,6 +114,7 @@ bool Graph::deleteUndirectedEdge(Node *first, Node *second){
 
 bool Graph::deleteNode(Node *node){
 	for(int i=0;i<node->edgeList.size();i++){
+		// delete the edge, which direct to this node
 		if(!deleteEdge(node->edgeList[i].dstNode, node->edgeList[i].orgNode)){
 			return false;
 		}
@@ -162,13 +163,15 @@ bool Graph::updateGraph(vector<Point2f> points){
 	} else {
 		// if the graph contains no points
 		if(this->nodeList.size()<=0){
-			this->addNodes(points);
+			//this->addNodes(points);
+			this->createCompleteGraph(points);
 			return false;
 		} else {
 			vector<Point2f> oldPoints;
 			for(int i=0;i<this->nodeList.size();i++){
 				if(nodeList[i]->timmer < 0){
-					nodeList.erase(nodeList.begin()+i);
+					//nodeList.erase(nodeList.begin()+i);
+					this->deleteNode(nodeList[i]);
 					i--;
 				} else {
 					nodeList[i]->timmer--;
@@ -188,15 +191,27 @@ bool Graph::updateGraph(vector<Point2f> points){
 			for(int i=0;i<oldIndex.size();i++){
 				// reset the timmer for the coorespondence points
 				this->nodeList[oldIndex[i]]->timmer += 2;
-				this->nodeList[oldIndex[i]]->x = points[newIndex[i]].x;
-				this->nodeList[oldIndex[i]]->y = points[newIndex[i]].y;	
+				this->nodeList[oldIndex[i]]->setPosition(points[newIndex[i]]);
 				// if the point can find a coorespondence with the old point, set the value in the Mark-Array to false
 				isNewAdd[newIndex[i]] = false;
 			}
-
+			
+			// mark the beginning position for the new added nodes
+			int newNodeBeginIndex = nodeList.size();
 			for(int i=0;i<points.size();i++){
 				if(isNewAdd[i]){
+					// add new nodes
 					this->addNode(points[i]);
+					Node *curNode = nodeList[nodeList.size()-1];
+					// connect the new added node with the old node in graph, which has coorespondence with last frame
+					for(int j=0;j<oldIndex.size();j++){
+						this->addUndirectedEdge(curNode, nodeList[oldIndex[j]]);
+					}
+					// connect the new node with the earlier new added node in this time
+					// form the beginning position of the new nodes to the end of the nodelist
+					for(int j=newNodeBeginIndex;j<nodeList.size();j++){
+						this->addUndirectedEdge(curNode, nodeList[j]);
+					}
 				}
 			}
 			delete []isNewAdd;
