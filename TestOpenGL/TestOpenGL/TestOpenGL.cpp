@@ -787,18 +787,24 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				for(int i=0;i<groupFeatures.size();i++){
 					float avrX = 0;
 					float avrY = 0;
+					// calculate the average depth data of the features
+					float avrZ = 0;
 					int size = groupFeatures[i].size();
 					for(int j=0;j<size;j++){
-						avrX += groupFeatures[i][j].pt.x;
-						avrY += groupFeatures[i][j].pt.y;
+						float x = groupFeatures[i][j].pt.x;
+						float y = groupFeatures[i][j].pt.y;
+						avrX += x;
+						avrY += y;
+						avrZ += currentBildData->threeDData[((int)x*204+(int)y)*3+2];
 					}
 
-					Point2f p(avrX/size, avrY/size);
+					Point2f p2(avrX/size, avrY/size);
+					Point3f p3(avrX/size, avrY/size, avrZ/size);
 					
-					currentBildData->features.push_back(p);
+					currentBildData->features.push_back(p3);
 					
 					// show the current features
-					circle(right, p, 1, Scalar(0,0,255,0), -1);
+					circle(right, p2, 1, Scalar(0,0,255,0), -1);
 
 					//translate vector from left to right
 					//Point2f trans(204, 0);
@@ -806,10 +812,10 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				}
 
 				//save the detected features into the vector of historical features
-				vector<Point2f> hisFeatures = bildDataBuffer[bildDataBuffer.size()-1]->features;
+				vector<Point3f> hisFeatures = bildDataBuffer[bildDataBuffer.size()-1]->features;
 				for(int i=0;i<hisFeatures.size();i++){
 					// show the old features
-					circle(left, hisFeatures[i], 2, Scalar(0,255,0,0), -1);
+					//circle(left, hisFeatures[i], 2, Scalar(0,255,0,0), -1);
 				}
 				
 
@@ -825,13 +831,13 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 				//}
 
-				vector<Point2f> oldResult, newResult;
-				vector<Point2f> curFeatures = currentBildData->features;
+				vector<Point3f> oldResult, newResult;
+				vector<Point3f> curFeatures = currentBildData->features;
 				if(hisFeatures.size()>0&&curFeatures.size()>0){
 					featureAssociate2(hisFeatures, curFeatures, 15, oldResult, newResult);
 					for(int i=0;i<oldResult.size();i++){
-						Point2f trans(204,0);
-						line(testimg, oldResult[i], newResult[i]+trans, Scalar(255,255,0,0));
+						Point3f trans(204,0,0);
+						//line(testimg, oldResult[i], newResult[i]+trans, Scalar(255,255,0,0));
 					}
 					cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 				}
@@ -839,7 +845,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				imshow("OpenCVRGBTest", testimg);
 
 				// call calibration
-				vector<vector<Point2f>> caliResult;
+				vector<vector<Point3f>> caliResult;
 				calibration(caliResult, currentBildData->features, 18);
 				//calibration(caliResult, newResult, 18);
 
@@ -848,13 +854,13 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					int firstSize = caliResult[k].size();
 					for(int i=0;i<firstSize;i++){
 						for(int j=0;j<firstSize;j++){
-							line(graphImg, caliResult[k][i], caliResult[k][j], Scalar(0, 255, 255, 0));
+							//line(graphImg, caliResult[k][i], caliResult[k][j], Scalar(0, 255, 255, 0));
 						}
 					}
 				}
 				imshow("OpenCVRGBGraph", graphImg);
 
-				vector<Point2f> maxSet;
+				vector<Point3f> maxSet;
 				findMaxPointsSet(caliResult, maxSet);
 
 				obj->updateGraph(maxSet);

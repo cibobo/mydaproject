@@ -21,7 +21,7 @@ public:
 	float *threeDData;
 
 	// Features
-	vector<Point2f> features;
+	vector<Point3f> features;
 
 	int width;
 	int length;

@@ -33,398 +33,65 @@ DWORD tlsIndex = 1001;
 
 
 
-static float gContrast = 3200;
-static float gBalance = 5000;
 
-static float aContrast = 12;
-static float aBalance = 250;
-
-/*
- *
- */
-void display(OpenGLWinUI *pOpenGLWinUI){    
-	  
-	// Clear the Color Buffer and Depth Buffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-
-	//set the view point
-	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	glPushMatrix();   // It is important to push the Matrix before 
-                                 
-	// calling glRotatef and glTranslatef
-	glRotatef(pOpenGLWinUI->rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
-    glRotatef(pOpenGLWinUI->rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
-    glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
-
-	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
-	
-	glBegin(GL_POLYGON);
-		glColor3f(0.5f,0.0f,0.0f);
-		glVertex3f(0.0f, 1.0f, 0.0f);
-		//glVertex3f(0.86f, 0.0f, 0.5f);
-		//glVertex3f(-0.86f, 0.0f, 0.5f);
-
-		glColor3f(0.0f,0.5f,0.0f);
-		//glVertex3f(0.0f, 1.0f, 0.0f);
-		glVertex3f(0.86f, 0.0f, 0.5f);
-		//glVertex3f(0.0f, 0.0f, -1.0f);
-
-		glColor3f(0.0f,0.0f,0.5f);
-		//glVertex3f(0.0f, 1.0f, 0.0f);
-		glVertex3f(-0.86f, 0.0f, 0.5f);
-		//glVertex3f(0.0f, 0.0f, -1.0f);
-
-		glColor3f(1.0f,0.5f,0.5f);
-		glVertex3f(0.0f, 0.0f, -1.0f);
-		//glVertex3f(0.86f, 0.0f, 0.5f);
-		//glVertex3f(-0.86f, 0.0f, 0.5f);
-	glEnd();
-	glPopMatrix();  
-	
-	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
-    //glutPostRedisplay();           // Redraw the scene
-
-	//glutSwapBuffers();
-	glFlush();
-}
-
-
-void display(OpenGLWinUI *pOpenGLWinUI, float *disData, float *intData, float *ampData){    
-	  
-	int height = pOpenGLWinUI->height;
-	int width = pOpenGLWinUI->width;
-
-	// Clear the Color Buffer and Depth Buffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-	// 3D View Port
-	glViewport(0, 0, height, height);
-
-	//set the view point
-	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	glPushMatrix();   // It is important to push the Matrix before 
-                                 
-	// calling glRotatef and glTranslatef
-	glRotatef(pOpenGLWinUI->rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
-    glRotatef(pOpenGLWinUI->rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
-    glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
-
-	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
-	glColor3f(1.0f,1.0f,1.0f);
- 
-	float factor = 2.04/204;
-
-	glBegin(GL_POINTS);
-	for(int i=0;i<204;i++) {
-		for(int j=0;j<204;j++) {
-			glVertex3f((i-102)*factor, (j-102)*factor, -disData[i*204+j]);
-		}
-	}
-			
-	glEnd();    
-
-    glPopMatrix();                   // Don't forget to pop the Matrix
-
-	// Grayscale View Port
-	glLoadIdentity();
-	//glViewport(height, height/2, (width-height), height/2.0);
-	glViewport(height, height/2, 204, 204);
-	glPushMatrix();   // It is important to push the Matrix before 
-	glTranslatef(0, 0, -3);
-	float grayValue;
-	//cout<<"Balance: "<<gBalance<<"    Contrast: "<<gContrast<<endl;
-	glBegin(GL_POINTS);
-	for(int i=0;i<204;i++) {
-		for(int j=0;j<204;j++) {
-			grayValue = (intData[i*204+j]-gBalance)/gContrast;
-			if(grayValue>1){
-				grayValue = 1;
-			}
-			if(grayValue<0){
-				grayValue = 0;
-			}
-			glColor3f(grayValue,grayValue,grayValue);
-			glVertex3f((i-102)*factor, (j-102)*factor, 0);
-		}
-	}
-	//glVertex3f(0,0,-3);
-	glEnd();
-	glPopMatrix();        
-	//cout<<"Gray Value: "<<pglDisData[204*201]<<endl;
-
-
-	glLoadIdentity();
-	//glViewport(height, 0, (width-height), height/2.0);
-	glViewport(height, 0, 204, 204);
-	glPushMatrix();   // It is important to push the Matrix before 
-	glTranslatef(0, 0, -3);
-	//cout<<"Balance: "<<aBalance<<"    Contrast: "<<aContrast<<endl;
-	glBegin(GL_POINTS);
-	for(int i=0;i<204;i++) {
-		for(int j=0;j<204;j++) {
-			//using HSV color mode. some variables has been omited
-			float h = aBalance-ampData[i*204+j]/aContrast;
-			//if(h<0) h=0;
-			int hi = int(h/60);
-			float f = h/60-hi;
-			switch(hi){
-				case 0:
-					glColor3f(1,f,0);
-					break;
-				case 1:
-					glColor3f(1-f,1,0);
-					break;
-				case 2:
-					glColor3f(0,1,f);
-					break;
-				case 3:
-					glColor3f(0,1-f,1);
-					break;
-				case 4:
-					glColor3f(f,0,1);
-					break;
-				default:
-					glColor3f(1,0,1-f);
-			}
-			glVertex3f((i-102)*factor, (j-102)*factor, 0);
-		}
-	}
-	glEnd();
-	glPopMatrix();  
-	
-	
-	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
-    //glutPostRedisplay();           // Redraw the scene
-
-	//glutSwapBuffers();
-	glFlush();
-}
-
-void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData){    
-	  
-	int height = pOpenGLWinUI->height;
-	int width = pOpenGLWinUI->width;
-
-	// Clear the Color Buffer and Depth Buffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-	// 3D View Port
-	glViewport(0, 0, height, height);
-
-	//set the view point
-	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	glPushMatrix();   // It is important to push the Matrix before 
-                                 
-	// calling glRotatef and glTranslatef
-	glRotatef(pOpenGLWinUI->rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
-    glRotatef(pOpenGLWinUI->rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
-    glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
-
-	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
-	glColor3f(1.0f,1.0f,1.0f);
- 
-	float factor = 2.04/204;
-
-	glBegin(GL_POINTS);
-	for(int i=0;i<204;i++) {
-		for(int j=0;j<204;j++) {
-			//glVertex3f((i-102)*factor, (j-102)*factor, -bildData->disData[i*204+j]);
-			glVertex3f(bildData->threeDData[(i*204+j)*3], bildData->threeDData[(i*204+j)*3 +1], -bildData->threeDData[(i*204+j)*3 +2]);
-		}
-	}
-			
-	glEnd();    
-
-    glPopMatrix();                   // Don't forget to pop the Matrix
-
-	// Grayscale View Port
-	glLoadIdentity();
-	//glViewport(height, height/2, (width-height), height/2.0);
-	glViewport(height, height/2, 204, 204);
-	glPushMatrix();   // It is important to push the Matrix before 
-	glTranslatef(0, 0, -3);
-	float grayValue;
-	//cout<<"Balance: "<<gBalance<<"    Contrast: "<<gContrast<<endl;
-	glBegin(GL_POINTS);
-	for(int i=0;i<204;i++) {
-		for(int j=0;j<204;j++) {
-			grayValue = (bildData->intData[i*204+j]-gBalance)/gContrast;
-			if(grayValue>1){
-				grayValue = 1;
-			}
-			if(grayValue<0){
-				grayValue = 0;
-			}
-			glColor3f(grayValue,grayValue,grayValue);
-			glVertex3f((i-102)*factor, (j-102)*factor, 0);
-		}
-	}
-	//glVertex3f(0,0,-3);
-	glEnd();
-	glPopMatrix();        
-	//cout<<"Gray Value: "<<pglDisData[204*201]<<endl;
-
-
-	glLoadIdentity();
-	//glViewport(height, 0, (width-height), height/2.0);
-	glViewport(height, 0, 204, 204);
-	glPushMatrix();   // It is important to push the Matrix before 
-	glTranslatef(0, 0, -3);
-	//cout<<"Balance: "<<aBalance<<"    Contrast: "<<aContrast<<endl;
-	glBegin(GL_POINTS);
-	for(int i=0;i<204;i++) {
-		for(int j=0;j<204;j++) {
-			//using HSV color mode. some variables has been omited
-			float h = aBalance-bildData->ampData[i*204+j]/aContrast;
-			//if(h<0) h=0;
-			int hi = int(h/60);
-			float f = h/60-hi;
-			switch(hi){
-				case 0:
-					glColor3f(1,f,0);
-					break;
-				case 1:
-					glColor3f(1-f,1,0);
-					break;
-				case 2:
-					glColor3f(0,1,f);
-					break;
-				case 3:
-					glColor3f(0,1-f,1);
-					break;
-				case 4:
-					glColor3f(f,0,1);
-					break;
-				default:
-					glColor3f(1,0,1-f);
-			}
-			glVertex3f((i-102)*factor, (j-102)*factor, 0);
-		}
-	}
-	glEnd();
-	glPopMatrix();  
-	
-	
-	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
-    //glutPostRedisplay();           // Redraw the scene
-
-	//glutSwapBuffers();
-	glFlush();
-}
-
-
-void display(OpenGLWinUI *pOpenGLWinUI, vector<Point2f> features){
-	int height = pOpenGLWinUI->height;
-	int width = pOpenGLWinUI->width;
-
-	// Clear the Color Buffer and Depth Buffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-
-	//set the view point
-	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	glPushMatrix();   // It is important to push the Matrix before 
-                                 
-	// calling glRotatef and glTranslatef
-	glRotatef(pOpenGLWinUI->rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
-    glRotatef(pOpenGLWinUI->rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
-    glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
-
-	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
-	glTranslatef(-1.02, 1.02, 0);
-	glColor3f(1.0f,1.0f,1.0f);
- 
-	float factor = 2.04/204;
-
-	glPointSize(5);
-	for(int i=0;i<features.size();i++){
-		glColor3f(1.0,0.0,0.0);
-		glBegin(GL_POINTS);
-			glVertex3f(features[i].x*factor, -features[i].y*factor, 0);
-		glEnd();  
-		for(int j=i;j<features.size();j++){
-			glColor3f(0.0,1.0,0.0);
-			glBegin(GL_LINES);
-			    glVertex3f(features[i].x*factor, -features[i].y*factor, 0);
-				glVertex3f(features[j].x*factor, -features[j].y*factor, 0);
-			glEnd();
-		}
-	}
-			
-    glPopMatrix();                   // Don't forget to pop the Matrix
-	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
-	glFlush();
-}
-
-void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
-	int height = pOpenGLWinUI->height;
-	int width = pOpenGLWinUI->width;
-
-	// Clear the Color Buffer and Depth Buffer
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glLoadIdentity();
-
-	//set the view point
-	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
-	glPushMatrix();   // It is important to push the Matrix before 
-                                 
-	// calling glRotatef and glTranslatef
-	glRotatef(pOpenGLWinUI->rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
-    glRotatef(pOpenGLWinUI->rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
-    glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
-
-	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
-	glTranslatef(-1.02, 1.02, 0);
-	glColor3f(1.0f,1.0f,1.0f);
- 
-	float factor = 2.04/204;
-
-	glPointSize(8);
-	for(int i=0;i<graph->nodeList.size();i++){
-		//glColor3f(graph->nodeList[i]->timmer*0.15+0.2,0.0,0.0);
-		if(graph->nodeList[i]->timmer>25){
-			glColor3f(0.0f,1.0f,1.0f);
-		} else {
-			glColor3f(graph->nodeList[i]->timmer*0.15+0.2,0.0,0.0);
-		}
-		glBegin(GL_POINTS);
-			glVertex3f(graph->nodeList[i]->x*factor, -graph->nodeList[i]->y*factor, 0);
-		glEnd();  
-		glColor3f(0.0,1.0,0.0);
-		//for(int j=i;j<graph->nodeList.size();j++){
-		//	glBegin(GL_LINES);
-		//	    glVertex3f(graph->nodeList[i]->x*factor, -graph->nodeList[i]->y*factor, 0);
-		//		glVertex3f(graph->nodeList[j]->x*factor, -graph->nodeList[j]->y*factor, 0);
-		//	glEnd();
-		//}
-		for(int j=0;j<graph->nodeList[i]->edgeList.size();j++){
-			glBegin(GL_LINES);
-				glVertex3f(graph->nodeList[i]->edgeList[j].orgNode->x*factor, -graph->nodeList[i]->edgeList[j].orgNode->y*factor, 0); 
-				glVertex3f(graph->nodeList[i]->edgeList[j].dstNode->x*factor, -graph->nodeList[i]->edgeList[j].dstNode->y*factor, 0); 
-			glEnd();
-		}
-	}
-			
-    glPopMatrix();                   // Don't forget to pop the Matrix
-	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
-	glFlush();
-}
 
 
 int InitGL()
 {
-	/*  */
-	glShadeModel(GL_FLAT);
-
 	/* schwarzer Hintergrund */
 	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+	glShadeModel(GL_SMOOTH);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);    
     glClearDepth(1.0f);          // Set the Depth buffer value (ranges[0,1])
     glEnable(GL_DEPTH_TEST);  // Enable Depth test
     glDepthFunc(GL_LEQUAL);   // If two objects on the same coordinate 
                                             // show the first drawn
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+	// Open the light
+	GLfloat mat_ambient[] = {0.2, 0.2, 0.2, 1.0};
+	GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
+	GLfloat mat_diffuse[] = { 0.5, 0.5, 0.5, 1.0 };
+
+
+	
+    GLfloat lmodel_ambient[] = {0.2, 0.2, 0.2, 1.0};
+    GLfloat local_view[] = {0.0};
+	
+	//glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+ //   glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+ //   glMaterialf(GL_FRONT, GL_SHININESS, 50.0);
+
+
+
+	glEnable(GL_LIGHTING);
+    glEnable(GL_LIGHT0);
+
+
+	GLfloat light_ambient[] = {0.2f, 0.2f, 0.2f, 1.0};
+	GLfloat light_diffuse[] = {0.8f, 0.8f, 0.8f, 1.0};
+	GLfloat light_specular[] = {0.5f, 0.5f, 0.5f , 1.0f};
+
+	GLfloat light_position[] = {1.0f, 1.0f, 1.0f, 1.0f};
+	
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
+    //glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
+    //glLightModelfv(GL_LIGHT_MODEL_LOCAL_VIEWER, local_view);
+
+
+	glEnable(GL_AUTO_NORMAL);
+    glEnable(GL_NORMALIZE);
+
+	glFrontFace(GL_CW);
+	glEnable(GL_COLOR_MATERIAL);
+    glColorMaterial(GL_FRONT, GL_DIFFUSE);
+
+	//float colorBlue[] = { 0.0f, 0.0f, 1.0f, 1.0f };
+	//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, colorBlue);
+ //   
 
 	return TRUE;
 }
@@ -444,6 +111,13 @@ GLvoid ReSizeGLScene(GLsizei iWidth, GLsizei iHeight)
 
 	// set the rate of width and height as 1
 	gluPerspective(45.0f, (GLfloat)iHeight/(GLfloat)iHeight, 0.5f, 120.0f);
+
+	//if (iWidth <= iHeight)
+ //     glOrtho (-1.5, 1.5, -1.5*(GLfloat)iHeight/(GLfloat)iWidth,
+ //        1.5*(GLfloat)iHeight/(GLfloat)iWidth, -10.0, 10.0);
+ //  else
+ //     glOrtho (-1.5*(GLfloat)iHeight/(GLfloat)iWidth,
+ //        1.5*(GLfloat)iHeight/(GLfloat)iWidth, -1.5, 1.5, -10.0, 10.0);
 
 	glMatrixMode(GL_MODELVIEW);
 
@@ -493,6 +167,12 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 			pOpenGLWinUI->rotLx = 0.0f;                           
 			pOpenGLWinUI->rotLy = 0.0f;  
 			pOpenGLWinUI->rotLz = 5.0f;   
+
+			pOpenGLWinUI->gContrast = 3200;
+			pOpenGLWinUI->gBalance = 5000;
+
+			pOpenGLWinUI->aContrast = 12;
+			pOpenGLWinUI->aBalance = 250;
                                     
 
 		return TRUE;
@@ -617,33 +297,33 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 				// the input value of case must be a capital letter 
 				// controll key of the grayscale
 				case 'B':
-					gBalance += 10;
+					pOpenGLWinUI->gBalance += 10;
 					break;
 				case 'V':
-					gBalance -= 10;
+					pOpenGLWinUI->gBalance -= 10;
 					break;
 				case 'N':
-					gContrast += 5;
+					pOpenGLWinUI->gContrast += 5;
 					break;
 				case 'M':
-					gContrast -=5;
+					pOpenGLWinUI->gContrast -=5;
 					break;
 
 				// controll key of the amplitude
 				case 'H':
-					aBalance += 2;
+					pOpenGLWinUI->aBalance += 2;
 					break;
 				case 'G':
-					if(aBalance >0){
-						aBalance -= 2;
+					if(pOpenGLWinUI->aBalance >0){
+						pOpenGLWinUI->aBalance -= 2;
 					}
 					break;
 				case 'J':
-					aContrast += 1;
+					pOpenGLWinUI->aContrast += 1;
 					break;
 				case 'K':
-					if(aContrast > 0){
-						aContrast -=1;
+					if(pOpenGLWinUI->aContrast > 0){
+						pOpenGLWinUI->aContrast -=1;
 					}
 					break;
 

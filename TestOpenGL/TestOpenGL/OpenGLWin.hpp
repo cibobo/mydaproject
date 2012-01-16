@@ -2,18 +2,13 @@
 #include <windows.h>			/* must include this before GL/gl.h */
 #include <GL/gl.h>			/* OpenGL header file */
 #include <GL/glu.h>			/* OpenGL utilities header file */
-#include <GL/glaux.h>
+
 #include <stdio.h>
-#include <cv.h>
+
 
 #include "glut/glut.h"
 
-#include "BildData.hpp"
-#include "Graph.hpp"
-#include "MyDataIO.hpp"
 
-using namespace cv;
-using namespace std;
 
 /*
 	the Struct of the conrolle information
@@ -55,6 +50,12 @@ struct OpenGLWinUI
 	int width;
 	int height;
 
+	float gContrast;
+	float gBalance;
+
+	float aContrast;
+	float aBalance;
+
 	//int iKeyState;
 
 	//bool iKeyPressedB;
@@ -80,15 +81,7 @@ struct OpenGLWinUI
 	//bool iKeyPressedNumPadInsert;
 };
 
-void display(OpenGLWinUI *pOpenGLWinUI);
 
-void display(OpenGLWinUI *pOpenGLWinUI, float *disData, float *intData, float *ampData);
-
-void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData);    
-
-void display(OpenGLWinUI *pOpenGLWinUI, vector<Point2f> features);
-
-void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph);
 
 void openGLLoadData(int index);
 

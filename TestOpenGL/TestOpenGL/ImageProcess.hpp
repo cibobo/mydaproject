@@ -14,10 +14,10 @@ void transAmplitudeToGrayValue(float *src, unsigned char *dst);
 
 void calibration(vector<Point2f> points, vector<Object> &objects);
 
-void calibration(vector<vector<Point2f>> &result, vector<Point2f> points, float eps);
+void calibration(vector<vector<Point3f>> &result, vector<Point3f> points, float eps);
 
-void findMaxPointsSet(vector<vector<Point2f>> pointsSets, vector<Point2f> &maxSet);
+void findMaxPointsSet(vector<vector<Point3f>> pointsSets, vector<Point3f> &maxSet);
 
-void featureAssociate(vector<Point2f> oldFeature, vector<Point2f> newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew);
+void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew);
 
-void featureAssociate2(vector<Point2f> oldFeature, vector<Point2f> newFeature, float sigma, vector<Point2f> &findFeatureOld, vector<Point2f> &findFeatureNew);
+void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew);

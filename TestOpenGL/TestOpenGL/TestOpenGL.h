@@ -12,7 +12,7 @@
 #include "Graph.hpp"
 #include "ImageProcess.hpp"
 #include "MarkerDetection.hpp"
-#include "OpenGLWin.hpp"
+#include "OpenGLDraw.hpp"
 #include "PMDCamIO.hpp"
 #include "TestOpenGL.h"
 
