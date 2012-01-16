@@ -17,14 +17,14 @@ public:
 	float cost;
 	// save the edge with the direction
 	//Point3f vec;
-	Point2f vec;
+	//Point2f vec;
 
 	Edge(Node *firstNode, Node *secondNode);
 	Edge(Node *firstNode, Node *secondNode, float cost);
 };
 
-//class Node : public Point3f{
-class Node : public Point2f{
+class Node : public Point3f{
+//class Node : public Point2f{
 public:
 	vector<Edge> edgeList;
 	int index;
@@ -32,10 +32,12 @@ public:
 
 	Node();
 	Node(int timmer);
-	Node(Point2f point);
+	//Node(Point2f point);
+	Node(Point3f point);
 	~Node();
 
-	void setPosition(Point2f pos);
+	//void setPosition(Point2f pos);
+	void setPosition(Point3f pos);
 };
 
 class Graph{
@@ -45,12 +47,11 @@ public:
 	int lifeTime;
 
 	Graph();
-	Graph(vector<Point2f> points);
+	Graph(vector<Point3f> points);
 	~Graph();
 
-	//void addNode(Point3f &node);
-	void addNode(Point2f &node);
-	void addNodes(vector<Point2f> points);
+	void addNode(Point3f &node);
+	void addNodes(vector<Point3f> points);
 	void addEdge(Node * begin, Node* end);
 	void addUndirectedEdge(Node *first, Node *second);
 
@@ -58,11 +59,11 @@ public:
 	bool deleteUndirectedEdge(Node *first, Node *second);
 	bool deleteNode(Node *node);
 
-	void createMaxGraph(vector<vector<Point2f>> pointSets);
-	void createCompleteGraph(vector<Point2f> points);
+	//void createMaxGraph(vector<vector<Point2f>> pointSets);
+	void createCompleteGraph(vector<Point3f> points);
 	int getSize();
-	vector<Point2f> getPoints();
-	bool updateGraph(vector<Point2f> points);
+	vector<Point3f> getPoints();
+	bool updateGraph(vector<Point3f> points);
 
 	Node *findNode(int index);
 };

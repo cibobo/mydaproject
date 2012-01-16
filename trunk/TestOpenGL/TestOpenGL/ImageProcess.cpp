@@ -67,7 +67,7 @@ void calibration(vector<Point2f> points, vector<Object> &objects){
  * 2. Calculate the middel point of each set and show them
  *
  *************************************************/
-void calibration(vector<vector<Point2f>> &result, vector<Point2f> points, float eps){
+void calibration(vector<vector<Point3f>> &result, vector<Point3f> points, float eps){
 	vector<int> pointer;
 	// the beginning set Nr. is -1 
 	for(int i=0;i<points.size();i++){
@@ -75,7 +75,7 @@ void calibration(vector<vector<Point2f>> &result, vector<Point2f> points, float 
 	}
 	// the loop for all points
 	for(int i=0;i<points.size();i++){
-		vector<Point2f> temp;
+		vector<Point3f> temp;
 		int index;
 		// if the set Nr. for the current feature is not be set
 		if(pointer.at(i) == -1){
@@ -127,7 +127,7 @@ void calibration(vector<vector<Point2f>> &result, vector<Point2f> points, float 
 }
 
 
-void findMaxPointsSet(vector<vector<Point2f>> pointsSets, vector<Point2f> &maxSet){
+void findMaxPointsSet(vector<vector<Point3f>> pointsSets, vector<Point3f> &maxSet){
 	int maxSize = 0;
 	int maxSizeIndex = 0;
 	for(int i=0;i<pointsSets.size();i++){
@@ -146,7 +146,7 @@ void findMaxPointsSet(vector<vector<Point2f>> pointsSets, vector<Point2f> &maxSe
  * The algorithm to tacking the markers in different frames
  *
  ********************************************************/
-void featureAssociate(vector<Point2f> oldFeature, vector<Point2f> newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew){
+void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew){
 	// set the number of the old features as the row size
 	int rowSize = oldFeature.size();
 	// set the number of the new features as the column size
@@ -227,7 +227,10 @@ void featureAssociate(vector<Point2f> oldFeature, vector<Point2f> newFeature, fl
 	delete []rowMax;
 }
 
-void featureAssociate2(vector<Point2f> oldFeature, vector<Point2f> newFeature, float sigma, vector<Point2f> &findFeatureOld, vector<Point2f> &findFeatureNew){
+/*
+ * The Input points are 3D points, but just the information for x and y is useful to deal with the SVD
+ */
+void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew){
 	// set the number of the old features as the row size
 	int rowSize = oldFeature.size();
 	// set the number of the new features as the column size
@@ -303,3 +306,59 @@ void featureAssociate2(vector<Point2f> oldFeature, vector<Point2f> newFeature, f
 	}	
 	delete []rowMax;
 }
+
+/****************************************************************************************
+ *
+ * Use SVD to find the Rotation and Translate matrix
+ * Arun et al. 1987
+ *
+ ***************************************************************************************/
+void findRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T){
+	// get the number of the points. The size of the oldFeatures must be the same as the size of the newFeatures
+	int N = oldFeatures.size();
+	// create two matrices with 3 chanles to save the points
+	// D = RM + T * V
+	Mat M = Mat(oldFeatures);
+	Mat D = Mat(newFeatures);
+	
+
+	// calculate the average value of the points
+	Scalar avrM = mean(M);
+	Scalar avrD = mean(D);
+
+	Mat mc = M-avrM;
+	Mat dc = D-avrD;
+	
+	mc.reshape(1);
+	dc.reshape(1);
+
+	// calculate H
+	Mat H = Mat(3,3,CV_32FC1);
+	for(int i=0;i<mc.rows;i++){
+		Mat mci = mc(Range(i,i+1),Range(0,3));
+		Mat dci = dc(Range(i,i+1),Range(0,3));
+		H = H + mci.t() * dci;
+	}
+
+	// sigular value decomposition 
+	SVD svd(H);
+
+	R = svd.vt.t() * svd.u.t();
+	double detR = determinant(R);
+	// if the determinant of R is bigger than 1 oder smaller than -1, modified as the special case 
+	if(abs(detR + 1.0) < 0.0001){
+		float optPara = determinant(svd.vt*svd.u);
+		Mat temp = Mat::eye(3,3,CV_32FC1);
+		temp.at<float>(2,2) = optPara;
+		R = svd.u * temp * svd.vt;
+	}
+
+	T = dc - R * mc;
+}
+
+
+/****************************************************************************************
+ *
+ * The ICP Algorithm
+ *
+ ***************************************************************************************/

@@ -8,14 +8,12 @@
 Edge::Edge(Node *firstNode, Node *secondNode){
 	this->orgNode = firstNode;
 	this->dstNode = secondNode;
-	this->vec = *secondNode - *firstNode;
 }
 
 Edge::Edge(Node *firstNode, Node *secondNode, float cost){
 	this->orgNode = firstNode;
 	this->dstNode = secondNode;
 	this->cost = cost;
-	this->vec = *secondNode - *firstNode;
 }
 
 /*
@@ -29,9 +27,10 @@ Node::Node(int timmer){
 	this->timmer = timmer;
 }
 
-Node::Node(Point2f point){
+Node::Node(Point3f point){
 	this->x = point.x;
 	this->y = point.y;
+	this->z = point.z;
 	this->timmer = 1;
 }
 
@@ -39,9 +38,10 @@ Node::~Node(){
 	//this->adjNodeList.clear();
 }
 
-void Node::setPosition(cv::Point2f pos){
+void Node::setPosition(cv::Point3f pos){
 	this->x = pos.x;
 	this->y = pos.y;
+	this->z = pos.z;
 }
 
 
@@ -54,7 +54,7 @@ Graph::Graph(){
 	this->lifeTime = 0;
 }
 
-Graph::Graph(vector<Point2f> points){
+Graph::Graph(vector<Point3f> points){
 	for(int i=0;i<points.size();i++){
 		this->addNode(points[i]);
 	}
@@ -75,14 +75,14 @@ Graph::~Graph(){
 //	this->nodeList.push_back(newNode);
 //}
 
-void Graph::addNode(Point2f &node){
+void Graph::addNode(Point3f &node){
 	Node *newNode = new Node(node);
 	this->indexCount++;
 	newNode->index = this->indexCount;
 	this->nodeList.push_back(newNode);
 }
 
-void Graph::addNodes(vector<Point2f> points){
+void Graph::addNodes(vector<Point3f> points){
 	for(int i=0;i<points.size();i++){
 		this->addNode(points[i]);
 	}
@@ -130,21 +130,21 @@ bool Graph::deleteNode(Node *node){
 }
 
 
-void Graph::createMaxGraph(vector<vector<Point2f>> pointSets){
-	int maxSize = 0;
-	int maxSizeIndex = 0;
-	for(int i=0;i<pointSets.size();i++){
-		if(pointSets[i].size()>maxSize){
-			maxSize = pointSets[i].size();
-			maxSizeIndex = i;
-		}
-	}
-	if(maxSize > 0){
-		this->addNodes(pointSets[i]);
-	}
-}
+//void Graph::createMaxGraph(vector<vector<Point2f>> pointSets){
+//	int maxSize = 0;
+//	int maxSizeIndex = 0;
+//	for(int i=0;i<pointSets.size();i++){
+//		if(pointSets[i].size()>maxSize){
+//			maxSize = pointSets[i].size();
+//			maxSizeIndex = i;
+//		}
+//	}
+//	if(maxSize > 0){
+//		this->addNodes(pointSets[i]);
+//	}
+//}
 
-void Graph::createCompleteGraph(vector<Point2f> points){
+void Graph::createCompleteGraph(vector<Point3f> points){
 	this->addNodes(points);
 	for(int i=0;i<this->nodeList.size();i++){
 		for(int j=i+1;j<this->nodeList.size();j++){
@@ -154,7 +154,7 @@ void Graph::createCompleteGraph(vector<Point2f> points){
 }
 
 
-bool Graph::updateGraph(vector<Point2f> points){
+bool Graph::updateGraph(vector<Point3f> points){
 	// increase the lifetime
 	this->lifeTime ++;
 	// if there is no input points
@@ -167,7 +167,7 @@ bool Graph::updateGraph(vector<Point2f> points){
 			this->createCompleteGraph(points);
 			return false;
 		} else {
-			vector<Point2f> oldPoints;
+			vector<Point3f> oldPoints;
 			for(int i=0;i<this->nodeList.size();i++){
 				if(nodeList[i]->timmer < 0){
 					//nodeList.erase(nodeList.begin()+i);
@@ -175,7 +175,7 @@ bool Graph::updateGraph(vector<Point2f> points){
 					i--;
 				} else {
 					nodeList[i]->timmer--;
-					oldPoints.push_back(Point2f(*nodeList[i]));
+					oldPoints.push_back(Point3f(*nodeList[i]));
 				}
 			}
 			//SVD
@@ -233,10 +233,10 @@ int Graph::getSize(){
 	return this->nodeList.size();
 }
 
-vector<Point2f> Graph::getPoints(){
-	vector<Point2f> points;
+vector<Point3f> Graph::getPoints(){
+	vector<Point3f> points;
 	for(int i=0;i<this->nodeList.size();i++){
-		points.push_back(Point2f(*nodeList[i]));
+		points.push_back(Point3f(*nodeList[i]));
 	}
 	return points;
 }

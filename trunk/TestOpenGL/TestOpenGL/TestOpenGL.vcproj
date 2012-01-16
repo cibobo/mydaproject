@@ -211,6 +211,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\OpenGLDraw.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\OpenGLWin.cpp"
 				>
 			</File>
@@ -274,6 +278,10 @@
 			</File>
 			<File
 				RelativePath=".\Object.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\OpenGLDraw.hpp"
 				>
 			</File>
 			<File
