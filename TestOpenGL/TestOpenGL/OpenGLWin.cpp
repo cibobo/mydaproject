@@ -48,51 +48,6 @@ int InitGL()
                                             // show the first drawn
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 
-	// Open the light
-	GLfloat mat_ambient[] = {0.2, 0.2, 0.2, 1.0};
-	GLfloat mat_specular[] = { 1.0, 1.0, 1.0, 1.0 };
-	GLfloat mat_diffuse[] = { 0.5, 0.5, 0.5, 1.0 };
-
-
-	
-    GLfloat lmodel_ambient[] = {0.2, 0.2, 0.2, 1.0};
-    GLfloat local_view[] = {0.0};
-	
-	//glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
- //   glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
- //   glMaterialf(GL_FRONT, GL_SHININESS, 50.0);
-
-
-
-	glEnable(GL_LIGHTING);
-    glEnable(GL_LIGHT0);
-
-
-	GLfloat light_ambient[] = {0.2f, 0.2f, 0.2f, 1.0};
-	GLfloat light_diffuse[] = {0.8f, 0.8f, 0.8f, 1.0};
-	GLfloat light_specular[] = {0.5f, 0.5f, 0.5f , 1.0f};
-
-	GLfloat light_position[] = {1.0f, 1.0f, 1.0f, 1.0f};
-	
-	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
-    glLightfv(GL_LIGHT0, GL_POSITION, light_position);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
-    //glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
-    //glLightModelfv(GL_LIGHT_MODEL_LOCAL_VIEWER, local_view);
-
-
-	glEnable(GL_AUTO_NORMAL);
-    glEnable(GL_NORMALIZE);
-
-	glFrontFace(GL_CW);
-	glEnable(GL_COLOR_MATERIAL);
-    glColorMaterial(GL_FRONT, GL_DIFFUSE);
-
-	//float colorBlue[] = { 0.0f, 0.0f, 1.0f, 1.0f };
-	//glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, colorBlue);
- //   
-
 	return TRUE;
 }
 
