@@ -293,9 +293,33 @@ void inputThreadProc(void *param){
 #endif
 }
 
+typedef struct WINParam{
+	int *argc;
+	char **argv;
+}winParam;
+
+void GLUTThreadPorc(WINParam *param ){
+	//glutInit(param->argc, param->argv);
+	glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
+	glutInitWindowSize (500, 500); 
+	glutInitWindowPosition (100, 100);
+	glutCreateWindow ("GLUT Window");
+	init ();
+	glutDisplayFunc(display); 
+	glutReshapeFunc(reshape);
+	glutMouseFunc(mouse);
+	glutKeyboardFunc(keyboard);
+	glutMainLoop();
+}
+
+
 
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
+	winParam wp;
+	wp.argc = &argc;
+	wp.argv = argv;
+
 	int nRetCode = 0;
 	//just for the situation, that more than one threads are calling the same data at the same time
 	InitializeCriticalSection (&frameCrs);
@@ -326,6 +350,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		//	cout<<"Failed to create ARToolKit thread"<<endl;
 		//}
 
+		//Start GLUT Window Thread 
+		if(_beginthread ((void(*)(void*))GLUTThreadPorc, 0, (void *)&wp)==-1){
+			cout<<"Failed to create GLUT thread"<<endl;
+		}
+
 		MSG msg;
 		//BOOL done = FALSE;
 		static OpenGLWinUI *pObjGLWinUI = new OpenGLWinUI;
@@ -334,11 +363,13 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 		//EnterCriticalSection (&glInitCrs);
 
-		if((objGLhnd=CreateOpenGLWindow("Object Window", 0, 0, 400, 400, PFD_TYPE_RGBA, 0, pObjGLWinUI))==NULL){
-			exit(0);
-		}
+		//if((objGLhnd=CreateOpenGLWindow("Object Window", 0, 0, 400, 400, PFD_TYPE_RGBA, 0, pObjGLWinUI))==NULL){
+		//	exit(0);
+		//}
 
-		cout<<"The Object Structur OpenGL Windows is running"<<endl;
+		//cout<<"The Object Structur OpenGL Windows is running"<<endl;
+
+
 
 		//LeaveCriticalSection (&glInitCrs);
 
@@ -865,29 +896,31 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				obj->updateGraph(maxSet);
 				//obj->createCompleteGraph(maxSet);
+
+				setGLUTGraph(obj);
 				// display 3D structur of the Object in an OpenGL Window
-				display(pObjGLWinUI, obj);
-				if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
-					if(msg.message==WM_QUIT){
-						bDone = TRUE;
-					} else if(msg.message==WM_RBUTTONDOWN){
-						// klick right button of mouse to stop and rerun the input of frame
-						if(isPause){
-							cout<<"frame running!"<<endl;
-							LeaveCriticalSection(&frameCrs);
-							isPause = false;
-						} else {
-							cout<<"frame pause!"<<endl;
-							EnterCriticalSection(&frameCrs);
-							isPause = true;
-						}
-					} else{
-						TranslateMessage(&msg);
-						DispatchMessage(&msg);
-						//display(pOpenGLWinUI, disData, intData, ampData);
-					}
-				}
-				display(pObjGLWinUI, obj);
+				//display(pObjGLWinUI, obj);
+				//if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
+				//	if(msg.message==WM_QUIT){
+				//		bDone = TRUE;
+				//	} else if(msg.message==WM_RBUTTONDOWN){
+				//		// klick right button of mouse to stop and rerun the input of frame
+				//		if(isPause){
+				//			cout<<"frame running!"<<endl;
+				//			LeaveCriticalSection(&frameCrs);
+				//			isPause = false;
+				//		} else {
+				//			cout<<"frame pause!"<<endl;
+				//			EnterCriticalSection(&frameCrs);
+				//			isPause = true;
+				//		}
+				//	} else{
+				//		TranslateMessage(&msg);
+				//		DispatchMessage(&msg);
+				//		//display(pOpenGLWinUI, disData, intData, ampData);
+				//	}
+				//}
+				//display(pObjGLWinUI, obj);
 
 
 #endif
