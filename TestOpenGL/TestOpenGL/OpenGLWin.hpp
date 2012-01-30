@@ -8,7 +8,12 @@
 
 #include "glut/glut.h"
 
-
+struct OpenGLContext
+{
+	HGLRC hRC;
+	HDC hDC;
+	HWND hWnd;
+};
 
 /*
 	the Struct of the conrolle information
@@ -93,7 +98,7 @@ GLvoid ReSizeGLScene(GLsizei iWidth, GLsizei iHeight);
 
 LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
-HWND CreateOpenGLWindow(char* title, int x, int y, int width, int height, 		   
-					   BYTE type, DWORD flags, OpenGLWinUI *pOpenGLWinUI);
+bool CreateOpenGLWindow(char* title, int x, int y, int width, int height, 		   
+					   BYTE type, DWORD flags, OpenGLWinUI *pOpenGLWinUI, OpenGLContext *pOpenGLContext);
 
 GLvoid KillGLWindow(HINSTANCE hInstance, HWND hWnd, HDC hDC, HGLRC hRC); 

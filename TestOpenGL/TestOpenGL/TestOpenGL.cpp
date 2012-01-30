@@ -19,44 +19,58 @@ DWORD ThreadIndex = 1001;
 
 using namespace std;
 
+// for turn off or turn on the input data
 CRITICAL_SECTION pauseCrs;
+
+// for OpenGL Window
 CRITICAL_SECTION glInitCrs;
+
+// for all OpenCV Windows
 CRITICAL_SECTION cvInitCrs;
+
 CRITICAL_SECTION frameCrs;
 CRITICAL_SECTION calcCrs;
 
 // global flag 
 bool bDone = false;
-// The handle for OpenGL Window
-HWND openGLhnd;	
-// The handle for Objekt structur Window
-HWND objGLhnd;
+MSG msg;
+bool isPause = false;
+
+// The Context for 3D data Window
+//HWND openGLhnd;	
+OpenGLContext *p3DDataViewContext;
+// The Context for Objekt structur Window
+//HWND objGLhnd;
+OpenGLContext *pObjViewContext;
 
 
 // The Buffer for BildDatas, which is saving the newest BildData at first place and the oldest at the last place.
 // The maximal length of the Buffer is defined with MAXBUFFERSIZE
 vector<BildData*> bildDataBuffer;
-int MAXBUFFERSIZE = 2;
+int MAXBUFFERSIZE = 5;
 
 //int HISFRAMEINDEX = 3;
 
 DistanceFilter *dFilter;
+
+Graph *obj;
 
 
 
 // this function is called by a new thread 
 void openGLThreadPorc( void *param ) 
 { 
-	MSG msg;
+	
 	//BOOL done = FALSE;
 	static OpenGLWinUI *pOpenGLWinUI = new OpenGLWinUI;
+	p3DDataViewContext = new OpenGLContext;
 
 	TlsSetValue(ThreadIndex, pOpenGLWinUI);
 
 	EnterCriticalSection (&glInitCrs);
 
-	//if(!CreateOpenGLWindow("minimal", 0, 0, 800, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI)){
-	if((openGLhnd=CreateOpenGLWindow("OpenGL Window", 0, 0, 900, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI))==NULL){
+	if(!CreateOpenGLWindow("OpenGL Window", 0, 0, 900, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI, p3DDataViewContext)){
+	//if((openGLhnd=CreateOpenGLWindow("OpenGL Window", 0, 0, 900, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI))==NULL){
 		exit(0);
 	}
 
@@ -71,7 +85,7 @@ void openGLThreadPorc( void *param )
 	//LeaveCriticalSection(&frameCrs);
 
 	//parameter to mark, whether the input process is in pause
-	bool isPause = false;
+	
 
 	while(!bDone){
 		if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
@@ -94,14 +108,18 @@ void openGLThreadPorc( void *param )
 				DispatchMessage(&msg);
 				//display(pOpenGLWinUI, disData, intData, ampData);
 			}
+		} else {
+			display(pOpenGLWinUI, bildDataBuffer[0]);
+			SwapBuffers(p3DDataViewContext->hDC);
 		}
 		//display(pOpenGLWinUI, disData, intData, ampData);
 		//EnterCriticalSection(&frameCrs);
-		display(pOpenGLWinUI, bildDataBuffer[0]);
+		//display(pOpenGLWinUI, bildDataBuffer[0]);
 		//LeaveCriticalSection(&frameCrs);
 			
 	}
 
+	delete p3DDataViewContext;
 	delete pOpenGLWinUI;
 } 
 
@@ -232,7 +250,8 @@ void inputThreadProc(void *param){
 		bildDataBuffer.insert(bildDataBuffer.begin(), temp);
 
 		//updata the OpenGL Window
-		PostMessage(openGLhnd, WM_PAINT, 0, 0);	
+		//PostMessage(openGLhnd, WM_PAINT, 0, 0);	
+		PostMessage(p3DDataViewContext->hWnd, WM_PAINT, 0, 0);	
 		//setARData(intData);
 		LeaveCriticalSection(&frameCrs);
 		Sleep(100);
@@ -293,38 +312,67 @@ void inputThreadProc(void *param){
 #endif
 }
 
-typedef struct WINParam{
-	int *argc;
-	char **argv;
-}winParam;
 
-void GLUTThreadPorc(WINParam *param ){
-	//glutInit(param->argc, param->argv);
-	glutInitDisplayMode (GLUT_SINGLE | GLUT_RGB | GLUT_DEPTH);
-	glutInitWindowSize (500, 500); 
-	glutInitWindowPosition (100, 100);
-	glutCreateWindow ("GLUT Window");
-	init ();
-	glutDisplayFunc(display); 
-	glutReshapeFunc(reshape);
-	glutMouseFunc(mouse);
-	glutKeyboardFunc(keyboard);
-	glutMainLoop();
+void objWindowThreadPorc(void *param ){
+	static OpenGLWinUI *pObjGLWinUI = new OpenGLWinUI;
+	pObjViewContext = new OpenGLContext;
+
+	TlsSetValue(ThreadIndex, pObjGLWinUI);
+
+	
+
+	if(!CreateOpenGLWindow("Object Window", 0, 0, 400, 400, PFD_TYPE_RGBA, 0, pObjGLWinUI, pObjViewContext)){
+		exit(0);
+	}
+
+	cout<<"The Object Structur OpenGL Windows is running"<<endl;
+
+
+
+	while(!bDone){
+		if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
+			if(msg.message==WM_QUIT){
+				bDone = TRUE;
+			} else if(msg.message==WM_RBUTTONDOWN){
+				// klick right button of mouse to stop and rerun the input of frame
+				if(isPause){
+					cout<<"frame running!"<<endl;
+					LeaveCriticalSection(&frameCrs);
+					isPause = false;
+				} else {
+					cout<<"frame pause!"<<endl;
+					EnterCriticalSection(&frameCrs);
+					isPause = true;
+				}
+			} else{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+				//display(pOpenGLWinUI, disData, intData, ampData);
+			}
+		} else {
+			EnterCriticalSection (&calcCrs);
+			display(pObjGLWinUI, obj);
+			SwapBuffers(pObjViewContext->hDC);
+			glEnable(GL_LIGHTING);
+				LeaveCriticalSection(&calcCrs);
+		}
+	}
+
+	delete pObjViewContext;
+	delete pObjGLWinUI;
+
 }
 
 
 
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
-	winParam wp;
-	wp.argc = &argc;
-	wp.argv = argv;
-
 	int nRetCode = 0;
 	//just for the situation, that more than one threads are calling the same data at the same time
 	InitializeCriticalSection (&frameCrs);
 	InitializeCriticalSection (&glInitCrs);
 	InitializeCriticalSection (&cvInitCrs);
+	InitializeCriticalSection (&calcCrs);
 
 	// MFC initialisieren und drucken. Bei Fehlschlag Fehlermeldung aufrufen.
 	if (!AfxWinInit(::GetModuleHandle(NULL), NULL, ::GetCommandLine(), 0))
@@ -345,30 +393,18 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			cout<<"Failed to create openGL thread"<<endl;
 		}
 
+		//Start Obj Window Thread 
+		if(_beginthread (objWindowThreadPorc, 0, NULL)==-1){
+			cout<<"Failed to create ObjWindow thread"<<endl;
+		}
 		// Start ARToolKit Window Thread 
 		//if(_beginthread (arToolKitThreadProc, 0, NULL)==-1){
 		//	cout<<"Failed to create ARToolKit thread"<<endl;
 		//}
 
-		//Start GLUT Window Thread 
-		if(_beginthread ((void(*)(void*))GLUTThreadPorc, 0, (void *)&wp)==-1){
-			cout<<"Failed to create GLUT thread"<<endl;
-		}
-
 		MSG msg;
 		//BOOL done = FALSE;
-		static OpenGLWinUI *pObjGLWinUI = new OpenGLWinUI;
-
-		TlsSetValue(ThreadIndex, pObjGLWinUI);
-
-		//EnterCriticalSection (&glInitCrs);
-
-		//if((objGLhnd=CreateOpenGLWindow("Object Window", 0, 0, 400, 400, PFD_TYPE_RGBA, 0, pObjGLWinUI))==NULL){
-		//	exit(0);
-		//}
-
-		//cout<<"The Object Structur OpenGL Windows is running"<<endl;
-
+		
 
 
 		//LeaveCriticalSection (&glInitCrs);
@@ -393,17 +429,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			double energie = 0;
 			float maxValue = 0;
 
-			int MINFEATURECOUNT = 12;
-			int MAXFEATURECOUNT = 31;
 
-			float MINSTANDARDENERGY = 300000.0;
-			float MAXSTANDARDENERGY = 450000.0;
-
-			float MINCONTRAST = 2;
-			float MAXCONTRAST = 18;
-
-			float MINRESPONSETHRESHOLD = 40;
-			float MAXRESPONSETHRESHOLD = 130;
 
 			//parameter for STAR Detector
 			int MAXSIZE = 8;
@@ -429,12 +455,13 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 			unsigned char hisShowdata[41616*3];
 
-			Graph *obj = new Graph();
+			obj = new Graph();
 			
 			while (!bDone) 
 			{ 	
 				//call the calculate function after the init of PMD Camera
 				EnterCriticalSection (&cvInitCrs);
+				EnterCriticalSection (&calcCrs);
 
 				//get the current Bild Data
 				BildData *currentBildData = bildDataBuffer[0];
@@ -630,8 +657,6 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					imshow("OpenCVGrayScale", img);
 					imshow("OpenCVRGBResult", featuresImg);
 					
-
-					
 					/**********************************
 					 *
 					 * The Distance Filter
@@ -639,73 +664,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					 *********************************/
 					if(!isDiff) break;
 
-
-					/*********************************
-					 * 
-					 * The algorithm for the Brightness and RESPONSETHRESHOLD
-					 *
-					 ********************************/
-					//if lesser than 7 features have been found
-					if(vectorSize < MINFEATURECOUNT){
-						cout<<"Case 1111111111111111111111111111111"<<endl;
-
-						//calculate the Energy of the frame
-						energie = 0;
-						for(int k = 0;k<204*204;k++){
-							energie += data[k];
-						}
-						cout<<"The energy of the data is: "<<energie<<endl;
-						//if(energie < 50000) break;
-
-						//compare the energy with the standard energy
-						if(energie < MINSTANDARDENERGY){
-							//if the frame is too dark
-							//float eFactor = energie/MINSTANDARDENERGY;
-							contrast -= 0.5;
-							//cout<<"Too Dark!! The energy factor is: "<<eFactor<<endl;
-							cout<<"Too Dark! The current contrast is "<<contrast<<endl;
-							if(contrast<MINCONTRAST) {
-								cout<<"Algo fehld, break!"<<endl;
-								contrast = MINCONTRAST;
-								break;
-							}
-						} else if(energie > MAXSTANDARDENERGY){
-							//if the frame is too bright
-							//float eFactor = energie/MAXSTANDARDENERGY;
-							//contrast *= eFactor;
-							//cout<<"Too Bright!! The energy factor is: "<<eFactor<<endl;
-							
-							contrast += 0.5;
-							cout<<"Too Bright! The current contrast is "<<contrast<<endl;
-							if(contrast>MAXCONTRAST) {
-								cout<<"Algo fehld, break!"<<endl;
-								contrast = MAXCONTRAST;
-								break;
-							}
-						} else {
-							//the energy is acceptable, but still can not find enough features. So change the parameter of STAR Detector
-							detecParam -= 5;
-							cout<<"Brightness is OK!! The current detecParam is "<<detecParam<<endl;
-							if(detecParam < MINRESPONSETHRESHOLD){
-								break;
-							}
-						}						
-					} else if(vectorSize > MAXFEATURECOUNT){
-						cout<<"Case 222222222222222222222222222"<<endl;
-						if(detecParam > MAXRESPONSETHRESHOLD){
-							//if the detecParam is too big
-							break;
-						} else {
-							//else increase the detecParam
-							detecParam += 4;
-						}
-						cout<<"Too Many Features!! The current detecParam is "<<detecParam<<endl;
-					} else {
-						cout<<"Case 333333333333333333333333333"<<endl;
+					if(!brightnessControll(vectorSize, contrast, detecParam, data)){
 						break;
 					}
-				} 
-				// Ende of the Loop for the Features' Detection
+					
+				} // Ende of the Loop for the Features' Detection
 				
 				/***********************************
 				 *
@@ -846,7 +809,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				vector<Point3f> hisFeatures = bildDataBuffer[bildDataBuffer.size()-1]->features;
 				for(int i=0;i<hisFeatures.size();i++){
 					// show the old features
-					//circle(left, hisFeatures[i], 2, Scalar(0,255,0,0), -1);
+					circle(left, point3To2(hisFeatures[i]), 2, Scalar(0,255,0,0), -1);
 				}
 				
 
@@ -864,11 +827,19 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				vector<Point3f> oldResult, newResult;
 				vector<Point3f> curFeatures = currentBildData->features;
+				Mat R = Mat(3,3,CV_32FC1);
+				Mat T = Mat(3,1,CV_32FC1);
 				if(hisFeatures.size()>0&&curFeatures.size()>0){
 					featureAssociate2(hisFeatures, curFeatures, 15, oldResult, newResult);
+					findRAndT(oldResult, newResult, R, T);
+					for(int i=0;i<3;i++){
+						cout<<"    | "<<R.at<double>(0, 0)<<"  "<<R.at<double>(0, 1)<<"  "<<R.at<double>(0, 2)<<" |"<<endl;
+						cout<<"R = | "<<R.at<double>(1, 0)<<"  "<<R.at<double>(1, 1)<<"  "<<R.at<double>(1, 2)<<" |"<<endl;
+						cout<<"    | "<<R.at<double>(2, 0)<<"  "<<R.at<double>(2, 1)<<"  "<<R.at<double>(2, 2)<<" |"<<endl;
+					}
 					for(int i=0;i<oldResult.size();i++){
-						Point3f trans(204,0,0);
-						//line(testimg, oldResult[i], newResult[i]+trans, Scalar(255,255,0,0));
+						Point2f trans(204,0);
+						line(testimg, point3To2(oldResult[i]), point3To2(newResult[i])+trans, Scalar(255,255,0,0));
 					}
 					cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 				}
@@ -885,7 +856,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					int firstSize = caliResult[k].size();
 					for(int i=0;i<firstSize;i++){
 						for(int j=0;j<firstSize;j++){
-							//line(graphImg, caliResult[k][i], caliResult[k][j], Scalar(0, 255, 255, 0));
+							line(graphImg, point3To2(caliResult[k][i]), point3To2(caliResult[k][j]), Scalar(0, 255, 255, 0));
 						}
 					}
 				}
@@ -895,32 +866,12 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				findMaxPointsSet(caliResult, maxSet);
 
 				obj->updateGraph(maxSet);
+
+				LeaveCriticalSection (&calcCrs);
 				//obj->createCompleteGraph(maxSet);
 
-				setGLUTGraph(obj);
 				// display 3D structur of the Object in an OpenGL Window
-				//display(pObjGLWinUI, obj);
-				//if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
-				//	if(msg.message==WM_QUIT){
-				//		bDone = TRUE;
-				//	} else if(msg.message==WM_RBUTTONDOWN){
-				//		// klick right button of mouse to stop and rerun the input of frame
-				//		if(isPause){
-				//			cout<<"frame running!"<<endl;
-				//			LeaveCriticalSection(&frameCrs);
-				//			isPause = false;
-				//		} else {
-				//			cout<<"frame pause!"<<endl;
-				//			EnterCriticalSection(&frameCrs);
-				//			isPause = true;
-				//		}
-				//	} else{
-				//		TranslateMessage(&msg);
-				//		DispatchMessage(&msg);
-				//		//display(pOpenGLWinUI, disData, intData, ampData);
-				//	}
-				//}
-				//display(pObjGLWinUI, obj);
+				PostMessage(pObjViewContext->hWnd, WM_PAINT, 0, 0);	
 
 
 #endif
@@ -1006,6 +957,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 #endif
 				//printf("main thread running\n"); 
 				//LeaveCriticalSection (&frameCrs);
+				
 			}
 
 
@@ -1016,7 +968,6 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		
 		// release the memory block of the data		
 		delete dFilter;
-		delete pObjGLWinUI;
 		
 	}
 

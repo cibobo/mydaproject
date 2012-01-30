@@ -9,7 +9,6 @@
 #include "ARToolKit.hpp"
 #include "BildData.hpp"
 #include "DistanceFilter.hpp"
-#include "GLUTWin.hpp"
 #include "Graph.hpp"
 #include "ImageProcess.hpp"
 #include "MarkerDetection.hpp"
