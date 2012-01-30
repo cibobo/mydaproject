@@ -195,10 +195,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\GLUTWin.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\Graph.cpp"
 				>
 			</File>
@@ -266,10 +262,6 @@
 			</File>
 			<File
 				RelativePath=".\DistanceFilter.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\GLUTWin.hpp"
 				>
 			</File>
 			<File

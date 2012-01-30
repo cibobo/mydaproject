@@ -50,13 +50,95 @@ void transAmplitudeToGrayValue(float *src, unsigned char *dst){
 	transFloatToChar(src, dst,balance, contrast);
 }
 
-void calibration(vector<Point2f> points, vector<Object> &objects){
-	//float eps = 20;
-	//objects.clear();
+Point2f point3To2(Point3f point){
+	Point2f newPoint = Point2f(point.x, point.y);
+	return newPoint;
+}
 
+/*********************************
+ * 
+ * The algorithm for the Brightness and RESPONSETHRESHOLD
+ *
+ ********************************/
+bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsigned char *data){
+	int MINFEATURECOUNT = 12;
+	int MAXFEATURECOUNT = 31;
 
-	//for(int i=0;i<points.size();i++){
-		
+	float MINSTANDARDENERGY = 300000.0;
+	float MAXSTANDARDENERGY = 450000.0;
+
+	float MINCONTRAST = 2;
+	float MAXCONTRAST = 18;
+
+	float MINRESPONSETHRESHOLD = 40;
+	float MAXRESPONSETHRESHOLD = 130;
+
+	double energie = 0;
+	//if lesser than 7 features have been found
+	if(vectorSize < MINFEATURECOUNT){
+		cout<<"Case 1111111111111111111111111111111"<<endl;
+
+		//calculate the Energy of the frame
+		energie = 0;
+		for(int k = 0;k<204*204;k++){
+			energie += data[k];
+		}
+		cout<<"The energy of the data is: "<<energie<<endl;
+		//if(energie < 50000) break;
+
+		//compare the energy with the standard energy
+		if(energie < MINSTANDARDENERGY){
+			//if the frame is too dark
+			//float eFactor = energie/MINSTANDARDENERGY;
+			contrast -= 0.5;
+			//cout<<"Too Dark!! The energy factor is: "<<eFactor<<endl;
+			cout<<"Too Dark! The current contrast is "<<contrast<<endl;
+			if(contrast<MINCONTRAST) {
+				cout<<"Algo fehld, break!"<<endl;
+				contrast = MINCONTRAST;
+				//break;
+				return false;
+			}
+		} else if(energie > MAXSTANDARDENERGY){
+			//if the frame is too bright
+			//float eFactor = energie/MAXSTANDARDENERGY;
+			//contrast *= eFactor;
+			//cout<<"Too Bright!! The energy factor is: "<<eFactor<<endl;
+			
+			contrast += 0.5;
+			cout<<"Too Bright! The current contrast is "<<contrast<<endl;
+			if(contrast>MAXCONTRAST) {
+				cout<<"Algo fehld, break!"<<endl;
+				contrast = MAXCONTRAST;
+				//break;
+				return false;
+			}
+		} else {
+			//the energy is acceptable, but still can not find enough features. So change the parameter of STAR Detector
+			detecParam -= 5;
+			cout<<"Brightness is OK!! The current detecParam is "<<detecParam<<endl;
+			if(detecParam < MINRESPONSETHRESHOLD){
+				//break;
+				return false;
+			}
+		}						
+	} else if(vectorSize > MAXFEATURECOUNT){
+		cout<<"Case 222222222222222222222222222"<<endl;
+		if(detecParam > MAXRESPONSETHRESHOLD){
+			//if the detecParam is too big
+			//break;
+			return false;
+		} else {
+			//else increase the detecParam
+			detecParam += 4;
+		}
+		cout<<"Too Many Features!! The current detecParam is "<<detecParam<<endl;
+	} else {
+		cout<<"Case 333333333333333333333333333"<<endl;
+		//break;
+		return false;
+	}
+	return true;
 }
 
 /**************************************************
@@ -329,6 +411,7 @@ void findRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R,
 	Mat mc = M-avrM;
 	Mat dc = D-avrD;
 	
+	// N * 3
 	mc.reshape(1);
 	dc.reshape(1);
 
@@ -353,7 +436,9 @@ void findRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R,
 		R = svd.u * temp * svd.vt;
 	}
 
-	T = dc - R * mc;
+	Mat tempD = Mat(3,1,CV_32FC1, avrD);
+	Mat tempM = Mat(3,1,CV_32FC1, avrM);
+	T = tempD - R * tempM;
 }
 
 

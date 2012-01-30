@@ -321,6 +321,44 @@ void display(OpenGLWinUI *pOpenGLWinUI, vector<Point2f> features){
 	glFlush();
 }
 
+void drawCoordi(){
+	glPushMatrix();
+	glTranslatef(0,0,-5);
+
+	float border = 5;
+	// how many lines on one side
+	int count = 25;
+	float step = border/count;
+	
+	//draw x achses
+
+
+	glColor3f(0.0f,1.0f,0.0f);
+	for(int i=0;i<count;i++){
+		glBegin(GL_LINES);
+			glVertex3f(-border, i*step, 0);
+			glVertex3f(border, i*step, 0);
+
+			glVertex3f(-border, -i*step, 0);
+			glVertex3f(border, -i*step, 0);
+		glEnd();
+	}
+
+	//draw y achses
+	glColor3f(0.0f, 0.0f, 1.0f);
+	for(int i=0;i<count;i++){
+		glBegin(GL_LINES);
+			glVertex3f(i*step, -border, 0);
+			glVertex3f(i*step, border, 0);
+
+			glVertex3f(-i*step, -border, 0);
+			glVertex3f(-i*step, border, 0);
+		glEnd();
+	}
+	glPopMatrix();
+	//glutPostRedisplay();
+}
+
 void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 	int height = pOpenGLWinUI->height;
 	int width = pOpenGLWinUI->width;
@@ -341,6 +379,7 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
 	//glTranslatef(-1.02, 1.02, 0);
 	//glColor3f(1.0f,0.0f,1.0f);
+	drawCoordi();
 
 	GLfloat mat_ambient[] = {0.0215, 0.1745, 0.0215, 1.0};
 	GLfloat mat_diffuse[] = {0.07568, 0.61424, 0.07568, 1.0};
@@ -352,6 +391,12 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
     glMaterialf(GL_FRONT, GL_SHININESS, 50.0);
  
 	float factor = 2.04/204;
+	int size = graph->nodeList.size();
+	for(int i=0;i<size;i++){
+		glTranslatef(graph->nodeList[i]->x*factor,-graph->nodeList[i]->y*factor,-graph->nodeList[i]->z);
+		glutSolidSphere(0.03, 20, 16);
+		glTranslatef(-graph->nodeList[i]->x*factor,graph->nodeList[i]->y*factor,graph->nodeList[i]->z);
+	}
 
 	//glPointSize(8);
 	//for(int i=0;i<graph->nodeList.size();i++){
@@ -377,9 +422,10 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 	//	}
 	//}
 			
-	glutSolidTeapot(0.8);
+	//glutSolidTeapot(0.8);
                     // Don't forget to pop the Matrix
 	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
 	glFlush();
 	glPopMatrix();   
 }
+

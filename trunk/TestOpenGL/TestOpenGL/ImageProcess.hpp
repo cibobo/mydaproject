@@ -12,7 +12,9 @@ void transIntensityToGrayValue(float *src, unsigned char *dst);
 
 void transAmplitudeToGrayValue(float *src, unsigned char *dst);
 
-void calibration(vector<Point2f> points, vector<Object> &objects);
+Point2f point3To2(Point3f point);
+
+bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsigned char *data);
 
 void calibration(vector<vector<Point3f>> &result, vector<Point3f> points, float eps);
 
@@ -21,3 +23,5 @@ void findMaxPointsSet(vector<vector<Point3f>> pointsSets, vector<Point3f> &maxSe
 void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew);
 
 void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew);
+
+void findRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T);

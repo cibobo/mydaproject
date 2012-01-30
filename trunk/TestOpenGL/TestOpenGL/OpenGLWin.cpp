@@ -39,7 +39,7 @@ DWORD tlsIndex = 1001;
 int InitGL()
 {
 	/* schwarzer Hintergrund */
-	glClearColor(1.0f, 1.0f, 1.0f, 0.0f);
+	glClearColor(0.0f, 0.0f, 0.0f, 0.5f);
 	glShadeModel(GL_SMOOTH);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);    
     glClearDepth(1.0f);          // Set the Depth buffer value (ranges[0,1])
@@ -47,6 +47,20 @@ int InitGL()
     glDepthFunc(GL_LEQUAL);   // If two objects on the same coordinate 
                                             // show the first drawn
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+
+
+	GLfloat light_ambient[] = {0.2f, 0.2f, 0.2f, 1.0};
+	GLfloat light_diffuse[] = {0.8f, 0.8f, 0.8f, 1.0};
+	GLfloat light_specular[] = {0.5f, 0.5f, 0.5f , 1.0f};
+	GLfloat light_position[] = {-1.0f, -1.0f, -10.0f, -1.0f};
+	
+	glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse);
+    glLightfv(GL_LIGHT1, GL_POSITION, light_position);
+	//glLightfv(GL_LIGHT1, GL_SPECULAR, light_specular);
+
+	glEnable(GL_LIGHT1);
 
 	return TRUE;
 }
@@ -328,8 +342,8 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 	return DefWindowProc(hWnd, uMsg, wParam, lParam); 
 } 
 
-HWND CreateOpenGLWindow(char* title, int x, int y, int iWidth, int iHeight, 		   
-					   BYTE type, DWORD flags, OpenGLWinUI *pOpenGLWinUI){    
+bool CreateOpenGLWindow(char* title, int x, int y, int iWidth, int iHeight, 		   
+					   BYTE type, DWORD flags, OpenGLWinUI *pOpenGLWinUI, OpenGLContext *pOpenGLContext){    
 
 	pOpenGLWinUI->width = iWidth;
 	pOpenGLWinUI->height = iHeight;
@@ -396,35 +410,30 @@ HWND CreateOpenGLWindow(char* title, int x, int y, int iWidth, int iHeight,
 		KillGLWindow(hInstance, hWnd, hDC, hRC);                         // Reset The Display 
 		MessageBox(NULL,"Window Creation Error.","ERROR",MB_OK|MB_ICONEXCLAMATION); 
 		return FALSE;                           // Return FALSE 
-	} else {
-		if(!InitGL()){
-			PostQuitMessage(0);
-		}
 	}
 
-	//TODO pixel format
 	/*  */
-	//static	PIXELFORMATDESCRIPTOR pfd =					// pfd Tells Windows How We Want Things To Be
-	//{
-	//	sizeof(PIXELFORMATDESCRIPTOR),					// Size Of This Pixel Format Descriptor
-	//	1,								// Version Number
-	//	PFD_DRAW_TO_WINDOW |						// Format Must Support Window
-	//	PFD_SUPPORT_OPENGL |						// Format Must Support OpenGL
-	//	PFD_DOUBLEBUFFER,						// Must Support Double Buffering
-	//	PFD_TYPE_RGBA,							// Request An RGBA Format
-	//	32,								// Select Our Color Depth
-	//	0, 0, 0, 0, 0, 0,						// Color Bits Ignored
-	//	0,								// No Alpha Buffer
-	//	0,								// Shift Bit Ignored
-	//	0,								// No Accumulation Buffer
-	//	0, 0, 0, 0,							// Accumulation Bits Ignored
-	//	16,								// 16Bit Z-Buffer (Depth Buffer)
-	//	0,								// No Stencil Buffer
-	//	0,								// No Auxiliary Buffer
-	//	PFD_MAIN_PLANE,							// Main Drawing Layer
-	//	0,								// Reserved
-	//	0, 0, 0								// Layer Masks Ignored
-	//};
+	static	PIXELFORMATDESCRIPTOR pfd =					// pfd Tells Windows How We Want Things To Be
+	{
+		sizeof(PIXELFORMATDESCRIPTOR),					// Size Of This Pixel Format Descriptor
+		1,								// Version Number
+		PFD_DRAW_TO_WINDOW |						// Format Must Support Window
+		PFD_SUPPORT_OPENGL |						// Format Must Support OpenGL
+		PFD_DOUBLEBUFFER,						// Must Support Double Buffering
+		PFD_TYPE_RGBA,							// Request An RGBA Format
+		32,								// Select Our Color Depth
+		0, 0, 0, 0, 0, 0,						// Color Bits Ignored
+		0,								// No Alpha Buffer
+		0,								// Shift Bit Ignored
+		0,								// No Accumulation Buffer
+		0, 0, 0, 0,							// Accumulation Bits Ignored
+		16,								// 16Bit Z-Buffer (Depth Buffer)
+		0,								// No Stencil Buffer
+		0,								// No Auxiliary Buffer
+		PFD_MAIN_PLANE,							// Main Drawing Layer
+		0,								// Reserved
+		0, 0, 0								// Layer Masks Ignored
+	};
  
 	if (!(hDC=GetDC(hWnd)))                         // Did We Get A Device Context? 
 	{ 
@@ -432,14 +441,6 @@ HWND CreateOpenGLWindow(char* title, int x, int y, int iWidth, int iHeight,
 		MessageBox(NULL,"Can't Create A GL Device Context.","ERROR",MB_OK|MB_ICONEXCLAMATION); 
 		return FALSE;                           // Return FALSE 
 	} 
-	static	PIXELFORMATDESCRIPTOR pfd;
-
-	memset(&pfd, 0, sizeof(pfd));    
-	pfd.nSize        = sizeof(pfd);    
-	pfd.nVersion     = 1;    
-	pfd.dwFlags      = PFD_DRAW_TO_WINDOW | PFD_SUPPORT_OPENGL | flags;    
-	pfd.iPixelType   = type;    
-	pfd.cColorBits   = 32;    
 
 	if (!(PixelFormat=ChoosePixelFormat(hDC,&pfd)))             // Did Windows Find A Matching Pixel Format? 
 	{ 
@@ -472,10 +473,24 @@ HWND CreateOpenGLWindow(char* title, int x, int y, int iWidth, int iHeight,
 	SetFocus(hWnd);                             // Sets Keyboard Focus To The Window 
 	ReSizeGLScene(iWidth, iHeight);                       // Set Up Our Perspective GL Screen 
 
-	DescribePixelFormat(hDC, PixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pfd);    
+	if(!InitGL())
+	{
+		KillGLWindow(hInstance, hWnd, hDC, hRC);                         // Reset The Display 
+		MessageBox(NULL,"Initialization Failed!","ERROR",MB_OK|MB_ICONEXCLAMATION); 
+		return FALSE; 
+	}
+
+	if(pOpenGLContext != NULL)
+	{
+		pOpenGLContext->hWnd = hWnd;
+		pOpenGLContext->hRC = hRC;
+		pOpenGLContext->hDC = hDC;
+	}
+
+	//DescribePixelFormat(hDC, PixelFormat, sizeof(PIXELFORMATDESCRIPTOR), &pfd);    
 	//ReleaseDC(hWnd, hDC);    
-	return hWnd;
-	//return TRUE;
+	//return hWnd;
+	return TRUE;
 }    
 
 GLvoid KillGLWindow(HINSTANCE hInstance, HWND hWnd, HDC hDC, HGLRC hRC)                         // Properly Kill The Window 
