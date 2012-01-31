@@ -398,25 +398,41 @@ void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, f
 void findRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T){
 	// get the number of the points. The size of the oldFeatures must be the same as the size of the newFeatures
 	int N = oldFeatures.size();
+
 	// create two matrices with 3 chanles to save the points
 	// D = RM + T * V
-	Mat M = Mat(oldFeatures);
-	Mat D = Mat(newFeatures);
-	
+	Mat M = Mat(oldFeatures, true);
+	Mat D = Mat(newFeatures, true);
 
+	//cout<<"M is: "<<M<<endl;
+	//cout<<"D is: "<<D<<endl;
+	//cout<<"The rows of M is: "<<M.rows<<endl;
+	//cout<<"The chanle of M is: "<<M.channels()<<endl;
+	
 	// calculate the average value of the points
 	Scalar avrM = mean(M);
 	Scalar avrD = mean(D);
 
+
 	Mat mc = M-avrM;
 	Mat dc = D-avrD;
+
+	//cout<<"Mc is: "<<mc<<endl;
+	//cout<<"Dc is: "<<dc<<endl;
+	//cout<<"The colomuns of MC is: "<<mc.cols<<endl;
 	
-	// N * 3
-	mc.reshape(1);
-	dc.reshape(1);
+	// change the channel of the Matrix from 3 to 1
+	// the result must be reset for mc and dc. The sample programm in webseit is wrong
+	mc = mc.reshape(1);
+	dc = dc.reshape(1);
+
+	//cout<<"reshaped Mc is: "<<mc<<endl;
+	//cout<<"The reshaped colomuns of MC is: "<<mc.cols<<endl;
 
 	// calculate H
-	Mat H = Mat(3,3,CV_32FC1);
+	Mat H = Mat::zeros(3,3,CV_32FC1);
+	//cout<<"H= "<<H<<endl;
+
 	for(int i=0;i<mc.rows;i++){
 		Mat mci = mc(Range(i,i+1),Range(0,3));
 		Mat dci = dc(Range(i,i+1),Range(0,3));
@@ -428,6 +444,8 @@ void findRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R,
 
 	R = svd.vt.t() * svd.u.t();
 	double detR = determinant(R);
+	//cout<<"|R|= "<<detR<<endl;
+
 	// if the determinant of R is bigger than 1 oder smaller than -1, modified as the special case 
 	if(abs(detR + 1.0) < 0.0001){
 		float optPara = determinant(svd.vt*svd.u);
@@ -436,9 +454,25 @@ void findRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R,
 		R = svd.u * temp * svd.vt;
 	}
 
-	Mat tempD = Mat(3,1,CV_32FC1, avrD);
-	Mat tempM = Mat(3,1,CV_32FC1, avrM);
+	//cout<<"R = "<<R<<endl<<endl;
+	//cout<<R.cols<<" , "<<R.rows<<" | "<<R.channels()<<" , "<<R.type()<<endl;
+
+	Mat tempM = Mat(avrM).rowRange(0,3);
+	Mat tempD = Mat(avrD).rowRange(0,3);
+
+	// The type of avrM and avrD is CV_64FC1, so here need to call convertTo to change the type of the matrix
+	tempM.convertTo(tempM, CV_32FC1);
+	tempD.convertTo(tempD, CV_32FC1);
+
+	//cout<<tempM<<endl;
+	//cout<<tempM.cols<<" , "<<tempM.rows<<" | "<<tempM.channels()<<" , "<<tempM.type()<<endl;
+
+
+
 	T = tempD - R * tempM;
+	//cout<<"R*M= "<<R*tempM<<endl<<endl;
+	//cout<<"T= "<<T<<endl;
+	//cout<<T.cols<<" , "<<T.rows<<" | "<<T.channels()<<endl;
 }
 
 

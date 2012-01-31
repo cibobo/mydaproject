@@ -20,7 +20,7 @@ Edge::Edge(Node *firstNode, Node *secondNode, float cost){
  * Defination for Node
  */
 Node::Node(){
-	this->timmer = 1;
+	this->timmer = 3;
 }
 
 Node::Node(int timmer){
@@ -31,7 +31,7 @@ Node::Node(Point3f point){
 	this->x = point.x;
 	this->y = point.y;
 	this->z = point.z;
-	this->timmer = 1;
+	this->timmer = 3;
 }
 
 Node::~Node(){
@@ -44,6 +44,10 @@ void Node::setPosition(cv::Point3f pos){
 	this->z = pos.z;
 }
 
+Point3f Node::getPoint(){
+	Point3f point = Point3f(this->x, this->y, this->z);
+	return point;
+}
 
 
 /*
@@ -52,6 +56,11 @@ void Node::setPosition(cv::Point3f pos){
 Graph::Graph(){
 	this->indexCount = 0;
 	this->lifeTime = 0;
+
+	// test
+	//this->nodeList.push_back(new Node(Point3f(30, 0, 2)));
+	//this->nodeList.push_back(new Node(Point3f(-15, -22, 2)));
+	//this->nodeList.push_back(new Node(Point3f(-15, 22, 2)));
 }
 
 Graph::Graph(vector<Point3f> points){
@@ -126,6 +135,19 @@ bool Graph::deleteNode(Node *node){
 			break;
 		}
 	}
+	return true;
+}
+
+bool Graph::deleteNode(int index){
+	Node *node = nodeList[index];
+	for(int i=0;i<node->edgeList.size();i++){
+		// delete the edge, which direct to this node
+		if(!deleteEdge(node->edgeList[i].dstNode, node->edgeList[i].orgNode)){
+			return false;
+		}
+	}
+	nodeList.erase(nodeList.begin() + index);
+	delete node;
 	return true;
 }
 
@@ -215,6 +237,64 @@ bool Graph::updateGraph(vector<Point3f> points){
 				}
 			}
 			delete []isNewAdd;
+		}
+	}
+	return true;
+}
+
+bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
+	// if there is no input points
+	if(points.size()<=0){
+		return false;
+	} else {
+		// if the graph contains no points
+		if(this->nodeList.size()<=0){
+			//this->addNodes(points);
+			this->createCompleteGraph(points);
+			return false;
+		} else {
+			//update the position of the old points
+			for(int i=0;i<this->nodeList.size();i++){
+				Mat oldPoint = Mat(this->nodeList[i]->getPoint());
+				cout<<"The oldPoint: "<<oldPoint<<endl;
+				Mat newPoint = R*oldPoint + T;
+				cout<<"The newPoint: "<<newPoint<<endl;
+				this->nodeList[i]->setPosition(Point3f(newPoint.at<float>(0,0),
+													   newPoint.at<float>(1,0),
+													   //2));
+													   newPoint.at<float>(2,0)));
+			}
+
+			vector<Point3f> tempPoints = points;
+			float e = 0.5;
+			for(int i=0;i<this->nodeList.size();i++){
+				int j;
+				bool isFound = false;
+				//find a coorespondence relationship to the new point			
+				for(j=0;j<tempPoints.size();j++){
+					//if they are very close
+					if((fabs(this->nodeList[i]->x - tempPoints[j].x) < e) && 
+					   (fabs(this->nodeList[i]->y - tempPoints[j].y) < e) && 
+					   (fabs(this->nodeList[i]->z - tempPoints[j].z) < e)){
+						   //increase the life time of the node in graph
+						   this->nodeList[i]->timmer ++;
+						   //delete the point from tempPoints
+						   tempPoints.erase(tempPoints.begin()+j);
+						   isFound = true;
+						   break;
+					}
+				}
+				//if there is no close poind found for the i-th node  
+				if(!isFound){
+					//if the life time is smaller than 0
+					if(--this->nodeList[i]->timmer < 0){
+						this->deleteNode(i);
+					}
+				}
+			}
+
+			//add the rest new node into the nodelist
+			this->addNodes(tempPoints);				
 		}
 	}
 	return true;

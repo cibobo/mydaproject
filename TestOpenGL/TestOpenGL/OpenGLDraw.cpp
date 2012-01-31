@@ -331,8 +331,6 @@ void drawCoordi(){
 	float step = border/count;
 	
 	//draw x achses
-
-
 	glColor3f(0.0f,1.0f,0.0f);
 	for(int i=0;i<count;i++){
 		glBegin(GL_LINES);
@@ -341,6 +339,8 @@ void drawCoordi(){
 
 			glVertex3f(-border, -i*step, 0);
 			glVertex3f(border, -i*step, 0);
+			//glVertex3f(0, -i*step, 0);
+			//glVertex3f(border, -i*step, 0);
 		glEnd();
 	}
 
@@ -353,6 +353,26 @@ void drawCoordi(){
 
 			glVertex3f(-i*step, -border, 0);
 			glVertex3f(-i*step, border, 0);
+			//glVertex3f(i*step, -border, 0);
+			//glVertex3f(i*step, 0, 0);
+		glEnd();
+	}
+
+	// draw xz plane
+	for(int i=0;i<count;i++){
+		glBegin(GL_LINES);
+			glVertex3f(border, i*step, 0);
+			glVertex3f(border, i*step, 2*border);
+
+			glVertex3f(border, -i*step, 0);
+			glVertex3f(border, -i*step, 2*border);
+
+			glVertex3f(border, -border, i*step);
+			glVertex3f(border, border, i*step);
+
+			glVertex3f(border, -border, border+i*step);
+			glVertex3f(border, border, border+i*step);
+
 		glEnd();
 	}
 	glPopMatrix();
@@ -377,7 +397,7 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
     glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
 
 	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
-	//glTranslatef(-1.02, 1.02, 0);
+	//glTranslatef(-2.04, 2.04, 0);
 	//glColor3f(1.0f,0.0f,1.0f);
 	drawCoordi();
 
@@ -390,13 +410,25 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
     glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
     glMaterialf(GL_FRONT, GL_SHININESS, 50.0);
  
-	float factor = 2.04/204;
+	float factor = 2.04;
+	float rate = factor/204;
 	int size = graph->nodeList.size();
+	glTranslatef(-factor/2, factor/2, 0);
 	for(int i=0;i<size;i++){
-		glTranslatef(graph->nodeList[i]->x*factor,-graph->nodeList[i]->y*factor,-graph->nodeList[i]->z);
+		if(graph->nodeList[i]->timmer>9){
+			mat_diffuse[0] = 1.0;
+			mat_diffuse[1] = 0.0;
+		} else {
+			mat_diffuse[0] = 0.07568;
+			mat_diffuse[1] = graph->nodeList[i]->timmer*0.1+0.2;
+		}
+		glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+
+		glTranslatef(graph->nodeList[i]->x*rate,-graph->nodeList[i]->y*rate,-graph->nodeList[i]->z*rate*10);
 		glutSolidSphere(0.03, 20, 16);
-		glTranslatef(-graph->nodeList[i]->x*factor,graph->nodeList[i]->y*factor,graph->nodeList[i]->z);
+		glTranslatef(-graph->nodeList[i]->x*rate,graph->nodeList[i]->y*rate,graph->nodeList[i]->z*rate*10);
 	}
+	glTranslatef(factor/2, -factor/2, 0);
 
 	//glPointSize(8);
 	//for(int i=0;i<graph->nodeList.size();i++){
