@@ -5,7 +5,7 @@
 #include "TestOpenGL.h"
 
 
-#define OFFLINE
+//#define OFFLINE
 
 //#define TEST
 
@@ -47,7 +47,10 @@ OpenGLContext *pObjViewContext;
 // The Buffer for BildDatas, which is saving the newest BildData at first place and the oldest at the last place.
 // The maximal length of the Buffer is defined with MAXBUFFERSIZE
 vector<BildData*> bildDataBuffer;
-int MAXBUFFERSIZE = 5;
+int MAXBUFFERSIZE = 2;
+
+// framerate
+int FRAMERATE = 100;
 
 //int HISFRAMEINDEX = 3;
 
@@ -254,7 +257,7 @@ void inputThreadProc(void *param){
 		PostMessage(p3DDataViewContext->hWnd, WM_PAINT, 0, 0);	
 		//setARData(intData);
 		LeaveCriticalSection(&frameCrs);
-		Sleep(100);
+		Sleep(FRAMERATE);
 	}
 
 #else
@@ -321,7 +324,7 @@ void objWindowThreadPorc(void *param ){
 
 	
 
-	if(!CreateOpenGLWindow("Object Window", 0, 0, 400, 400, PFD_TYPE_RGBA, 0, pObjGLWinUI, pObjViewContext)){
+	if(!CreateOpenGLWindow("Object Window", 0, 0, 1000, 1000, PFD_TYPE_RGBA, 0, pObjGLWinUI, pObjViewContext)){
 		exit(0);
 	}
 
@@ -825,27 +828,6 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 				//}
 
-				vector<Point3f> oldResult, newResult;
-				vector<Point3f> curFeatures = currentBildData->features;
-				Mat R = Mat(3,3,CV_32FC1);
-				Mat T = Mat(3,1,CV_32FC1);
-				if(hisFeatures.size()>0&&curFeatures.size()>0){
-					featureAssociate2(hisFeatures, curFeatures, 15, oldResult, newResult);
-					findRAndT(oldResult, newResult, R, T);
-					for(int i=0;i<3;i++){
-						cout<<"    | "<<R.at<double>(0, 0)<<"  "<<R.at<double>(0, 1)<<"  "<<R.at<double>(0, 2)<<" |"<<endl;
-						cout<<"R = | "<<R.at<double>(1, 0)<<"  "<<R.at<double>(1, 1)<<"  "<<R.at<double>(1, 2)<<" |"<<endl;
-						cout<<"    | "<<R.at<double>(2, 0)<<"  "<<R.at<double>(2, 1)<<"  "<<R.at<double>(2, 2)<<" |"<<endl;
-					}
-					for(int i=0;i<oldResult.size();i++){
-						Point2f trans(204,0);
-						line(testimg, point3To2(oldResult[i]), point3To2(newResult[i])+trans, Scalar(255,255,0,0));
-					}
-					cout<<"The number of useful features is: "<<oldResult.size()<<endl;
-				}
-
-				imshow("OpenCVRGBTest", testimg);
-
 				// call calibration
 				vector<vector<Point3f>> caliResult;
 				calibration(caliResult, currentBildData->features, 18);
@@ -864,8 +846,32 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				vector<Point3f> maxSet;
 				findMaxPointsSet(caliResult, maxSet);
+				
+				vector<Point3f> oldResult, newResult;
+				vector<Point3f> curFeatures = currentBildData->features;
+				Mat R = Mat(3,3,CV_32FC1);
+				Mat T = Mat(3,1,CV_32FC1);
+				if(hisFeatures.size()>0&&curFeatures.size()>0){
+					featureAssociate2(hisFeatures, curFeatures, 15, oldResult, newResult);
+					findRAndT(oldResult, newResult, R, T);
+					cout<<"The rotation matrix is: "<<R<<endl<<endl;
+					cout<<"The translation matrix is: "<<T<<endl<<endl;
 
-				obj->updateGraph(maxSet);
+					obj->updateGraph(maxSet, R, T);
+
+					for(int i=0;i<oldResult.size();i++){
+						Point2f trans(204,0);
+						line(testimg, point3To2(oldResult[i]), point3To2(newResult[i])+trans, Scalar(255,255,0,0));
+					}
+					cout<<"The number of useful features is: "<<oldResult.size()<<endl;
+				}
+
+				imshow("OpenCVRGBTest", testimg);
+
+				
+
+				//obj->updateGraph(maxSet);
+				
 
 				LeaveCriticalSection (&calcCrs);
 				//obj->createCompleteGraph(maxSet);

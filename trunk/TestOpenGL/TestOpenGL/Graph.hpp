@@ -38,6 +38,7 @@ public:
 
 	//void setPosition(Point2f pos);
 	void setPosition(Point3f pos);
+	Point3f getPoint();
 };
 
 class Graph{
@@ -58,12 +59,14 @@ public:
 	bool deleteEdge(Node *begin, Node *end);
 	bool deleteUndirectedEdge(Node *first, Node *second);
 	bool deleteNode(Node *node);
+	bool deleteNode(int index);
 
 	//void createMaxGraph(vector<vector<Point2f>> pointSets);
 	void createCompleteGraph(vector<Point3f> points);
 	int getSize();
 	vector<Point3f> getPoints();
 	bool updateGraph(vector<Point3f> points);
+	bool updateGraph(vector<Point3f> points, Mat R, Mat T);
 
 	Node *findNode(int index);
 };
