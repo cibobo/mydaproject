@@ -5,7 +5,7 @@
 #include "TestOpenGL.h"
 
 
-//#define OFFLINE
+#define OFFLINE
 
 //#define TEST
 
@@ -50,7 +50,7 @@ vector<BildData*> bildDataBuffer;
 int MAXBUFFERSIZE = 2;
 
 // framerate
-int FRAMERATE = 100;
+int FRAMERATE = 150;
 
 //int HISFRAMEINDEX = 3;
 
@@ -213,7 +213,7 @@ void inputThreadProc(void *param){
 #ifdef OFFLINE
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	setDefaultLoadPath("CircleBlack");
+	setDefaultLoadPath("TestRotation");
 
 	//get the distance data for the first step
 	//loadNormalDataFromFile("distance", 3, bildData->disData);
@@ -263,8 +263,8 @@ void inputThreadProc(void *param){
 #else
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	//createDefaultPMDDataDirectory("CircleBlack");
-	//setIsDataSaved(true);
+	createDefaultPMDDataDirectory("TestRotation");
+	setIsDataSaved(true);
 	cout<<"PMD Camera Connecting..."<<endl;
 	if(!createPMDCon()){
 		exit(1);
@@ -302,14 +302,18 @@ void inputThreadProc(void *param){
 		EnterCriticalSection(&frameCrs);
 
 		//setARData(intData);
-		BildData *temp = new BildData();
-		getPMDData(temp);
+		try {
+			BildData *temp = new BildData();
+			getPMDData(temp);
 
-		bildDataBuffer.pop_back();
-		bildDataBuffer.insert(bildDataBuffer.begin(), temp);
+			bildDataBuffer.pop_back();
+			bildDataBuffer.insert(bildDataBuffer.begin(), temp);
+		} catch (CMemoryException * e){
+			AfxMessageBox("Irgendwas ist schiefgegangen!");
+		}
 
 		LeaveCriticalSection(&frameCrs);
-		Sleep(100);
+		Sleep(FRAMERATE);
 	}
 	closePMDCon();
 #endif
@@ -357,7 +361,7 @@ void objWindowThreadPorc(void *param ){
 			display(pObjGLWinUI, obj);
 			SwapBuffers(pObjViewContext->hDC);
 			glEnable(GL_LIGHTING);
-				LeaveCriticalSection(&calcCrs);
+			LeaveCriticalSection(&calcCrs);
 		}
 	}
 
@@ -424,7 +428,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			namedWindow("OpenCVRGBGraph", CV_WINDOW_AUTOSIZE);
 			Size size = Size(204, 204);
 			Mat img, featuresImg, testimg;
-			bool isPause = false;
+			//bool isPause = false;
 			int balance = 200;
 			float contrast = 10;
 
@@ -462,6 +466,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			
 			while (!bDone) 
 			{ 	
+				if(isPause){
+					continue;
+				}
 				//call the calculate function after the init of PMD Camera
 				EnterCriticalSection (&cvInitCrs);
 				EnterCriticalSection (&calcCrs);
@@ -853,11 +860,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				Mat T = Mat(3,1,CV_32FC1);
 				if(hisFeatures.size()>0&&curFeatures.size()>0){
 					featureAssociate2(hisFeatures, curFeatures, 15, oldResult, newResult);
+
 					findRAndT(oldResult, newResult, R, T);
 					cout<<"The rotation matrix is: "<<R<<endl<<endl;
 					cout<<"The translation matrix is: "<<T<<endl<<endl;
-
-					obj->updateGraph(maxSet, R, T);
+					obj->updateGraph(newResult, R, T);
 
 					for(int i=0;i<oldResult.size();i++){
 						Point2f trans(204,0);
