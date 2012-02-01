@@ -415,7 +415,7 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 	int size = graph->nodeList.size();
 	glTranslatef(-factor/2, factor/2, 0);
 	for(int i=0;i<size;i++){
-		if(graph->nodeList[i]->timmer>9){
+		if(graph->nodeList[i]->isFixed){
 			mat_diffuse[0] = 1.0;
 			mat_diffuse[1] = 0.0;
 		} else {
@@ -424,9 +424,11 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 		}
 		glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 
+		//if(graph->nodeList[i]->isFixed){
 		glTranslatef(graph->nodeList[i]->x*rate,-graph->nodeList[i]->y*rate,-graph->nodeList[i]->z*rate*10);
 		glutSolidSphere(0.03, 20, 16);
 		glTranslatef(-graph->nodeList[i]->x*rate,graph->nodeList[i]->y*rate,graph->nodeList[i]->z*rate*10);
+		//}
 	}
 	glTranslatef(factor/2, -factor/2, 0);
 

@@ -29,6 +29,7 @@ public:
 	vector<Edge> edgeList;
 	int index;
 	int timmer;
+	bool isFixed;
 
 	Node();
 	Node(int timmer);
