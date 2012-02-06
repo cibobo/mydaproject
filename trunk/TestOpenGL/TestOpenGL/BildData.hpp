@@ -23,6 +23,9 @@ public:
 	// Features
 	vector<Point3f> features;
 
+	// test complete features
+	vector<Point3f> comFeatures;
+
 	int width;
 	int length;
 

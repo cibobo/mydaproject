@@ -18,6 +18,8 @@ bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsign
 
 void calibration(vector<vector<Point3f>> &result, vector<Point3f> points, float eps);
 
+void calibration2(vector<vector<KeyPoint>> &groupFeatures, vector<KeyPoint> features, float eps);
+
 void findMaxPointsSet(vector<vector<Point3f>> pointsSets, vector<Point3f> &maxSet);
 
 void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew);

@@ -60,6 +60,8 @@ Point2f point3To2(Point3f point){
  * The algorithm for the Brightness and RESPONSETHRESHOLD
  *
  ********************************/
+//#define BRIGHT_TEST
+
 bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsigned char *data){
 	int MINFEATURECOUNT = 12;
 	int MAXFEATURECOUNT = 31;
@@ -76,14 +78,19 @@ bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsign
 	double energie = 0;
 	//if lesser than 7 features have been found
 	if(vectorSize < MINFEATURECOUNT){
-		cout<<"Case 1111111111111111111111111111111"<<endl;
 
+#ifdef BRIGHT_TEST
+		cout<<"Case 1111111111111111111111111111111"<<endl;
+#endif
 		//calculate the Energy of the frame
 		energie = 0;
 		for(int k = 0;k<204*204;k++){
 			energie += data[k];
 		}
+
+#ifdef BRIGHT_TEST
 		cout<<"The energy of the data is: "<<energie<<endl;
+#endif
 		//if(energie < 50000) break;
 
 		//compare the energy with the standard energy
@@ -91,8 +98,11 @@ bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsign
 			//if the frame is too dark
 			//float eFactor = energie/MINSTANDARDENERGY;
 			contrast -= 0.5;
+
+#ifdef BRIGHT_TEST
 			//cout<<"Too Dark!! The energy factor is: "<<eFactor<<endl;
 			cout<<"Too Dark! The current contrast is "<<contrast<<endl;
+#endif
 			if(contrast<MINCONTRAST) {
 				cout<<"Algo fehld, break!"<<endl;
 				contrast = MINCONTRAST;
@@ -106,7 +116,11 @@ bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsign
 			//cout<<"Too Bright!! The energy factor is: "<<eFactor<<endl;
 			
 			contrast += 0.5;
+
+#ifdef BRIGHT_TEST
 			cout<<"Too Bright! The current contrast is "<<contrast<<endl;
+#endif
+
 			if(contrast>MAXCONTRAST) {
 				cout<<"Algo fehld, break!"<<endl;
 				contrast = MAXCONTRAST;
@@ -116,14 +130,22 @@ bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsign
 		} else {
 			//the energy is acceptable, but still can not find enough features. So change the parameter of STAR Detector
 			detecParam -= 5;
+
+#ifdef BRIGHT_TEST
 			cout<<"Brightness is OK!! The current detecParam is "<<detecParam<<endl;
+#endif
+
 			if(detecParam < MINRESPONSETHRESHOLD){
 				//break;
 				return false;
 			}
 		}						
 	} else if(vectorSize > MAXFEATURECOUNT){
+
+#ifdef BRIGHT_TEST
 		cout<<"Case 222222222222222222222222222"<<endl;
+#endif
+
 		if(detecParam > MAXRESPONSETHRESHOLD){
 			//if the detecParam is too big
 			//break;
@@ -132,9 +154,16 @@ bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsign
 			//else increase the detecParam
 			detecParam += 4;
 		}
+
+#ifdef BRIGHT_TEST
 		cout<<"Too Many Features!! The current detecParam is "<<detecParam<<endl;
+#endif
+
 	} else {
+
+#ifdef BRIGHT_TEST
 		cout<<"Case 333333333333333333333333333"<<endl;
+#endif
 		//break;
 		return false;
 	}
@@ -209,6 +238,65 @@ void calibration(vector<vector<Point3f>> &result, vector<Point3f> points, float 
 }
 
 
+
+void calibration2(vector<vector<KeyPoint>> &groupFeatures, vector<KeyPoint> features, float eps){
+	// to save the set Nr. for each feature
+	vector<int> pointer;
+	// the beginning set Nr. is -1 
+	for(int i=0;i<features.size();i++){
+		pointer.push_back(-1);
+	}
+	for(int i=0;i<features.size();i++){
+		vector<KeyPoint> temp;
+		int index;
+		// if the set Nr. for the current feature is not be set
+		if(pointer.at(i) == -1){
+			// create a new set, and add the current feature to it
+			temp.push_back(features[i]);
+			// get the set Nr.
+			index = groupFeatures.size();
+			for(int j=0;j<features.size();j++){
+				//calculate the distance between two features
+				float xDis = fabs(features[i].pt.x - features[j].pt.x);
+				float yDis = fabs(features[i].pt.y - features[j].pt.y);
+				//if they are too close
+				if((xDis*xDis + yDis*yDis)<eps*eps){
+					// if the feature j is not include in this set
+					if(pointer.at(j) != index){
+						// add the feature j into the set of close features for feature i 
+						temp.push_back(features[j]);
+						// set the set Nr. for feature j
+						pointer.at(j) = index;
+					}
+				}
+			}
+			// add the new set to the groupFeatures
+			groupFeatures.push_back(temp);
+		// if the set Nr. for the current feature has been already set 
+		} else {
+			// get the set Nr.
+			index = pointer.at(i);
+			// get the set
+			temp = groupFeatures.at(index);
+			for(int j=0;j<features.size();j++){
+				//calculate the distance between two features
+				float xDis = fabs(features[i].pt.x - features[j].pt.x);
+				float yDis = fabs(features[i].pt.y - features[j].pt.y);
+				//if they are too close
+				//if(xDis<eps && yDis<eps){
+				if((xDis*xDis + yDis*yDis)<eps*eps){
+					// if the feature j is not include in this set
+					if(pointer.at(j) != index){
+						temp.push_back(features[j]);
+						pointer.at(j) = index;
+					}
+				}
+			}
+			// reset the set of groupFeatures 
+			groupFeatures.at(index) = temp;
+		}
+	}
+}
 void findMaxPointsSet(vector<vector<Point3f>> pointsSets, vector<Point3f> &maxSet){
 	int maxSize = 0;
 	int maxSizeIndex = 0;
@@ -473,6 +561,7 @@ void findRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R,
 	//cout<<"R*M= "<<R*tempM<<endl<<endl;
 	//cout<<"T= "<<T<<endl;
 	//cout<<T.cols<<" , "<<T.rows<<" | "<<T.channels()<<endl;
+	cout<<"The Grph Update is completeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee!"<<endl;
 }
 
 

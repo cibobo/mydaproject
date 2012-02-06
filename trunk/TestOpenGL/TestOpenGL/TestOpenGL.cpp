@@ -27,14 +27,20 @@ CRITICAL_SECTION glInitCrs;
 
 // for all OpenCV Windows
 CRITICAL_SECTION cvInitCrs;
-
+// for the frame controll, which should be completely executed before the input of a new data 
 CRITICAL_SECTION frameCrs;
+// for the calculation process. 
 CRITICAL_SECTION calcCrs;
 
-// global flag 
-bool bDone = false;
+
+
 MSG msg;
+// To mark the status of the OpenGLWindow and ObjectWindow
+bool bDone = false;
+// To mark the status of the input process
 bool isPause = false;
+// To restrict the used time of the new data
+bool isDataUsed = false;
 
 // The Context for 3D data Window
 //HWND openGLhnd;	
@@ -50,13 +56,14 @@ vector<BildData*> bildDataBuffer;
 int MAXBUFFERSIZE = 2;
 
 // framerate
-int FRAMERATE = 150;
+int FRAMERATE = 50;
 
 //int HISFRAMEINDEX = 3;
 
 DistanceFilter *dFilter;
 
 Graph *obj;
+
 
 
 
@@ -83,9 +90,9 @@ void openGLThreadPorc( void *param )
 
 	// call the display function and send the data direct with the pointer of array as parameter
 	//display(pOpenGLWinUI, disData, intData, ampData);
-	//EnterCriticalSection(&frameCrs);
+	//EnterCriticalSection(&pauseCrs);
 	display(pOpenGLWinUI, bildDataBuffer[0]);
-	//LeaveCriticalSection(&frameCrs);
+	//LeaveCriticalSection(&pauseCrs);
 
 	//parameter to mark, whether the input process is in pause
 	
@@ -99,11 +106,11 @@ void openGLThreadPorc( void *param )
 				// klick right button of mouse to stop and rerun the input of frame
 				if(isPause){
 					cout<<"frame running!"<<endl;
-					LeaveCriticalSection(&frameCrs);
+					LeaveCriticalSection(&pauseCrs);
 					isPause = false;
 				} else {
 					cout<<"frame pause!"<<endl;
-					EnterCriticalSection(&frameCrs);
+					EnterCriticalSection(&pauseCrs);
 					isPause = true;
 				}
 			} else{
@@ -116,9 +123,9 @@ void openGLThreadPorc( void *param )
 			SwapBuffers(p3DDataViewContext->hDC);
 		}
 		//display(pOpenGLWinUI, disData, intData, ampData);
-		//EnterCriticalSection(&frameCrs);
+		//EnterCriticalSection(&pauseCrs);
 		//display(pOpenGLWinUI, bildDataBuffer[0]);
-		//LeaveCriticalSection(&frameCrs);
+		//LeaveCriticalSection(&pauseCrs);
 			
 	}
 
@@ -240,6 +247,7 @@ void inputThreadProc(void *param){
 	LeaveCriticalSection (&glInitCrs);
 
 	for(int i=20;i<750;i++){
+		EnterCriticalSection(&pauseCrs);
 		EnterCriticalSection(&frameCrs);
 		//loadNormalDataFromFile("distance", i, bildData->disData);
 		//loadNormalDataFromFile("intensity", i, bildData->intData);
@@ -255,8 +263,10 @@ void inputThreadProc(void *param){
 		//updata the OpenGL Window
 		//PostMessage(openGLhnd, WM_PAINT, 0, 0);	
 		PostMessage(p3DDataViewContext->hWnd, WM_PAINT, 0, 0);	
+		isDataUsed = false;
 		//setARData(intData);
 		LeaveCriticalSection(&frameCrs);
+		LeaveCriticalSection(&pauseCrs);
 		Sleep(FRAMERATE);
 	}
 
@@ -299,6 +309,7 @@ void inputThreadProc(void *param){
 	LeaveCriticalSection (&cvInitCrs);
 
 	while(!bDone){
+		EnterCriticalSection(&pauseCrs);
 		EnterCriticalSection(&frameCrs);
 
 		//setARData(intData);
@@ -312,7 +323,9 @@ void inputThreadProc(void *param){
 			AfxMessageBox("Irgendwas ist schiefgegangen!");
 		}
 
+		isDataUsed = false;
 		LeaveCriticalSection(&frameCrs);
+		LeaveCriticalSection(&pauseCrs);
 		Sleep(FRAMERATE);
 	}
 	closePMDCon();
@@ -344,11 +357,11 @@ void objWindowThreadPorc(void *param ){
 				// klick right button of mouse to stop and rerun the input of frame
 				if(isPause){
 					cout<<"frame running!"<<endl;
-					LeaveCriticalSection(&frameCrs);
+					LeaveCriticalSection(&pauseCrs);
 					isPause = false;
 				} else {
 					cout<<"frame pause!"<<endl;
-					EnterCriticalSection(&frameCrs);
+					EnterCriticalSection(&pauseCrs);
 					isPause = true;
 				}
 			} else{
@@ -376,6 +389,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
 	int nRetCode = 0;
 	//just for the situation, that more than one threads are calling the same data at the same time
+	InitializeCriticalSection (&pauseCrs);
 	InitializeCriticalSection (&frameCrs);
 	InitializeCriticalSection (&glInitCrs);
 	InitializeCriticalSection (&cvInitCrs);
@@ -469,12 +483,19 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				if(isPause){
 					continue;
 				}
+
+				if(isDataUsed){
+					continue;
+				}
 				//call the calculate function after the init of PMD Camera
 				EnterCriticalSection (&cvInitCrs);
 				EnterCriticalSection (&calcCrs);
 
+				EnterCriticalSection(&frameCrs);
+
 				//get the current Bild Data
 				BildData *currentBildData = bildDataBuffer[0];
+				
 				
 				// create the data for a RGB image
 				unsigned char showdata[41616*3];
@@ -508,7 +529,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				unsigned char data[41616];
 
 #ifdef TEST
-				EnterCriticalSection(&frameCrs);
+				EnterCriticalSection(&pauseCrs);
 				// translate the filted data to a grayscale image 
 				transFloatToChar(filteData, data, balance, contrast);
 				img = Mat(size, CV_8UC1, data);
@@ -630,14 +651,15 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 #else
 				int safeCount = 0;
-				vector<vector<KeyPoint>> groupFeatures;
 
 				/****************************************************************
 				 *
 				 * The Loop for the Features' Detection. The result is just a between solution
 				 *
 				 ***************************************************************/
+				cout<<endl<<"================= Begin the Loop of the Brightness Controll =================="<<endl;
 				while(safeCount < MAXLOOPS){
+					
 					safeCount ++;
 					//Sleep(500);
 					// translate the filted data to a grayscale image 
@@ -679,6 +701,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					}
 					
 				} // Ende of the Loop for the Features' Detection
+				cout<<"=================================== End  ===================================="<<endl<<endl;
 				
 				/***********************************
 				 *
@@ -720,6 +743,49 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//int vectorSize = sumFeatures.size();
 
 				/**************************************************
+				 * 
+				 * Test for the greate meng of SVD
+				 *
+				 *************************************************/
+
+				Mat R = Mat(3,3,CV_32FC1);
+				Mat T = Mat(3,1,CV_32FC1);
+
+				// save all features without calibration into the data
+				currentBildData->comFeatures.clear();
+				for(int i=0;i<features.size();i++){
+					float x = features[i].pt.x;
+					float y = features[i].pt.y;
+					float z = currentBildData->threeDData[((int)x*204+(int)y)*3+2];
+					Point3f tdp = Point3f(x,y,z);
+					//tdFeatures.push_back(tdp);
+					currentBildData->comFeatures.push_back(tdp);
+				}
+
+				vector<Point3f> hisComFeatures = bildDataBuffer[bildDataBuffer.size()-1]->comFeatures;
+				vector<Point3f> oldComResult;
+				vector<Point3f> newComResult;
+
+				//cout<<"======= "<<isDataUsed<<" ======= "<<hisComFeatures.size()<<" ======= "<<currentBildData->comFeatures.size()<<endl<<endl;
+				//if(hisComFeatures.size()>0 && currentBildData->comFeatures.size()>0){
+				//	featureAssociate2(hisComFeatures, currentBildData->comFeatures, 15, oldComResult, newComResult);
+				//	
+				//	findRAndT(oldComResult, newComResult, R, T);
+				//	cout<<"The rotation matrix is: "<<R<<endl<<endl;
+				//	cout<<"The translation matrix is: "<<T<<endl<<endl;
+	
+				//	isDataUsed = true;
+				//	//cout<<"The loop Count is: "<<isDataUsed<<endl;
+
+				//	for(int i=0;i<oldComResult.size();i++){
+				//		Point2f trans(204,0);
+				//		line(testimg, point3To2(oldComResult[i]), point3To2(newComResult[i])+trans, Scalar(255,255,0,0));
+				//	}
+				//	cout<<"The number of useful features is: "<<oldComResult.size()<<endl;
+				//}
+						
+
+				/**************************************************
 				 *
 				 * A new Algorithm to make sure, that every marker will be as a just one KeyPoint recognized
 				 *
@@ -727,63 +793,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 * 2. Calculate the middel point of each set and show them
 				 *************************************************/
 				// to save the sets and the elements of set
-				//vector<vector<KeyPoint>> groupFeatures;
-				// to save the set Nr. for each feature
-				vector<int> pointer;
-				// the beginning set Nr. is -1 
-				for(int i=0;i<features.size();i++){
-					pointer.push_back(-1);
-				}
-				for(int i=0;i<features.size();i++){
-					vector<KeyPoint> temp;
-					int index;
-					// if the set Nr. for the current feature is not be set
-					if(pointer.at(i) == -1){
-						// create a new set, and add the current feature to it
-						temp.push_back(features[i]);
-						// get the set Nr.
-						index = groupFeatures.size();
-						for(int j=0;j<features.size();j++){
-							//calculate the distance between two features
-							float xDis = fabs(features[i].pt.x - features[j].pt.x);
-							float yDis = fabs(features[i].pt.y - features[j].pt.y);
-							//if they are too close
-							if((xDis*xDis + yDis*yDis)<eps*eps){
-								// if the feature j is not include in this set
-								if(pointer.at(j) != index){
-									// add the feature j into the set of close features for feature i 
-									temp.push_back(features[j]);
-									// set the set Nr. for feature j
-									pointer.at(j) = index;
-								}
-							}
-						}
-						// add the new set to the groupFeatures
-						groupFeatures.push_back(temp);
-					// if the set Nr. for the current feature has been already set 
-					} else {
-						// get the set Nr.
-						index = pointer.at(i);
-						// get the set
-						temp = groupFeatures.at(index);
-						for(int j=0;j<features.size();j++){
-							//calculate the distance between two features
-							float xDis = fabs(features[i].pt.x - features[j].pt.x);
-							float yDis = fabs(features[i].pt.y - features[j].pt.y);
-							//if they are too close
-							//if(xDis<eps && yDis<eps){
-							if((xDis*xDis + yDis*yDis)<eps*eps){
-								// if the feature j is not include in this set
-								if(pointer.at(j) != index){
-									temp.push_back(features[j]);
-									pointer.at(j) = index;
-								}
-							}
-						}
-						// reset the set of groupFeatures 
-						groupFeatures.at(index) = temp;
-					}
-				}
+				vector<vector<KeyPoint>> groupFeatures;
+				calibration2(groupFeatures, features, eps);
 				cout<<"After Summerize get "<<groupFeatures.size()<<" features!"<<endl;
 
 				// Save the features into the first place of data buffer
@@ -856,15 +867,21 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				
 				vector<Point3f> oldResult, newResult;
 				vector<Point3f> curFeatures = currentBildData->features;
-				Mat R = Mat(3,3,CV_32FC1);
-				Mat T = Mat(3,1,CV_32FC1);
-				if(hisFeatures.size()>0&&curFeatures.size()>0){
+				//Mat R = Mat(3,3,CV_32FC1);
+				//Mat T = Mat(3,1,CV_32FC1);
+
+				
+				//cout<<"======= "<<isDataUsed<<" ======= "<<hisFeatures.size()<<" ======= "<<curFeatures.size()<<endl<<endl;
+				if(hisFeatures.size()>0 && curFeatures.size()>0){
 					featureAssociate2(hisFeatures, curFeatures, 15, oldResult, newResult);
 
 					findRAndT(oldResult, newResult, R, T);
 					cout<<"The rotation matrix is: "<<R<<endl<<endl;
 					cout<<"The translation matrix is: "<<T<<endl<<endl;
-					obj->updateGraph(newResult, R, T);
+					obj->updateGraph(maxSet, R, T);
+	
+					isDataUsed = true;
+					cout<<"The loop Count is: "<<isDataUsed<<endl;
 
 					for(int i=0;i<oldResult.size();i++){
 						Point2f trans(204,0);
@@ -872,6 +889,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					}
 					cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 				}
+				
 
 				imshow("OpenCVRGBTest", testimg);
 
@@ -895,11 +913,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					case 'p':
 						if(isPause){
 							cout<<"frame running!"<<endl;
-							LeaveCriticalSection(&frameCrs);
+							LeaveCriticalSection(&pauseCrs);
 							isPause = false;
 						} else {
 							cout<<"frame pause!"<<endl;
-							EnterCriticalSection(&frameCrs);
+							EnterCriticalSection(&pauseCrs);
 							isPause = true;
 						}
 						break;
@@ -966,10 +984,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//cout<<"The maximal value of the data is "<<maxValue<<endl;
 				//cout<<"Test Parameters: "<<testP1<<"    "<<testP2<<"    "<<testP3<<endl;
 				cout<<"Test Parameters eps: "<<eps<<endl;
-				LeaveCriticalSection (&frameCrs);
+				LeaveCriticalSection (&pauseCrs);
 #endif
 				//printf("main thread running\n"); 
-				//LeaveCriticalSection (&frameCrs);
+				//LeaveCriticalSection (&pauseCrs);
+				LeaveCriticalSection(&frameCrs);
 				
 			}
 
