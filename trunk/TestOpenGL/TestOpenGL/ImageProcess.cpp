@@ -483,7 +483,7 @@ void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, f
  * Arun et al. 1987
  *
  ***************************************************************************************/
-void findRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T){
+void SVDFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T){
 	// get the number of the points. The size of the oldFeatures must be the same as the size of the newFeatures
 	int N = oldFeatures.size();
 
@@ -561,7 +561,140 @@ void findRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R,
 	//cout<<"R*M= "<<R*tempM<<endl<<endl;
 	//cout<<"T= "<<T<<endl;
 	//cout<<T.cols<<" , "<<T.rows<<" | "<<T.channels()<<endl;
-	cout<<"The Grph Update is completeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee!"<<endl;
+}
+
+
+/****************************************************************************************
+ *
+ * Using unit quaternions to calculate the absolute orientation
+ * Bertgikd K.P.Horn 1987
+ *
+ ***************************************************************************************/
+void UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T){
+	// create two matrices with 3 chanles to save the points
+	// D = RM + T * V
+	Mat M = Mat(oldFeatures, true);
+	Mat D = Mat(newFeatures, true);
+
+	//cout<<"M is: "<<M<<endl;
+	//cout<<"D is: "<<D<<endl;
+	//cout<<"The rows of M is: "<<M.rows<<endl;
+	//cout<<"The chanle of M is: "<<M.channels()<<endl;
+	
+	// calculate the average value of the points
+	Scalar avrM = mean(M);
+	Scalar avrD = mean(D);
+
+	Mat mc = M-avrM;
+	Mat dc = D-avrD;
+
+	//cout<<"Mc is: "<<mc<<endl;
+	//cout<<"Dc is: "<<dc<<endl;
+	//cout<<"The colomuns of MC is: "<<mc.cols<<endl;
+	
+	// change the channel of the Matrix from 3 to 1
+	// the result must be reset for mc and dc. The sample programm in webseit is wrong
+	mc = mc.reshape(1);
+	dc = dc.reshape(1);
+
+	//cout<<"reshaped Mc is: "<<mc<<endl;
+	//cout<<"The reshaped colomuns of MC is: "<<mc.cols<<endl;
+
+	// calculate S
+	Mat S = Mat::zeros(3,3,CV_32FC1);
+	//cout<<"S= "<<S<<endl;
+
+	for(int i=0;i<mc.rows;i++){
+		Mat mci = mc(Range(i,i+1),Range(0,3));
+		Mat dci = dc(Range(i,i+1),Range(0,3));
+		S = S + mci.t() * dci;
+	}
+
+	// N is a symmetric matrix
+	Mat N = Mat(4,4,CV_32FC1);
+	
+	// diagonal elements
+	N.at<float>(0,0) = S.at<float>(0,0) + S.at<float>(1,1) + S.at<float>(2,2);
+	N.at<float>(1,1) = S.at<float>(0,0) - S.at<float>(1,1) - S.at<float>(2,2);
+	N.at<float>(2,2) =-S.at<float>(0,0) + S.at<float>(1,1) - S.at<float>(2,2);
+	N.at<float>(3,3) =-S.at<float>(0,0) - S.at<float>(1,1) + S.at<float>(2,2);
+
+	// the rest element at first row
+	N.at<float>(0,1) = N.at<float>(1,0) = S.at<float>(1,2) - S.at<float>(2,1);
+	N.at<float>(0,2) = N.at<float>(2,0) = S.at<float>(2,0) - S.at<float>(0,2);
+	N.at<float>(0,3) = N.at<float>(3,0) = S.at<float>(0,1) - S.at<float>(1,0);
+
+	// the rest element at second row
+	N.at<float>(1,2) = N.at<float>(2,1) = S.at<float>(0,1) + S.at<float>(1,0);
+	N.at<float>(1,3) = N.at<float>(3,1) = S.at<float>(2,0) + S.at<float>(0,2);
+
+	// the rest element at third row
+	N.at<float>(2,3) = N.at<float>(3,2) = S.at<float>(1,2) + S.at<float>(2,1);
+
+	//cout<<"The matrix N is: "<<N<<endl;
+
+	// calculate the eigenvalue and eigenvector
+	Mat E = Mat(4,1,CV_32FC1);
+	Mat V = Mat(4,4,CV_32FC1);
+	eigen(N,E,V);
+
+	//cout<<"The eigenvalues are: "<<E<<endl;
+	//cout<<"The eigenvectors are: "<<V<<endl;
+
+	float maxE = 0;
+	int maxIndex = -1;
+	for(int i=0;i<4;i++){
+		if(E.at<float>(i,0) > maxE){
+			maxE = E.at<float>(i,0);
+			maxIndex = i;
+		}
+	}
+
+	// the unit quaternion
+	Mat q;
+	// if a positive eigenvalue has been found
+	if(maxIndex>=0){
+		q = V(Range(maxIndex, maxIndex+1),Range(0,4));
+		//cout<<"max eigenvalue is: "<<maxE<<endl;
+		//cout<<"q is: "<<q<<endl;
+		cout<<"Rotated: "<<acos(q.at<float>(0,0))*2*180/3.14<<endl;
+	} else {
+		cout<<"There are no positive eigenvalue!"<<endl;
+	}
+
+	//Mat I = Mat::eye(4,4,CV_32FC1);
+	//cout<<"Test eigenvector:"<<(N-I*maxE)*q.t()<<endl;
+
+	// umform to a rotation matrix
+	R.at<float>(0,0) = q.at<float>(0,0)*q.at<float>(0,0) + q.at<float>(0,1)*q.at<float>(0,1) - q.at<float>(0,2)*q.at<float>(0,2) - q.at<float>(0,3)*q.at<float>(0,3);
+	R.at<float>(0,1) = 2*(q.at<float>(0,1)*q.at<float>(0,2) - q.at<float>(0,0)*q.at<float>(0,3));
+	R.at<float>(0,2) = 2*(q.at<float>(0,1)*q.at<float>(0,3) + q.at<float>(0,0)*q.at<float>(0,2));
+
+	R.at<float>(1,0) = 2*(q.at<float>(0,2)*q.at<float>(0,1) + q.at<float>(0,0)*q.at<float>(0,3));
+	R.at<float>(1,1) = q.at<float>(0,0)*q.at<float>(0,0) - q.at<float>(0,1)*q.at<float>(0,1) + q.at<float>(0,2)*q.at<float>(0,2) - q.at<float>(0,3)*q.at<float>(0,3);
+	R.at<float>(1,2) = 2*(q.at<float>(0,2)*q.at<float>(0,3) - q.at<float>(0,0)*q.at<float>(0,1));
+
+	R.at<float>(2,0) = 2*(q.at<float>(0,3)*q.at<float>(0,1) - q.at<float>(0,0)*q.at<float>(0,2));
+	R.at<float>(2,1) = 2*(q.at<float>(0,3)*q.at<float>(0,2) + q.at<float>(0,0)*q.at<float>(0,1));
+	R.at<float>(2,2) = q.at<float>(0,0)*q.at<float>(0,0) - q.at<float>(0,1)*q.at<float>(0,1) - q.at<float>(0,2)*q.at<float>(0,2) + q.at<float>(0,3)*q.at<float>(0,3);
+	
+	//cout<<"R = "<<R<<endl<<endl;
+	//cout<<R.cols<<" , "<<R.rows<<" | "<<R.channels()<<" , "<<R.type()<<endl;
+	
+	Mat tempM = Mat(avrM).rowRange(0,3);
+	Mat tempD = Mat(avrD).rowRange(0,3);
+
+	// The type of avrM and avrD is CV_64FC1, so here need to call convertTo to change the type of the matrix
+	tempM.convertTo(tempM, CV_32FC1);
+	tempD.convertTo(tempD, CV_32FC1);
+
+	//cout<<tempM<<endl;
+	//cout<<tempM.cols<<" , "<<tempM.rows<<" | "<<tempM.channels()<<" , "<<tempM.type()<<endl;
+
+	T = tempD - R * tempM;
+	//cout<<"R*M= "<<R*tempM<<endl<<endl;
+	//cout<<"T= "<<T<<endl;
+	//cout<<T.cols<<" , "<<T.rows<<" | "<<T.channels()<<endl;
 }
 
 
