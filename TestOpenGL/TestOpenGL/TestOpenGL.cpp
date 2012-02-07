@@ -770,7 +770,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//if(hisComFeatures.size()>0 && currentBildData->comFeatures.size()>0){
 				//	featureAssociate2(hisComFeatures, currentBildData->comFeatures, 15, oldComResult, newComResult);
 				//	
-				//	findRAndT(oldComResult, newComResult, R, T);
+				//	//SVDFindRAndT(oldComResult, newComResult, R, T);
+				//	UQFindRAndT(oldComResult, newComResult, R, T);
 				//	cout<<"The rotation matrix is: "<<R<<endl<<endl;
 				//	cout<<"The translation matrix is: "<<T<<endl<<endl;
 	
@@ -871,11 +872,12 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//Mat T = Mat(3,1,CV_32FC1);
 
 				
-				//cout<<"======= "<<isDataUsed<<" ======= "<<hisFeatures.size()<<" ======= "<<curFeatures.size()<<endl<<endl;
+				cout<<"======= "<<isDataUsed<<" ======= "<<hisFeatures.size()<<" ======= "<<curFeatures.size()<<endl<<endl;
 				if(hisFeatures.size()>0 && curFeatures.size()>0){
 					featureAssociate2(hisFeatures, curFeatures, 15, oldResult, newResult);
 
-					findRAndT(oldResult, newResult, R, T);
+					//SVDFindRAndT(oldResult, newResult, R, T);
+					UQFindRAndT(oldResult, newResult, R, T);
 					cout<<"The rotation matrix is: "<<R<<endl<<endl;
 					cout<<"The translation matrix is: "<<T<<endl<<endl;
 					obj->updateGraph(maxSet, R, T);
