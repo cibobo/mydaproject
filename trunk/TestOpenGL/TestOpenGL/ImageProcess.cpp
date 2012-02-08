@@ -63,8 +63,8 @@ Point2f point3To2(Point3f point){
 //#define BRIGHT_TEST
 
 bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsigned char *data){
-	int MINFEATURECOUNT = 12;
-	int MAXFEATURECOUNT = 31;
+	int MINFEATURECOUNT = 22;
+	int MAXFEATURECOUNT = 45;
 
 	float MINSTANDARDENERGY = 300000.0;
 	float MAXSTANDARDENERGY = 450000.0;
@@ -570,7 +570,7 @@ void SVDFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
  * Bertgikd K.P.Horn 1987
  *
  ***************************************************************************************/
-void UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T){
+float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T){
 	// create two matrices with 3 chanles to save the points
 	// D = RM + T * V
 	Mat M = Mat(oldFeatures, true);
@@ -695,6 +695,7 @@ void UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &
 	//cout<<"R*M= "<<R*tempM<<endl<<endl;
 	//cout<<"T= "<<T<<endl;
 	//cout<<T.cols<<" , "<<T.rows<<" | "<<T.channels()<<endl;
+	return acos(q.at<float>(0,0))*2*180/3.14;
 }
 
 
