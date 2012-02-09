@@ -6,8 +6,8 @@
 
 
 #define OFFLINE
-#define SVDTRACK
-//#define UQTRACK
+//#define SVDTRACK
+#define UQTRACK
 
 
 //#define TEST
@@ -45,6 +45,8 @@ bool isPause = false;
 // To restrict the used time of the new data
 bool isDataUsed = false;
 
+int jumpedFeatures = 0;
+
 // The Context for 3D data Window
 //HWND openGLhnd;	
 OpenGLContext *p3DDataViewContext;
@@ -53,12 +55,16 @@ OpenGLContext *p3DDataViewContext;
 OpenGLContext *pObjViewContext;
 
 
-// The Buffer for BildDatas, which is saving the newest BildData at first place and the oldest at the last place.
-// The maximal length of the Buffer is defined with MAXBUFFERSIZE
-vector<BildData*> bildDataBuffer;
-int MAXBUFFERSIZE = 5;
+// The Buffer for BildDatas, which is saving the newest BildData at last place and the oldest at the first place.
+list<BildData*> bildDataBuffer;
+// The difference between the index of the current frame and historical frame
+int DETECTINGRATE = 2;
 // The iterator fo the buffer, which define the position der historical data in used
 int bufferIterator = 1;
+
+
+int currentFrameIndex = 0;
+int oldFrameIndex = 1;
 
 // framerate
 int FRAMERATE = 100;
@@ -96,7 +102,8 @@ void openGLThreadPorc( void *param )
 	// call the display function and send the data direct with the pointer of array as parameter
 	//display(pOpenGLWinUI, disData, intData, ampData);
 	//EnterCriticalSection(&pauseCrs);
-	display(pOpenGLWinUI, bildDataBuffer[0]);
+	//display(pOpenGLWinUI, bildDataBuffer[0]);
+	display(pOpenGLWinUI, bildDataBuffer.back());
 	//LeaveCriticalSection(&pauseCrs);
 
 	//parameter to mark, whether the input process is in pause
@@ -124,7 +131,8 @@ void openGLThreadPorc( void *param )
 				//display(pOpenGLWinUI, disData, intData, ampData);
 			}
 		} else {
-			display(pOpenGLWinUI, bildDataBuffer[0]);
+			//display(pOpenGLWinUI, bildDataBuffer[0]);
+			display(pOpenGLWinUI, bildDataBuffer.back());
 			SwapBuffers(p3DDataViewContext->hDC);
 		}
 		//display(pOpenGLWinUI, disData, intData, ampData);
@@ -239,10 +247,12 @@ void inputThreadProc(void *param){
 		//loadNormalDataFromFile("distance", i, bildData->disData);
 		BildData *temp = new BildData();
 		loadAllDataFromFile(i, temp);
-		if(bildDataBuffer.size()>=MAXBUFFERSIZE){
-			bildDataBuffer.pop_back();
+		if(bildDataBuffer.size()>=DETECTINGRATE){
+			//delete the first element from the list
+			bildDataBuffer.pop_front();
 		}
-		bildDataBuffer.insert(bildDataBuffer.begin(), temp);
+		//add the new element into the end of the List
+		bildDataBuffer.push_back(temp);
 
 		dFilter->Upgrade(temp->disData);
 	}
@@ -261,15 +271,24 @@ void inputThreadProc(void *param){
 		BildData *temp = new BildData();
 		loadAllDataFromFile(i, temp);
 
-		// Pop the last element of the Buffer, and the destructor will be called automatically 
-		bildDataBuffer.pop_back();
-		bildDataBuffer.insert(bildDataBuffer.begin(), temp);
+		// Pop the first element of the Buffer, and the destructor will be called automatically 
+		//if(bildDataBuffer.size()>=DETECTINGRATE){
+		//	//delete the first element from the list
+		//	bildDataBuffer.pop_front();
+		//}
+
+		// if sepcial process begin, the old data would be removed
+		if(jumpedFeatures<1){
+			bildDataBuffer.pop_front();
+		}
+		bildDataBuffer.push_back(temp);
 
 		//updata the OpenGL Window
 		//PostMessage(openGLhnd, WM_PAINT, 0, 0);	
 		PostMessage(p3DDataViewContext->hWnd, WM_PAINT, 0, 0);	
 		isDataUsed = false;
 		//setARData(intData);
+		cout<<"Input running!"<<endl;
 		LeaveCriticalSection(&frameCrs);
 		LeaveCriticalSection(&pauseCrs);
 		Sleep(FRAMERATE);
@@ -301,10 +320,10 @@ void inputThreadProc(void *param){
 	for(int i=0;i<20;i++){
 		BildData *temp = new BildData();
 		getPMDData(temp);
-		if(bildDataBuffer.size()>=MAXBUFFERSIZE){
-			bildDataBuffer.pop_back();
+		if(bildDataBuffer.size()>=DETECTINGRATE){
+			bildDataBuffer.pop_front();
 		}
-		bildDataBuffer.insert(bildDataBuffer.begin(), temp);
+		bildDataBuffer.push_back(temp);
 
 		dFilter->Upgrade(temp->disData);
 	}
@@ -322,8 +341,9 @@ void inputThreadProc(void *param){
 			BildData *temp = new BildData();
 			getPMDData(temp);
 
-			bildDataBuffer.pop_back();
-			bildDataBuffer.insert(bildDataBuffer.begin(), temp);
+			bildDataBuffer.pop_front();
+			bildDataBuffer.push_back(temp);
+
 		} catch (CMemoryException * e){
 			AfxMessageBox("Irgendwas ist schiefgegangen!");
 		}
@@ -482,6 +502,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			unsigned char hisShowdata[41616*3];
 
 			obj = new Graph();
+
+			float memAngle = 360;
+			Mat memR, memT;
+			vector<Point3f> memNewResult;
+			int memIndex = 0;
 			
 			while (!bDone) 
 			{ 	
@@ -499,16 +524,21 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				EnterCriticalSection(&frameCrs);
 
 				//get the current Bild Data
-				BildData *currentBildData = bildDataBuffer[0];
+				//BildData *currentBildData = bildDataBuffer[0];
+				//get the current Bild Data, which is saved at the last position of the List
+				BildData *currentBildData = bildDataBuffer.back();
 				
 				
 				// create the data for a RGB image
 				unsigned char showdata[41616*3];
 				
 
-				transFloatTo3Char(currentBildData->ampData, showdata, balance, contrast);
+				//transFloatTo3Char(currentBildData->ampData, showdata, balance, contrast);
 				//transFloatTo3Char(bildDataBuffer[bildDataBuffer.size()-1]->ampData, hisShowdata, balance, contrast);
-				transFloatTo3Char(bildDataBuffer[bufferIterator]->ampData, hisShowdata, balance, contrast);
+				//transFloatTo3Char(bildDataBuffer[bufferIterator]->ampData, hisShowdata, balance, contrast);
+
+				transFloatTo3Char(currentBildData->ampData, showdata, balance, contrast);
+				transFloatTo3Char(bildDataBuffer.front()->ampData, hisShowdata, balance, contrast);
 
 				// set the data to the RGB image
 				featuresImg = Mat(size, CV_8UC3, showdata);
@@ -768,7 +798,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					currentBildData->comFeatures.push_back(tdp);
 				}
 
-				vector<Point3f> hisComFeatures = bildDataBuffer[bildDataBuffer.size()-1]->comFeatures;
+				//vector<Point3f> hisComFeatures = bildDataBuffer[bildDataBuffer.size()-1]->comFeatures;
+				vector<Point3f> hisComFeatures = bildDataBuffer.front()->comFeatures;
 				vector<Point3f> oldComResult;
 				vector<Point3f> newComResult;
 
@@ -833,128 +864,169 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					//line(testimg, p, p+trans, Scalar(255, 255, 0, 0));
 				}
 
+
+				//The loop of the historical data, in oder to remove the "bad" frames
+				//cout<<"==================== Begin the loop of historical data ==========================="<<endl;
+
 				//save the detected features into the vector of historical features
 				//vector<Point3f> hisFeatures = bildDataBuffer[bildDataBuffer.size()-1]->features;
+				vector<Point3f> hisFeatures = bildDataBuffer.front()->features;
 
-#ifdef UQTRACK
-				//The loop of the historical data, in oder to remove the "bad" frames
-				cout<<"==================== Begin the loop of historical data ==========================="<<endl;
-				while(bufferIterator<MAXBUFFERSIZE){
-					
-					cout<<"The buffer iterator is: "<<bufferIterator<<endl;
-#endif
-					vector<Point3f> hisFeatures = bildDataBuffer[bufferIterator]->features;	
 
-					// set the new historical fram into the left OpenCV window 
-					transFloatTo3Char(bildDataBuffer[bufferIterator]->ampData, hisShowdata, balance, contrast);
-					Mat hisImg2 = Mat(size, CV_8UC3, hisShowdata);
-					hisImg2.copyTo(left);
-					for(int i=0;i<hisFeatures.size();i++){
-						// show the old features
-						circle(left, point3To2(hisFeatures[i]), 2, Scalar(0,255,0,0), -1);
+
+
+
+				// set the new historical fram into the left OpenCV window 
+				//transFloatTo3Char(bildDataBuffer[bufferIterator]->ampData, hisShowdata, balance, contrast);
+				//Mat hisImg2 = Mat(size, CV_8UC3, hisShowdata);
+				//hisImg2.copyTo(left);
+
+				for(int i=0;i<hisFeatures.size();i++){
+					// show the old features
+					circle(left, point3To2(hisFeatures[i]), 2, Scalar(0,255,0,0), -1);
+				}
+
+				// feature Tracking with Singular Value Decomposition
+				//vector<int> oldResult, newResult;
+				//vector<Point2f> curFeatures = currentBildData->features;
+				//if(hisFeatures.size()>0&&curFeatures.size()>0){
+				//	featureAssociate(hisFeatures, curFeatures, 15, oldResult, newResult);
+				//	for(int i=0;i<oldResult.size();i++){
+				//		Point2f trans(204,0);
+				//		line(testimg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
+				//	}
+				//	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
+				//}
+
+				// call calibration
+				vector<vector<Point3f>> caliResult;
+				calibration(caliResult, currentBildData->features, 18);
+				//calibration(caliResult, newResult, 18);
+
+				Mat graphImg = Mat(size, CV_8UC3, showdata);
+				for(int k=0;k<caliResult.size();k++){
+					int firstSize = caliResult[k].size();
+					for(int i=0;i<firstSize;i++){
+						for(int j=0;j<firstSize;j++){
+							line(graphImg, point3To2(caliResult[k][i]), point3To2(caliResult[k][j]), Scalar(0, 255, 255, 0));
+						}
 					}
-			
-#ifdef UQTRACK
-					bufferIterator ++;
-#endif
-					// feature Tracking with Singular Value Decomposition
-					//vector<int> oldResult, newResult;
-					//vector<Point2f> curFeatures = currentBildData->features;
-					//if(hisFeatures.size()>0&&curFeatures.size()>0){
-					//	featureAssociate(hisFeatures, curFeatures, 15, oldResult, newResult);
-					//	for(int i=0;i<oldResult.size();i++){
-					//		Point2f trans(204,0);
-					//		line(testimg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
-					//	}
-					//	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
+				}
+				imshow("OpenCVRGBGraph", graphImg);
+
+				vector<Point3f> maxSet;
+				findMaxPointsSet(caliResult, maxSet);
+				
+				vector<Point3f> oldResult, newResult;
+				vector<Point3f> curFeatures = currentBildData->features;
+				//Mat R = Mat(3,3,CV_32FC1);
+				//Mat T = Mat(3,1,CV_32FC1);
+
+					
+				cout<<"======= "<<isDataUsed<<" ======= "<<hisFeatures.size()<<" ======= "<<curFeatures.size()<<endl<<endl;
+				if(hisFeatures.size()>0 && curFeatures.size()>0){
+					featureAssociate2(hisFeatures, curFeatures, 15, oldResult, newResult);
+
+					// The first Limination
+					// consider the size of the coorespondence points
+					//if(oldResult.size()<5){
+					//	cout<<"The number of coorespondence points is too small! loop continue"<<endl;
+					//	continue;
 					//}
 
-					// call calibration
-					vector<vector<Point3f>> caliResult;
-					calibration(caliResult, currentBildData->features, 18);
-					//calibration(caliResult, newResult, 18);
-
-					Mat graphImg = Mat(size, CV_8UC3, showdata);
-					for(int k=0;k<caliResult.size();k++){
-						int firstSize = caliResult[k].size();
-						for(int i=0;i<firstSize;i++){
-							for(int j=0;j<firstSize;j++){
-								line(graphImg, point3To2(caliResult[k][i]), point3To2(caliResult[k][j]), Scalar(0, 255, 255, 0));
-							}
-						}
+					for(int i=0;i<oldResult.size();i++){
+						Point2f trans(204,0);
+						line(testimg, point3To2(oldResult[i]), point3To2(newResult[i])+trans, Scalar(255,255,0,0));
 					}
-					imshow("OpenCVRGBGraph", graphImg);
-
-					vector<Point3f> maxSet;
-					findMaxPointsSet(caliResult, maxSet);
-					
-					vector<Point3f> oldResult, newResult;
-					vector<Point3f> curFeatures = currentBildData->features;
-					//Mat R = Mat(3,3,CV_32FC1);
-					//Mat T = Mat(3,1,CV_32FC1);
-
-					
-					cout<<"======= "<<isDataUsed<<" ======= "<<hisFeatures.size()<<" ======= "<<curFeatures.size()<<endl<<endl;
-					if(hisFeatures.size()>0 && curFeatures.size()>0){
-						featureAssociate2(hisFeatures, curFeatures, 15, oldResult, newResult);
-
-						// The first Limination
-						// consider the size of the coorespondence points
-						//if(oldResult.size()<5){
-						//	cout<<"The number of coorespondence points is too small! loop continue"<<endl;
-						//	continue;
-						//}
-
-						for(int i=0;i<oldResult.size();i++){
-							Point2f trans(204,0);
-							line(testimg, point3To2(oldResult[i]), point3To2(newResult[i])+trans, Scalar(255,255,0,0));
-						}
-						cout<<"The number of useful features is: "<<oldResult.size()<<endl;
+					cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 #ifdef SVDTRACK
-						SVDFindRAndT(oldResult, newResult, R, T);
-						cout<<"The rotation matrix is: "<<R<<endl<<endl;
-						cout<<"The translation matrix is: "<<T<<endl<<endl;
-						obj->updateGraph(newResult, R, T);
-						isDataUsed = true;
-						cout<<"The loop Count is: "<<isDataUsed<<endl;
-					}
-					imshow("OpenCVRGBTest", testimg);					
+					SVDFindRAndT(oldResult, newResult, R, T);
+					cout<<"The rotation matrix is: "<<R<<endl<<endl;
+					cout<<"The translation matrix is: "<<T<<endl<<endl;
+					obj->updateGraph(newResult, R, T);
+					isDataUsed = true;
+					cout<<"The loop Count is: "<<isDataUsed<<endl;
+				}
+				imshow("OpenCVRGBTest", testimg);					
 #endif
 
 						
 #ifdef UQTRACK		
-						// get the rotated angle
-						float angle = UQFindRAndT(oldResult, newResult, R, T);
-						cout<<"The rotation matrix is: "<<R<<endl<<endl;
-						cout<<"The translation matrix is: "<<T<<endl<<endl;
+					// get the rotated angle
+					float angle = UQFindRAndT(oldResult, newResult, R, T);
+					cout<<"The rotation matrix is: "<<R<<endl<<endl;
+					cout<<"The translation matrix is: "<<T<<endl<<endl;
 
-						
-						// The second Limination
-						// consider the angle of rotation 
-						if(angle < 3){
-							cout<<"The roateted angle: "<<angle<<" is small than 5"<<endl;
-							
-							obj->updateGraph(newResult, R, T);
-		
-							isDataUsed = true;
-							cout<<"The loop Count is: "<<isDataUsed<<endl;
+					
+					// The second Limination
+					// consider the angle of rotation 
+					if(angle < 3){
+						cout<<"The roateted angle: "<<angle<<" is small than 3"<<endl;
 
-							imshow("OpenCVRGBTest", testimg);
-							break;
+						obj->updateGraph(newResult, R, T);
+
+						if(jumpedFeatures > 0){
+							jumpedFeatures = 0;
+							memAngle = 360;
+							memIndex = 0;
+
+							// delete the rest data
+							while(bildDataBuffer.size() > DETECTINGRATE){
+								bildDataBuffer.pop_front();
+							}
+						}
+					} else {
+						cout<<"The angle is too big: "<<angle<<". loop contunied!"<<endl;
+						cout<<"======================= Calling the special process ===================="<<endl;
+
+						if(jumpedFeatures > 1){
+							// update with the best R and T, which cooresponding to the smallest rotated angle
+							obj->updateGraph(memNewResult, memR, memT);	
+
+							// remove the data, which at the front of the selected frame
+							for(int i=0;i<memIndex-1;i++){
+								bildDataBuffer.erase(bildDataBuffer.begin()+(DETECTINGRATE-1)+i);
+							}
+
+							// remove the data, which behind the selected frame
+							for(int i=memIndex;i<jumpedFeatures;i++){
+								bildDataBuffer.pop_back();
+							}
+
+							cout<<"The current sizt of BildDataBuffer is: "<<bildDataBuffer.size()<<endl;
+
+							jumpedFeatures = 0;
+							memAngle = 360;
+							memIndex = 0;
 						} else {
-							cout<<"The angle is too big: "<<angle<<". loop contunied!"<<endl;
+							// delete the last updated frame
+							//bildDataBuffer.pop_back();
+							//cout<<"The current sizt of BildDataBuffer is: "<<bildDataBuffer.size()<<endl;
+
+							jumpedFeatures++;
+
+							if(angle<memAngle){
+								memAngle = angle;
+								memR = R;
+								memT = T;
+								memNewResult = newResult;
+								memIndex = jumpedFeatures;
+							}
 						}
 					}
-					imshow("OpenCVRGBTest", testimg);
-			
+					cout<<"The Jumped features: "<<jumpedFeatures<<endl;
+
+					//obj->updateGraph(newResult, R, T);
 				}
-				cout<<"==================== End the loop of historical data ==========================="<<endl;
-				bufferIterator = 1;
+				imshow("OpenCVRGBTest", testimg);
+			
+
+				//cout<<"==================== End the loop of historical data ==========================="<<endl;
 #endif	
-
-				//obj->updateGraph(maxSet);
 				
-
+				isDataUsed = true;
+				//cout<<"The loop Count is: "<<isDataUsed<<endl;
+				
 				LeaveCriticalSection (&calcCrs);
 				//obj->createCompleteGraph(maxSet);
 
@@ -1045,8 +1117,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 #endif
 				//printf("main thread running\n"); 
 				//LeaveCriticalSection (&pauseCrs);
-				LeaveCriticalSection(&frameCrs);
-				
+				LeaveCriticalSection(&frameCrs);				
 			}
 
 

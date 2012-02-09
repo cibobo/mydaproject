@@ -690,6 +690,8 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 
 	//cout<<tempM<<endl;
 	//cout<<tempM.cols<<" , "<<tempM.rows<<" | "<<tempM.channels()<<" , "<<tempM.type()<<endl;
+	cout<<"The Centeriol for M is: "<<tempM<<endl;
+	cout<<"The Centeriol for D is: "<<tempD<<endl;
 
 	T = tempD - R * tempM;
 	//cout<<"R*M= "<<R*tempM<<endl<<endl;
