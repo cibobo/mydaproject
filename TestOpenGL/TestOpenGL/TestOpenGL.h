@@ -18,5 +18,6 @@
 
 
 #include <cv.h>
+#include <list>
 #include <highgui.h>
 
