@@ -59,6 +59,8 @@ OpenGLContext *pObjViewContext;
 list<BildData*> bildDataBuffer;
 // The difference between the index of the current frame and historical frame
 int DETECTINGRATE = 2;
+
+int MAXJUMPEDFEATURES = 1;
 // The iterator fo the buffer, which define the position der historical data in used
 int bufferIterator = 1;
 
@@ -67,7 +69,7 @@ int currentFrameIndex = 0;
 int oldFrameIndex = 1;
 
 // framerate
-int FRAMERATE = 100;
+int FRAMERATE = 50;
 
 //int HISFRAMEINDEX = 3;
 
@@ -965,56 +967,62 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 						obj->updateGraph(newResult, R, T);
 
+						// if there is minimal 1 feature jumped, remove the unused frame
 						if(jumpedFeatures > 0){
+
+							list<BildData*>::iterator it = bildDataBuffer.end();
+							// remove all frame, which are in front of the current frame
+							it--;	
+							for(int i=jumpedFeatures-1;i>=0;i--){
+								it--;
+								it = bildDataBuffer.erase(it);
+							}
+
+							cout<<"Get a good feature, the selected feature is: "<<memIndex<<endl;
+
 							jumpedFeatures = 0;
 							memAngle = 360;
 							memIndex = 0;
-
-							// delete the rest data
-							while(bildDataBuffer.size() > DETECTINGRATE){
-								bildDataBuffer.pop_front();
-							}
 						}
 					} else {
 						cout<<"The angle is too big: "<<angle<<". loop contunied!"<<endl;
 						cout<<"======================= Calling the special process ===================="<<endl;
 
-						if(jumpedFeatures > 1){
+						if(angle<memAngle){
+							memAngle = angle;
+							memR = R;
+							memT = T;
+							memNewResult = newResult;
+							memIndex = jumpedFeatures;
+						}
+
+						cout<<"The Jumped features: "<<jumpedFeatures<<endl;
+
+						if(jumpedFeatures >= MAXJUMPEDFEATURES){
 							// update with the best R and T, which cooresponding to the smallest rotated angle
 							obj->updateGraph(memNewResult, memR, memT);	
 
-							// remove the data, which at the front of the selected frame
-							for(int i=0;i<memIndex-1;i++){
-								bildDataBuffer.erase(bildDataBuffer.begin()+(DETECTINGRATE-1)+i);
+							// remove all data, which around the selected feature
+							list<BildData*>::iterator it = bildDataBuffer.end();
+							for(int i=MAXJUMPEDFEATURES;i>=0;i--){
+								it--;
+								// if the data is not for the selected frame, remove it
+								if(i!=memIndex){
+									it = bildDataBuffer.erase(it);
+								}
 							}
 
-							// remove the data, which behind the selected frame
-							for(int i=memIndex;i<jumpedFeatures;i++){
-								bildDataBuffer.pop_back();
-							}
+							//cout<<"The current sizt of BildDataBuffer is: "<<bildDataBuffer.size()<<endl;
+							cout<<"The max jumped feature arrived, the selected feature is: "<<memIndex<<endl;
 
-							cout<<"The current sizt of BildDataBuffer is: "<<bildDataBuffer.size()<<endl;
-
-							jumpedFeatures = 0;
+							jumpedFeatures = -1;
 							memAngle = 360;
 							memIndex = 0;
-						} else {
-							// delete the last updated frame
-							//bildDataBuffer.pop_back();
-							//cout<<"The current sizt of BildDataBuffer is: "<<bildDataBuffer.size()<<endl;
+						} 
 
-							jumpedFeatures++;
-
-							if(angle<memAngle){
-								memAngle = angle;
-								memR = R;
-								memT = T;
-								memNewResult = newResult;
-								memIndex = jumpedFeatures;
-							}
-						}
+						jumpedFeatures++;
 					}
-					cout<<"The Jumped features: "<<jumpedFeatures<<endl;
+					
 
 					//obj->updateGraph(newResult, R, T);
 				}

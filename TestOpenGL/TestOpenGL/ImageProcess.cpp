@@ -55,6 +55,39 @@ Point2f point3To2(Point3f point){
 	return newPoint;
 }
 
+//KalmanFilter kFilter(3,3,0);
+//
+//void initKalmanFilter(){
+//	kFilter.statePre.at<float>(0) = 0;
+//	kFilter.statePre.at<float>(1) = 0;
+//	kFilter.statePre.at<float>(2) = 0;
+//
+//	setIdentity(kFilter.measurementMatrix);
+//	setIdentity(kFilter.transitionMatrix);
+//
+//	setIdentity(kFilter.processNoiseCov, Scalar::all(1e-4));
+//	setIdentity(kFilter.measurementNoiseCov, Scalar::all(1e-1));
+//	setIdentity(kFilter.errorCovPost, Scalar::all(0.1));
+//}
+
+
+void featureKalmanFilter(Mat post, Mat measure, Mat &estimate){
+	KalmanFilter kFilter(3,3,0);
+
+	//kFilter.statePost = Mat(post);
+	post.copyTo(kFilter.statePost);
+
+	setIdentity(kFilter.measurementMatrix);
+	setIdentity(kFilter.transitionMatrix);
+
+	setIdentity(kFilter.processNoiseCov, Scalar::all(0.1));
+	setIdentity(kFilter.measurementNoiseCov, Scalar::all(1e-3));
+	setIdentity(kFilter.errorCovPost, Scalar::all(0.1));
+
+	Mat prediction = kFilter.predict();
+	estimate = kFilter.correct(measure);
+}
+
 /*********************************
  * 
  * The algorithm for the Brightness and RESPONSETHRESHOLD
@@ -411,6 +444,7 @@ void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, f
 	for(int i=0;i<rowSize;i++){
 		for(int j=0;j<colSize;j++){
 			float rSquare = (oldFeature[i].x-newFeature[j].x)*(oldFeature[i].x-newFeature[j].x) +
+							//(oldFeature[i].z-newFeature[j].z)*(oldFeature[i].z-newFeature[j].z) +
 						    (oldFeature[i].y-newFeature[j].y)*(oldFeature[i].y-newFeature[j].y);	
 			tempG.at<float>(i,j) = exp(-rSquare/(2*sigma*sigma));
 		}
@@ -693,7 +727,13 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 	cout<<"The Centeriol for M is: "<<tempM<<endl;
 	cout<<"The Centeriol for D is: "<<tempD<<endl;
 
-	T = tempD - R * tempM;
+	//kalman filter
+	Mat kTempD = Mat(3,1,CV_32FC1);
+	featureKalmanFilter(tempM, tempD, kTempD);
+
+	cout<<"The Centeriol for D after Kalman Filter is: "<<kTempD<<endl;
+
+	T = kTempD - R * tempM;
 	//cout<<"R*M= "<<R*tempM<<endl<<endl;
 	//cout<<"T= "<<T<<endl;
 	//cout<<T.cols<<" , "<<T.rows<<" | "<<T.channels()<<endl;
@@ -703,6 +743,33 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 
 /****************************************************************************************
  *
- * The ICP Algorithm
+ * Kalman Fileter
+ * Reference: http://www.morethantechnical.com/2011/06/17/simple-kalman-filter-for-tracking-using-opencv-2-2-w-code/
  *
  ***************************************************************************************/
+//void featuresKalmanFilter(vector<Point3f> measure, vector<Point3f> &estimate){
+//	// just focus the positions but not the velocity 
+//	KalmanFilter kFilter(3,3,0);
+//	
+//	for(int i=0;i<measure.size();i++){
+//		Mat m = Mat(3,1,CV_32FC1, measure[i]);
+//		m.copyTo(kFilter.statePre);
+//
+//		//kFilter.transitionMatrix = Mat::eye(3,3,CV_32FC1);
+//
+//		setIdentity(kFilter.measurementMatrix);
+//		setIdentity(kFilter.transitionMatrix);
+//
+//		setIdentity(kFilter.processNoiseCov, Scalar::all(1e-4));
+//		setIdentity(kFilter.measurementNoiseCov, Scalar::all(1e-1));
+//		setIdentity(kFilter.errorCovPost, Scalar::all(0.1));
+//
+//		Mat e = kFilter.correct(m);
+//		Point3f ePoint = Point3f(e.at<float>(0),e.at<float>(1),e.at<float>(2));
+//		estimate.push_back(ePoint);
+//	}
+//
+//}
+
+
+
