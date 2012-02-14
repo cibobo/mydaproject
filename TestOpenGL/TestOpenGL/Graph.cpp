@@ -179,71 +179,71 @@ void Graph::createCompleteGraph(vector<Point3f> points){
 }
 
 
-bool Graph::updateGraph(vector<Point3f> points){
-	// increase the lifetime
-	this->lifeTime ++;
-	// if there is no input points
-	if(points.size()<=0){
-		return false;
-	} else {
-		// if the graph contains no points
-		if(this->nodeList.size()<=0){
-			//this->addNodes(points);
-			this->createCompleteGraph(points);
-			return false;
-		} else {
-			vector<Point3f> oldPoints;
-			for(int i=0;i<this->nodeList.size();i++){
-				if(nodeList[i]->timmer < 0){
-					//nodeList.erase(nodeList.begin()+i);
-					this->deleteNode(nodeList[i]);
-					i--;
-				} else {
-					nodeList[i]->timmer--;
-					oldPoints.push_back(Point3f(*nodeList[i]));
-				}
-			}
-			//SVD
-			vector<int> oldIndex, newIndex;
-			featureAssociate(oldPoints, points, 18, oldIndex, newIndex);
-			
-			// set a new array to mark the new point, which will be add into the node List
-			bool *isNewAdd = new bool[points.size()];
-			for(int i=0;i<points.size();i++){
-				isNewAdd[i] = true;
-			}
-
-			for(int i=0;i<oldIndex.size();i++){
-				// reset the timmer for the coorespondence points
-				this->nodeList[oldIndex[i]]->timmer += 2;
-				this->nodeList[oldIndex[i]]->setPosition(points[newIndex[i]]);
-				// if the point can find a coorespondence with the old point, set the value in the Mark-Array to false
-				isNewAdd[newIndex[i]] = false;
-			}
-			
-			// mark the beginning position for the new added nodes
-			int newNodeBeginIndex = nodeList.size();
-			for(int i=0;i<points.size();i++){
-				if(isNewAdd[i]){
-					// add new nodes
-					this->addNode(points[i]);
-					Node *curNode = nodeList[nodeList.size()-1];
-					// connect the new added node with the old node in graph, which has coorespondence with last frame
-					for(int j=0;j<oldIndex.size();j++){
-						this->addUndirectedEdge(curNode, nodeList[oldIndex[j]]);
-					}
-					// connect the new node with the earlier new added node in this time
-					// form the beginning position of the new nodes to the end of the nodelist
-					for(int j=newNodeBeginIndex;j<nodeList.size();j++){
-						this->addUndirectedEdge(curNode, nodeList[j]);
-					}
-				}
-			}
-			delete []isNewAdd;
-		}
-	}
-	return true;
-}
+//bool Graph::updateGraph(vector<Point3f> points){
+//	// increase the lifetime
+//	this->lifeTime ++;
+//	// if there is no input points
+//	if(points.size()<=0){
+//		return false;
+//	} else {
+//		// if the graph contains no points
+//		if(this->nodeList.size()<=0){
+//			//this->addNodes(points);
+//			this->createCompleteGraph(points);
+//			return false;
+//		} else {
+//			vector<Point3f> oldPoints;
+//			for(int i=0;i<this->nodeList.size();i++){
+//				if(nodeList[i]->timmer < 0){
+//					//nodeList.erase(nodeList.begin()+i);
+//					this->deleteNode(nodeList[i]);
+//					i--;
+//				} else {
+//					nodeList[i]->timmer--;
+//					oldPoints.push_back(Point3f(*nodeList[i]));
+//				}
+//			}
+//			//SVD
+//			vector<int> oldIndex, newIndex;
+//			featureAssociate(oldPoints, points, 18, oldIndex, newIndex);
+//			
+//			// set a new array to mark the new point, which will be add into the node List
+//			bool *isNewAdd = new bool[points.size()];
+//			for(int i=0;i<points.size();i++){
+//				isNewAdd[i] = true;
+//			}
+//
+//			for(int i=0;i<oldIndex.size();i++){
+//				// reset the timmer for the coorespondence points
+//				this->nodeList[oldIndex[i]]->timmer += 2;
+//				this->nodeList[oldIndex[i]]->setPosition(points[newIndex[i]]);
+//				// if the point can find a coorespondence with the old point, set the value in the Mark-Array to false
+//				isNewAdd[newIndex[i]] = false;
+//			}
+//			
+//			// mark the beginning position for the new added nodes
+//			int newNodeBeginIndex = nodeList.size();
+//			for(int i=0;i<points.size();i++){
+//				if(isNewAdd[i]){
+//					// add new nodes
+//					this->addNode(points[i]);
+//					Node *curNode = nodeList[nodeList.size()-1];
+//					// connect the new added node with the old node in graph, which has coorespondence with last frame
+//					for(int j=0;j<oldIndex.size();j++){
+//						this->addUndirectedEdge(curNode, nodeList[oldIndex[j]]);
+//					}
+//					// connect the new node with the earlier new added node in this time
+//					// form the beginning position of the new nodes to the end of the nodelist
+//					for(int j=newNodeBeginIndex;j<nodeList.size();j++){
+//						this->addUndirectedEdge(curNode, nodeList[j]);
+//					}
+//				}
+//			}
+//			delete []isNewAdd;
+//		}
+//	}
+//	return true;
+//}
 
 bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 	// if there is no input points
@@ -270,7 +270,7 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 
 			vector<Point3f> tempPoints = points;
 			float e = 0.2;
-			int timeThreshold = 30;
+			int timeThreshold = 25;
 			for(int i=0;i<this->nodeList.size();i++){
 				Node *currentNode = this->nodeList[i];
 				int j;
@@ -280,7 +280,7 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 					//if they are very close
 					if((fabs(currentNode->x - tempPoints[j].x) < e) && 
 					   (fabs(currentNode->y - tempPoints[j].y) < e) && 
-					   (fabs(currentNode->z - tempPoints[j].z) < 5*e)){
+					   (fabs(currentNode->z - tempPoints[j].z) < 2*e)){
 						   //increase the life time of the node in graph
 						   currentNode->timmer +=2;
 						   //if the life time of the node is bigger than the threshold

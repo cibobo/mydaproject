@@ -1,5 +1,9 @@
+#ifndef IMAGEPROCESS_HPP
+#define IMAGEPROCESS_HPP
+
 #include <cv.h>
-#include "Object.hpp"
+//#include "Object.hpp"
+#include "Graph.hpp"
 
 using namespace cv;
 using namespace std;
@@ -29,3 +33,9 @@ void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, f
 void SVDFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T);
 
 float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T);
+
+bool isBigNoised(Mat T, float angle, int frameDiff, float eLinear, float eAngular);
+
+bool isBigNoised2(Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float aRate);
+
+#endif

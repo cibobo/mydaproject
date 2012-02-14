@@ -728,12 +728,13 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 	cout<<"The Centeriol for D is: "<<tempD<<endl;
 
 	//kalman filter
-	Mat kTempD = Mat(3,1,CV_32FC1);
-	featureKalmanFilter(tempM, tempD, kTempD);
+	//Mat kTempD = Mat(3,1,CV_32FC1);
+	//featureKalmanFilter(tempM, tempD, kTempD);
 
-	cout<<"The Centeriol for D after Kalman Filter is: "<<kTempD<<endl;
+	//cout<<"The Centeriol for D after Kalman Filter is: "<<kTempD<<endl;
 
-	T = kTempD - R * tempM;
+	//T = kTempD - R * tempM;
+	T = tempD - R * tempM;
 	//cout<<"R*M= "<<R*tempM<<endl<<endl;
 	//cout<<"T= "<<T<<endl;
 	//cout<<T.cols<<" , "<<T.rows<<" | "<<T.channels()<<endl;
@@ -771,5 +772,66 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 //
 //}
 
+/***************************************************************
+ *
+ * Noise controll
+ * Regard the linear acceleration and angular acceleration
+ *
+ **************************************************************/
+bool isBigNoised(Mat T, float angular, int frameDiff, float eLinear, float eAngular){
+	float avrAngular = angular/frameDiff;
+	cout<<"The avrage angular is: "<<avrAngular<<endl;
 
+	Mat avrT = T*(1.0/frameDiff);
+	cout<<"The average translate is: "<<avrT<<endl;
 
+	float avrSumT = (fabs(T.at<float>(0,0)) + fabs(T.at<float>(1,0)) + fabs(T.at<float>(2,0)))/frameDiff;
+	cout<<"The average translate is: "<<avrSumT<<endl;
+
+	if(avrAngular>eAngular){
+		return true;
+	} else {
+		if(fabs(avrT.at<float>(0,0)) > eLinear || 
+		   fabs(avrT.at<float>(1,0)) > eLinear || 
+		   fabs(avrT.at<float>(2,0)) > eLinear){
+		//if(avrSumT > eLinear){
+			   return true;
+		}
+		return false;
+	}
+}
+
+bool isBigNoised2( Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float aRate){
+	if(points.size()<=0){
+		return false;
+	} else {
+		if(graph->nodeList.size()<=0){
+			return false;
+		} else {
+			int coorPoints = 0;
+			float e=0.2;
+			int size = graph->nodeList.size();
+			for(int i=0;i<size;i++){
+				Mat oldPoint = Mat(graph->nodeList[i]->getPoint());
+				Mat newPoint = R*oldPoint + T;
+				for(int j=0;j<points.size();j++){
+					if(fabs(newPoint.at<float>(0,0) - points[j].x) < e &&
+					   fabs(newPoint.at<float>(1,0) - points[j].y) < e &&
+					   fabs(newPoint.at<float>(2,0) - points[j].z) < e){
+						   // if find the coorespondence point
+						   coorPoints ++;
+							   break;
+					} 
+				}
+			}
+			float rate = float(coorPoints)/points.size();
+			cout<<"The coorespondence rate: "<<rate<<" = "<<coorPoints<<"/"<<points.size()<<endl;
+			if(rate > aRate){
+				// if bigger than the avalible rate
+				return false;
+			} else {
+				return true;
+			}
+		}
+	}
+}
