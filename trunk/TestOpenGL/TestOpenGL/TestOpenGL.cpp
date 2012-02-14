@@ -9,6 +9,9 @@
 //#define SVDTRACK
 #define UQTRACK
 
+#define FRAME1
+//#define FRAME2
+
 
 //#define TEST
 
@@ -60,7 +63,7 @@ list<BildData*> bildDataBuffer;
 // The difference between the index of the current frame and historical frame
 int DETECTINGRATE = 2;
 
-int MAXJUMPEDFEATURES = 1;
+int MAXJUMPEDFEATURES = 3;
 // The iterator fo the buffer, which define the position der historical data in used
 int bufferIterator = 1;
 
@@ -274,15 +277,19 @@ void inputThreadProc(void *param){
 		loadAllDataFromFile(i, temp);
 
 		// Pop the first element of the Buffer, and the destructor will be called automatically 
-		//if(bildDataBuffer.size()>=DETECTINGRATE){
-		//	//delete the first element from the list
-		//	bildDataBuffer.pop_front();
-		//}
+#ifdef FRAME1
+		if(bildDataBuffer.size()>=DETECTINGRATE){
+			//delete the first element from the list
+			bildDataBuffer.pop_front();
+		}
+#endif
 
+#ifdef FRAME2
 		// if sepcial process begin, the old data would be removed
 		if(jumpedFeatures<1){
 			bildDataBuffer.pop_front();
 		}
+#endif
 		bildDataBuffer.push_back(temp);
 
 		//updata the OpenGL Window
@@ -962,7 +969,10 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					
 					// The second Limination
 					// consider the angle of rotation 
-					if(angle < 3){
+					//bool isBig = isBigNoised(T, angle, jumpedFeatures+1, 3.5, 3);
+					bool isBig = isBigNoised2(obj, newResult, R, T, 0.35);
+#ifdef FRAME2
+					if(!isBig){
 						cout<<"The roateted angle: "<<angle<<" is small than 3"<<endl;
 
 						obj->updateGraph(newResult, R, T);
@@ -978,7 +988,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 								it = bildDataBuffer.erase(it);
 							}
 
-							cout<<"Get a good feature, the selected feature is: "<<memIndex<<endl;
+							cout<<"Get a good feature, the selected feature is: "<<jumpedFeatures<<endl;
 
 							jumpedFeatures = 0;
 							memAngle = 360;
@@ -1022,7 +1032,24 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 						jumpedFeatures++;
 					}
-					
+#endif
+
+#ifdef FRAME1
+				if(!isBig || jumpedFeatures>=MAXJUMPEDFEATURES){
+					if(!isBig){
+						cout<<"The frame is not noised: "<<endl;
+					} else {
+						cout<<"The frame has noise, but the maximal number of the allowed jumped frames are arrived!"<<endl;
+					}
+					obj->updateGraph(newResult, R, T);
+					jumpedFeatures = 0;
+				} else {
+					cout<<"The frame has big noise, and will be throw out!"<<endl;
+					bildDataBuffer.pop_back();
+					cout<<"Jumped! The jumped features: "<<jumpedFeatures<<endl;
+					jumpedFeatures++;
+				}
+#endif
 
 					//obj->updateGraph(newResult, R, T);
 				}

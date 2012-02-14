@@ -3,7 +3,7 @@
 
 
 #include <cv.h>
-#include "ImageProcess.hpp"
+//#include "ImageProcess.hpp"
 
 using namespace std;
 using namespace cv;
@@ -66,7 +66,7 @@ public:
 	void createCompleteGraph(vector<Point3f> points);
 	int getSize();
 	vector<Point3f> getPoints();
-	bool updateGraph(vector<Point3f> points);
+	//bool updateGraph(vector<Point3f> points);
 	bool updateGraph(vector<Point3f> points, Mat R, Mat T);
 
 	Node *findNode(int index);
