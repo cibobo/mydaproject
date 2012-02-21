@@ -413,20 +413,26 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 	float factor = 2.04;
 	float rate = factor/204;
 	int size = graph->nodeList.size();
+	float ballSize;
 	glTranslatef(-factor/2, factor/2, 0);
 	for(int i=0;i<size;i++){
+		
 		if(graph->nodeList[i]->isFixed){
+			ballSize = 0.03;
 			mat_diffuse[0] = 1.0;
 			mat_diffuse[1] = 0.0;
+			mat_diffuse[3] = 1.0;
 		} else {
+			ballSize = 0.02;
 			mat_diffuse[0] = 0.07568;
 			mat_diffuse[1] = graph->nodeList[i]->timmer*0.1+0.2;
+			mat_diffuse[3] = 1.0;
 		}
 		glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 
 		//if(graph->nodeList[i]->isFixed){
 		glTranslatef(graph->nodeList[i]->x*rate,-graph->nodeList[i]->y*rate,-graph->nodeList[i]->z*rate);
-		glutSolidSphere(0.03, 20, 16);
+		glutSolidSphere(ballSize, 20, 16);
 		glTranslatef(-graph->nodeList[i]->x*rate,graph->nodeList[i]->y*rate,graph->nodeList[i]->z*rate);
 		//}
 	}

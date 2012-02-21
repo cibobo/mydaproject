@@ -55,37 +55,35 @@ Point2f point3To2(Point3f point){
 	return newPoint;
 }
 
-//KalmanFilter kFilter(3,3,0);
-//
-//void initKalmanFilter(){
-//	kFilter.statePre.at<float>(0) = 0;
-//	kFilter.statePre.at<float>(1) = 0;
-//	kFilter.statePre.at<float>(2) = 0;
-//
-//	setIdentity(kFilter.measurementMatrix);
-//	setIdentity(kFilter.transitionMatrix);
-//
-//	setIdentity(kFilter.processNoiseCov, Scalar::all(1e-4));
-//	setIdentity(kFilter.measurementNoiseCov, Scalar::all(1e-1));
-//	setIdentity(kFilter.errorCovPost, Scalar::all(0.1));
-//}
+// (x,y,z,Vx,Vy,Vz)
+KalmanFilter kFilter(6,3,0);
 
+void initKalmanFilter(){
+	//kFilter.statePre.at<float>(0) = 0;
+	//kFilter.statePre.at<float>(1) = 0;
+	//kFilter.statePre.at<float>(2) = 0;
+	//kFilter.statePre.at<float>(3) = 0;
+	//kFilter.statePre.at<float>(4) = 0;
+	//kFilter.statePre.at<float>(5) = 0;
+	kFilter.statePre = Mat::zeros(6,1,CV_32FC1);
 
-void featureKalmanFilter(Mat post, Mat measure, Mat &estimate){
-	KalmanFilter kFilter(3,3,0);
-
-	//kFilter.statePost = Mat(post);
-	post.copyTo(kFilter.statePost);
-
+	//setIdentity(kFilter.transitionMatrix);
+	kFilter.transitionMatrix = *(Mat_<float>(6,6) <<1,0,0,1,0,0,  0,1,0,0,1,0,  0,0,1,0,0,1,  0,0,0,1,0,0,  0,0,0,0,1,0,  0,0,0,0,0,1);
 	setIdentity(kFilter.measurementMatrix);
-	setIdentity(kFilter.transitionMatrix);
+
 
 	setIdentity(kFilter.processNoiseCov, Scalar::all(0.1));
-	setIdentity(kFilter.measurementNoiseCov, Scalar::all(1e-3));
+	setIdentity(kFilter.measurementNoiseCov, Scalar::all(1e-1));
 	setIdentity(kFilter.errorCovPost, Scalar::all(0.1));
+}
 
-	Mat prediction = kFilter.predict();
-	estimate = kFilter.correct(measure);
+
+void featureKalmanFilter(Mat measure, Mat &estimate){
+	for(int i=0;i<10;i++){
+		Mat prediction = kFilter.predict();
+		estimate = kFilter.correct(measure);
+		cout<<"loop: "<<i<<"  "<<estimate<<endl;
+	}
 }
 
 /*********************************
@@ -694,6 +692,7 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 		cout<<"Rotated: "<<acos(q.at<float>(0,0))*2*180/3.14<<endl;
 	} else {
 		cout<<"There are no positive eigenvalue!"<<endl;
+		return 0;
 	}
 
 	//Mat I = Mat::eye(4,4,CV_32FC1);
@@ -728,13 +727,13 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 	cout<<"The Centeriol for D is: "<<tempD<<endl;
 
 	//kalman filter
-	//Mat kTempD = Mat(3,1,CV_32FC1);
-	//featureKalmanFilter(tempM, tempD, kTempD);
+	Mat kTempD = Mat(6,1,CV_32FC1);
+	featureKalmanFilter(tempD, kTempD);
 
-	//cout<<"The Centeriol for D after Kalman Filter is: "<<kTempD<<endl;
+	cout<<"The Centeriol for D after Kalman Filter is: "<<kTempD<<endl;
 
-	//T = kTempD - R * tempM;
-	T = tempD - R * tempM;
+	T = kTempD.rowRange(0,3) - R * tempM;
+	//T = tempD - R * tempM;
 	//cout<<"R*M= "<<R*tempM<<endl<<endl;
 	//cout<<"T= "<<T<<endl;
 	//cout<<T.cols<<" , "<<T.rows<<" | "<<T.channels()<<endl;
@@ -801,6 +800,7 @@ bool isBigNoised(Mat T, float angular, int frameDiff, float eLinear, float eAngu
 	}
 }
 
+//TODO: Combination with the ObjectUpdata function
 bool isBigNoised2( Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float aRate){
 	if(points.size()<=0){
 		return false;
