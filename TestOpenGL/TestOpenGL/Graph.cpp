@@ -270,7 +270,7 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 
 			vector<Point3f> tempPoints = points;
 			float e = 0.2;
-			int timeThreshold = 25;
+			int timeThreshold = 10;
 			for(int i=0;i<this->nodeList.size();i++){
 				Node *currentNode = this->nodeList[i];
 				int j;
@@ -280,7 +280,7 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 					//if they are very close
 					if((fabs(currentNode->x - tempPoints[j].x) < e) && 
 					   (fabs(currentNode->y - tempPoints[j].y) < e) && 
-					   (fabs(currentNode->z - tempPoints[j].z) < 2*e)){
+					   (fabs(currentNode->z - tempPoints[j].z) < e)){
 						   //increase the life time of the node in graph
 						   currentNode->timmer +=2;
 						   //if the life time of the node is bigger than the threshold

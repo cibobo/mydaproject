@@ -18,6 +18,8 @@ void transAmplitudeToGrayValue(float *src, unsigned char *dst);
 
 Point2f point3To2(Point3f point);
 
+void initKalmanFilter();
+
 bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsigned char *data);
 
 void calibration(vector<vector<Point3f>> &result, vector<Point3f> points, float eps);

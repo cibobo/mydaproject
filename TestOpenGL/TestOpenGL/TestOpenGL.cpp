@@ -63,7 +63,7 @@ list<BildData*> bildDataBuffer;
 // The difference between the index of the current frame and historical frame
 int DETECTINGRATE = 2;
 
-int MAXJUMPEDFEATURES = 3;
+int MAXJUMPEDFEATURES = 5;
 // The iterator fo the buffer, which define the position der historical data in used
 int bufferIterator = 1;
 
@@ -72,7 +72,7 @@ int currentFrameIndex = 0;
 int oldFrameIndex = 1;
 
 // framerate
-int FRAMERATE = 50;
+int FRAMERATE = 30;
 
 //int HISFRAMEINDEX = 3;
 
@@ -238,7 +238,7 @@ void inputThreadProc(void *param){
 #ifdef OFFLINE
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	setDefaultLoadPath("TestRotation");
+	setDefaultLoadPath("NewPoints");
 
 	//get the distance data for the first step
 	//loadNormalDataFromFile("distance", 3, bildData->disData);
@@ -306,7 +306,7 @@ void inputThreadProc(void *param){
 #else
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	createDefaultPMDDataDirectory("TestRotation");
+	createDefaultPMDDataDirectory("NewPoints");
 	setIsDataSaved(true);
 	cout<<"PMD Camera Connecting..."<<endl;
 	if(!createPMDCon()){
@@ -350,7 +350,9 @@ void inputThreadProc(void *param){
 			BildData *temp = new BildData();
 			getPMDData(temp);
 
-			bildDataBuffer.pop_front();
+			if(bildDataBuffer.size()>=DETECTINGRATE){
+				bildDataBuffer.pop_front();
+			}
 			bildDataBuffer.push_back(temp);
 
 		} catch (CMemoryException * e){
@@ -516,6 +518,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			Mat memR, memT;
 			vector<Point3f> memNewResult;
 			int memIndex = 0;
+
+			initKalmanFilter();
 			
 			while (!bDone) 
 			{ 	
@@ -909,7 +913,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				// call calibration
 				vector<vector<Point3f>> caliResult;
-				calibration(caliResult, currentBildData->features, 18);
+				calibration(caliResult, currentBildData->features, 13);
 				//calibration(caliResult, newResult, 18);
 
 				Mat graphImg = Mat(size, CV_8UC3, showdata);
