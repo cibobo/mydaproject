@@ -82,7 +82,7 @@ void featureKalmanFilter(Mat measure, Mat &estimate){
 	for(int i=0;i<10;i++){
 		Mat prediction = kFilter.predict();
 		estimate = kFilter.correct(measure);
-		cout<<"loop: "<<i<<"  "<<estimate<<endl;
+		//cout<<"loop: "<<i<<"  "<<estimate<<endl;
 	}
 }
 
@@ -96,6 +96,9 @@ void featureKalmanFilter(Mat measure, Mat &estimate){
 bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsigned char *data){
 	int MINFEATURECOUNT = 22;
 	int MAXFEATURECOUNT = 45;
+
+	//int MINFEATURECOUNT = 42;
+	//int MAXFEATURECOUNT = 65;
 
 	float MINSTANDARDENERGY = 300000.0;
 	float MAXSTANDARDENERGY = 450000.0;
@@ -602,7 +605,7 @@ void SVDFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
  * Bertgikd K.P.Horn 1987
  *
  ***************************************************************************************/
-float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T){
+float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T, Mat &Q){
 	// create two matrices with 3 chanles to save the points
 	// D = RM + T * V
 	Mat M = Mat(oldFeatures, true);
@@ -689,11 +692,19 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 		q = V(Range(maxIndex, maxIndex+1),Range(0,4));
 		//cout<<"max eigenvalue is: "<<maxE<<endl;
 		//cout<<"q is: "<<q<<endl;
-		cout<<"Rotated: "<<acos(q.at<float>(0,0))*2*180/3.14<<endl;
+		//cout<<"Rotated: "<<acos(q.at<float>(0,0))*2*180/3.14<<endl;
 	} else {
 		cout<<"There are no positive eigenvalue!"<<endl;
 		return 0;
 	}
+
+	float scale = sqrt(q.at<float>(0,1)*q.at<float>(0,1) + q.at<float>(0,2)*q.at<float>(0,2) + q.at<float>(0,3)*q.at<float>(0,3));
+	float rX = q.at<float>(0,1)/scale;
+	float rY = q.at<float>(0,2)/scale;
+	float rZ = q.at<float>(0,3)/scale;
+	float angle = acos(q.at<float>(0,0))*2*180/3.14;
+	cout<<"The rotation is: "<<angle<<"  on vector:["<<rX<<" , "<<rY<<" , "<<rZ<<"]"<<endl;
+	Q = q;
 
 	//Mat I = Mat::eye(4,4,CV_32FC1);
 	//cout<<"Test eigenvector:"<<(N-I*maxE)*q.t()<<endl;
@@ -733,6 +744,7 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 	cout<<"The Centeriol for D after Kalman Filter is: "<<kTempD<<endl;
 
 	T = kTempD.rowRange(0,3) - R * tempM;
+
 	//T = tempD - R * tempM;
 	//cout<<"R*M= "<<R*tempM<<endl<<endl;
 	//cout<<"T= "<<T<<endl;
