@@ -469,3 +469,73 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 	glPopMatrix();   
 }
 
+
+
+void displayCoord(OpenGLWinUI *pOpenGLWinUI, Mat R){
+	// Clear the Color Buffer and Depth Buffer
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glLoadIdentity();
+
+	glPushMatrix();   // It is important to push the Matrix before 
+
+
+
+	if(!R.empty()){
+	float glParam[16];
+	glParam[0] = R.at<float>(0,0);
+	glParam[1] = R.at<float>(0,1);
+	glParam[2] = R.at<float>(0,2);
+	glParam[3] = 0;
+
+	glParam[4] = R.at<float>(1,0);
+	glParam[5] = R.at<float>(1,1);
+	glParam[6] = R.at<float>(1,2);
+	glParam[7] = 0;
+
+	glParam[8] = R.at<float>(2,0);
+	glParam[9] = R.at<float>(2,1);
+	glParam[10] = R.at<float>(2,2);
+	glParam[11] = 0;
+
+	glParam[12] = glParam[13] = glParam[14] = 0;
+	glParam[15] = 1;
+
+	//cout<<"The R is: "<<R<<endl;
+	glLoadMatrixf(glParam);
+	}
+
+	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	
+                                 
+	// calling glRotatef and glTranslatef
+	glRotatef(pOpenGLWinUI->rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
+    glRotatef(pOpenGLWinUI->rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
+    glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
+
+	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
+
+	//float scale = sqrt(R.at<float>(0,1)*R.at<float>(0,1) + R.at<float>(0,2)*R.at<float>(0,2) + R.at<float>(0,3)*R.at<float>(0,3));
+	//float rX = R.at<float>(0,1)/scale;
+	//float rY = R.at<float>(0,2)/scale;
+	//float rZ = R.at<float>(0,3)/scale;
+	//float angle = acos(R.at<float>(0,0))*2*180/3.14;
+
+	//glRotatef(angle, rX, rY, rZ);
+
+	glBegin(GL_LINES);
+		glColor3f(1.0f, 0.0f, 0.0f);
+		glVertex3f(0.0f, 0.0f, 0.0f);
+		glVertex3f(1.0f, 0.0f, 0.0f);
+
+		glColor3f(0.0f, 1.0f, 0.0f);
+		glVertex3f(0.0f, 0.0f, 0.0f);
+		glVertex3f(0.0f, 1.0f, 0.0f);
+
+		glColor3f(1.0f, 1.0f, 1.0f);
+		glVertex3f(0.0f, 0.0f, 0.0f);
+		glVertex3f(0.0f, 0.0f, 1.0f);
+	glEnd();
+
+	glFlush();
+	glPopMatrix();   
+}

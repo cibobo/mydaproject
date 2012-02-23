@@ -270,7 +270,7 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 
 			vector<Point3f> tempPoints = points;
 			float e = 0.2;
-			int timeThreshold = 10;
+			int timeThreshold = 16;
 			for(int i=0;i<this->nodeList.size();i++){
 				Node *currentNode = this->nodeList[i];
 				int j;

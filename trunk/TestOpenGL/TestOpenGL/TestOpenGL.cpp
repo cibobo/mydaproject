@@ -57,13 +57,15 @@ OpenGLContext *p3DDataViewContext;
 //HWND objGLhnd;
 OpenGLContext *pObjViewContext;
 
+OpenGLContext *pKoordViewContext;
+
 
 // The Buffer for BildDatas, which is saving the newest BildData at last place and the oldest at the first place.
 list<BildData*> bildDataBuffer;
 // The difference between the index of the current frame and historical frame
 int DETECTINGRATE = 2;
 
-int MAXJUMPEDFEATURES = 5;
+int MAXJUMPEDFEATURES = 3;
 // The iterator fo the buffer, which define the position der historical data in used
 int bufferIterator = 1;
 
@@ -72,7 +74,7 @@ int currentFrameIndex = 0;
 int oldFrameIndex = 1;
 
 // framerate
-int FRAMERATE = 30;
+int FRAMERATE = 330;
 
 //int HISFRAMEINDEX = 3;
 
@@ -80,7 +82,11 @@ DistanceFilter *dFilter;
 
 Graph *obj;
 
-
+Mat RR = Mat::eye(3,3,CV_32FC1);
+Mat QQ = Mat::eye(1,4,CV_32FC1);
+Mat Q = Mat::eye(1,4,CV_32FC1);
+Mat R = Mat::eye(3,3,CV_32FC1);
+Mat T = Mat::zeros(3,1,CV_32FC1);
 
 
 // this function is called by a new thread 
@@ -238,7 +244,7 @@ void inputThreadProc(void *param){
 #ifdef OFFLINE
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	setDefaultLoadPath("NewPoints");
+	setDefaultLoadPath("VerticalRotation");
 
 	//get the distance data for the first step
 	//loadNormalDataFromFile("distance", 3, bildData->disData);
@@ -306,7 +312,7 @@ void inputThreadProc(void *param){
 #else
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	createDefaultPMDDataDirectory("NewPoints");
+	createDefaultPMDDataDirectory("VerticalRotation");
 	setIsDataSaved(true);
 	cout<<"PMD Camera Connecting..."<<endl;
 	if(!createPMDCon()){
@@ -420,6 +426,52 @@ void objWindowThreadPorc(void *param ){
 }
 
 
+// koordinaten window
+void koordWindowThreadPorc(void *param ){
+	static OpenGLWinUI *pKoordGLWinUI = new OpenGLWinUI;
+	pKoordViewContext = new OpenGLContext;
+
+	TlsSetValue(ThreadIndex, pKoordGLWinUI);
+
+	if(!CreateOpenGLWindow("Coordinaten System Window", 500, 0, 600, 600, PFD_TYPE_RGBA, 0, pKoordGLWinUI, pKoordViewContext)){
+		exit(0);
+	}
+
+	cout<<"The Koordinatensystem Window is running"<<endl;
+
+	while(!bDone){
+		if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
+			if(msg.message==WM_QUIT){
+				bDone = TRUE;
+			} else if(msg.message==WM_RBUTTONDOWN){
+				// klick right button of mouse to stop and rerun the input of frame
+				if(isPause){
+					cout<<"frame running!"<<endl;
+					LeaveCriticalSection(&pauseCrs);
+					isPause = false;
+				} else {
+					cout<<"frame pause!"<<endl;
+					EnterCriticalSection(&pauseCrs);
+					isPause = true;
+				}
+			} else{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+				//display(pOpenGLWinUI, disData, intData, ampData);
+			}
+		} else {
+			//EnterCriticalSection (&calcCrs);
+			displayCoord(pKoordGLWinUI, RR);
+			SwapBuffers(pKoordViewContext->hDC);
+			//glEnable(GL_LIGHTING);
+			//LeaveCriticalSection(&calcCrs);
+		}
+	}
+	delete pKoordViewContext;
+	delete pKoordGLWinUI;
+}
+
+
 
 int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 {
@@ -453,6 +505,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		//Start Obj Window Thread 
 		if(_beginthread (objWindowThreadPorc, 0, NULL)==-1){
 			cout<<"Failed to create ObjWindow thread"<<endl;
+		}
+
+		//Start Koordinatensystem Window Thread 
+		if(_beginthread (koordWindowThreadPorc, 0, NULL)==-1){
+			cout<<"Failed to create KoordWindow thread"<<endl;
 		}
 		// Start ARToolKit Window Thread 
 		//if(_beginthread (arToolKitThreadProc, 0, NULL)==-1){
@@ -797,8 +854,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 *
 				 *************************************************/
 
-				Mat R = Mat(3,3,CV_32FC1);
-				Mat T = Mat(3,1,CV_32FC1);
+
 
 				// save all features without calibration into the data
 				currentBildData->comFeatures.clear();
@@ -966,11 +1022,12 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						
 #ifdef UQTRACK		
 					// get the rotated angle
-					float angle = UQFindRAndT(oldResult, newResult, R, T);
+					float angle = UQFindRAndT(oldResult, newResult, R, T, Q);
 					cout<<"The rotation matrix is: "<<R<<endl<<endl;
 					cout<<"The translation matrix is: "<<T<<endl<<endl;
 
-					
+					RR = R*RR;
+
 					// The second Limination
 					// consider the angle of rotation 
 					//bool isBig = isBigNoised(T, angle, jumpedFeatures+1, 3.5, 3);
@@ -1039,6 +1096,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 #endif
 
 #ifdef FRAME1
+				//TODO: using the choosen strategy
 				if(!isBig || jumpedFeatures>=MAXJUMPEDFEATURES){
 					if(!isBig){
 						cout<<"The frame is not noised: "<<endl;
@@ -1071,6 +1129,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				// display 3D structur of the Object in an OpenGL Window
 				PostMessage(pObjViewContext->hWnd, WM_PAINT, 0, 0);	
+				PostMessage(pKoordViewContext->hWnd, WM_PAINT, 0, 0);	
 
 
 #endif
