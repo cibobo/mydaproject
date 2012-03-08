@@ -23,6 +23,9 @@ public:
 	// Features
 	vector<Point3f> features;
 
+	// 2D Features for the OpenCV Windows
+	vector<Point2f> features2D;
+
 	// test complete features
 	vector<Point3f> comFeatures;
 

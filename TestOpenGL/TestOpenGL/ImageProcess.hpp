@@ -34,7 +34,7 @@ void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, f
 
 void SVDFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T);
 
-float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T, Mat &Q);
+float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T);
 
 bool isBigNoised(Mat T, float angle, int frameDiff, float eLinear, float eAngular);
 

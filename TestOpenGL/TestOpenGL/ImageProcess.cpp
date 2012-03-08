@@ -605,7 +605,7 @@ void SVDFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
  * Bertgikd K.P.Horn 1987
  *
  ***************************************************************************************/
-float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T, Mat &Q){
+float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T){
 	// create two matrices with 3 chanles to save the points
 	// D = RM + T * V
 	Mat M = Mat(oldFeatures, true);
@@ -704,7 +704,6 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 	float rZ = q.at<float>(0,3)/scale;
 	float angle = acos(q.at<float>(0,0))*2*180/3.14;
 	cout<<"The rotation is: "<<angle<<"  on vector:["<<rX<<" , "<<rY<<" , "<<rZ<<"]"<<endl;
-	Q = q;
 
 	//Mat I = Mat::eye(4,4,CV_32FC1);
 	//cout<<"Test eigenvector:"<<(N-I*maxE)*q.t()<<endl;
