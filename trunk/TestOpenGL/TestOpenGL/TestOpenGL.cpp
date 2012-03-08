@@ -74,7 +74,7 @@ int currentFrameIndex = 0;
 int oldFrameIndex = 1;
 
 // framerate
-int FRAMERATE = 330;
+int FRAMERATE = 300;
 
 //int HISFRAMEINDEX = 3;
 
@@ -83,8 +83,6 @@ DistanceFilter *dFilter;
 Graph *obj;
 
 Mat RR = Mat::eye(3,3,CV_32FC1);
-Mat QQ = Mat::eye(1,4,CV_32FC1);
-Mat Q = Mat::eye(1,4,CV_32FC1);
 Mat R = Mat::eye(3,3,CV_32FC1);
 Mat T = Mat::zeros(3,1,CV_32FC1);
 
@@ -634,128 +632,6 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				
 				unsigned char data[41616];
 
-#ifdef TEST
-				EnterCriticalSection(&pauseCrs);
-				// translate the filted data to a grayscale image 
-				transFloatToChar(filteData, data, balance, contrast);
-				img = Mat(size, CV_8UC1, data);
-				
-				vector<KeyPoint> features;
-				//set the parameter of the STAR Detector
-				StarDetector detector = StarDetector(MAXSIZE, detecParam, LINETHRESHOLDPROJECTED, LINETHRESHOLDBINARIZED, SUPPRESSNONMAXSIZE);
-				detector(img, features);
-				
-				//draw features
-				int vectorSize = features.size();
-				cout<<"find "<<vectorSize<<" features!"<<endl;
-				for(int i=0;i<vectorSize;i++){
-					circle(featuresImg, features[i].pt, 1, Scalar(0,0,255,0), -1); 
-					//sumFeatures.insert(sumFeatures.begin()+i, features[i]);
-				}
-
-				//summarize the near features
-				vector<KeyPoint> sumFeatures = features;
-				//The loop of all features
-				//for(int i=0;i<sumFeatures.size();i++){
-				//	//The loop from current features to the others, which is behind the current feature
-				//	for(int j=i+1;j<sumFeatures.size();j++){
-				//		//calculate the distance between two features
-				//		float xDis = sumFeatures[i].pt.x - sumFeatures[j].pt.x;
-				//		float yDis = sumFeatures[i].pt.y - sumFeatures[j].pt.y;
-				//		//if they are too close
-				//		if((xDis*xDis + yDis*yDis)<eps*eps){
-				//			//reset the position of the ith feature
-				//			sumFeatures[i].pt.x = 0.5*(sumFeatures[i].pt.x + sumFeatures[j].pt.x);
-				//			sumFeatures[i].pt.y = 0.5*(sumFeatures[i].pt.y + sumFeatures[j].pt.y);
-				//			//delete the feature at jth position
-				//			sumFeatures.erase(sumFeatures.begin() + j);
-				//		}
-				//	}
-				//	circle(left, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
-				//	circle(right, sumFeatures[i].pt, 1, Scalar(0,0,255,0), -1);
-
-				//	//translate vector from left to right
-				//	Point2f trans(204, 0);
-				//	line(testimg, sumFeatures[i].pt, sumFeatures[i].pt+trans, Scalar(255, 255, 0, 0));
-				//}
-				//cout<<"After Summerize get "<<sumFeatures.size()<<" features!"<<endl;
-
-				vector<vector<KeyPoint>> groupFeatures;
-					vector<int> pointer;
-					for(int i=0;i<sumFeatures.size();i++){
-						pointer.push_back(-1);
-					}
-					for(int i=0;i<sumFeatures.size();i++){
-						vector<KeyPoint> temp;
-						int index;
-						//no pointer defined
-						if(pointer.at(i) == -1){
-							temp.push_back(sumFeatures[i]);
-							index = groupFeatures.size();
-							for(int j=0;j<sumFeatures.size();j++){
-								//calculate the distance between two features
-								float xDis = fabs(sumFeatures[i].pt.x - sumFeatures[j].pt.x);
-								float yDis = fabs(sumFeatures[i].pt.y - sumFeatures[j].pt.y);
-								//if they are too close
-								//if(xDis<eps && yDis<eps){
-								if((xDis*xDis + yDis*yDis)<eps*eps){
-									if(pointer.at(j) != index){
-										temp.push_back(sumFeatures[j]);
-										pointer.at(j) = index;
-									}
-								}
-							}
-							groupFeatures.push_back(temp);
-						} else {
-							index = pointer.at(i);
-							temp = groupFeatures.at(index);
-							for(int j=0;j<sumFeatures.size();j++){
-								//calculate the distance between two features
-								float xDis = fabs(sumFeatures[i].pt.x - sumFeatures[j].pt.x);
-								float yDis = fabs(sumFeatures[i].pt.y - sumFeatures[j].pt.y);
-								//if they are too close
-								//if(xDis<eps && yDis<eps){
-								if((xDis*xDis + yDis*yDis)<eps*eps){
-									if(pointer.at(j) != index){
-										temp.push_back(sumFeatures[j]);
-										pointer.at(j) = index;
-									}
-								}
-							}
-							groupFeatures.at(index) = temp;
-						}
-					}
-					cout<<"After Summerize get "<<groupFeatures.size()<<" features!"<<endl;
-
-					for(int i=0;i<groupFeatures.size();i++){
-						float avrX = 0;
-						float avrY = 0;
-						int size = groupFeatures[i].size();
-						for(int j=0;j<size;j++){
-							avrX += groupFeatures[i][j].pt.x;
-							avrY += groupFeatures[i][j].pt.y;
-						}
-
-						Point2f p(avrX/size, avrY/size);
-						circle(left, p, 1, Scalar(0,255,0,0), -1);
-						circle(right, p, 1, Scalar(0,0,255,0), -1);
-
-						//translate vector from left to right
-						Point2f trans(204, 0);
-						line(testimg, p, p+trans, Scalar(255, 255, 0, 0));
-					}
-
-				//Mat sampleLables = Mat(sumFeatures.size(), 1, CV_32FC1);
-				//TermCriteria criteria;
-				//criteria.epsilon = 0.01;
-				//kmeans(sumFeatures, 3, sampleLables, criteria, 2, KMEANS_RANDOM_CENTERS); 
-
-				//draw
-				imshow("OpenCVGrayScale", img);
-				imshow("OpenCVRGBResult", featuresImg);
-				imshow("OpenCVRGBTest", testimg);
-
-#else
 				int safeCount = 0;
 
 				/****************************************************************
@@ -859,9 +735,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				// save all features without calibration into the data
 				currentBildData->comFeatures.clear();
 				for(int i=0;i<features.size();i++){
-					float x = features[i].pt.x;
-					float y = features[i].pt.y;
-					float z = currentBildData->threeDData[((int)x*204+(int)y)*3+2];
+					int indexI = int(features[i].pt.y);
+					int indexJ = int(features[i].pt.x);
+					float x = currentBildData->threeDData[(indexI*204 + indexJ)*3];
+					float y = currentBildData->threeDData[(indexI*204 + indexJ)*3 +1];
+					float z = currentBildData->threeDData[(indexI*204 + indexJ)*3 +2];
 					Point3f tdp = Point3f(x,y,z);
 					//tdFeatures.push_back(tdp);
 					currentBildData->comFeatures.push_back(tdp);
@@ -907,22 +785,30 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				// Save the features into the first place of data buffer
 				currentBildData->features.clear();
 				for(int i=0;i<groupFeatures.size();i++){
-					float avrX = 0;
-					float avrY = 0;
-					// calculate the average depth data of the features
-					float avrZ = 0;
-					int size = groupFeatures[i].size();
-					for(int j=0;j<size;j++){
-						float x = groupFeatures[i][j].pt.x;
-						float y = groupFeatures[i][j].pt.y;
-						avrX += x;
-						avrY += y;
-						avrZ += currentBildData->threeDData[((int)x*204+(int)y)*3+2];
+					float avrX2D = 0;
+					float avrY2D = 0;
+
+					float avrX3D = 0;
+					float avrY3D = 0;
+					float avrZ3D = 0;
+					int groupSize = groupFeatures[i].size();
+					for(int j=0;j<groupSize;j++){
+						//TODO: Why is the x and y exchanged
+						int indexI = int(groupFeatures[i][j].pt.y);
+						int indexJ = int(groupFeatures[i][j].pt.x);
+
+						avrX2D += indexJ;
+						avrY2D += indexI;
+
+						avrX3D += currentBildData->threeDData[(indexI*204 + indexJ)*3];
+						avrY3D += currentBildData->threeDData[(indexI*204 + indexJ)*3 + 1];
+						avrZ3D += currentBildData->threeDData[(indexI*204 + indexJ)*3 + 2];
 					}
 
-					Point2f p2(avrX/size, avrY/size);
-					Point3f p3(avrX/size, avrY/size, avrZ/size);
+					Point2f p2(avrX2D/groupSize, avrY2D/groupSize);
+					Point3f p3(avrX3D/groupSize, avrY3D/groupSize, avrZ3D/groupSize);
 					
+					currentBildData->features2D.push_back(p2);
 					currentBildData->features.push_back(p3);
 					
 					// show the current features
@@ -939,62 +825,72 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				//save the detected features into the vector of historical features
 				//vector<Point3f> hisFeatures = bildDataBuffer[bildDataBuffer.size()-1]->features;
+
+				// The current Features
+				vector<Point3f> curFeatures = currentBildData->features;
+				vector<Point2f> curFeatures2D = currentBildData->features2D;
+				// The historical Features
+				vector<Point2f> hisFeatures2D = bildDataBuffer.front()->features2D;
 				vector<Point3f> hisFeatures = bildDataBuffer.front()->features;
 
+				// The vector to save the index of SVC Association
+				vector<int> oldIndexResult, newIndexResult;
+				// The vector to save the points of SVC Association				
+				vector<Point3f> oldResult, newResult;
 
+				vector<vector<Point3f>> caliResult;
 
+				vector<Point3f> maxSet;
 
+				float ASSOCIATESITA = 0.15;
 
 				// set the new historical fram into the left OpenCV window 
 				//transFloatTo3Char(bildDataBuffer[bufferIterator]->ampData, hisShowdata, balance, contrast);
 				//Mat hisImg2 = Mat(size, CV_8UC3, hisShowdata);
 				//hisImg2.copyTo(left);
 
-				for(int i=0;i<hisFeatures.size();i++){
+				for(int i=0;i<hisFeatures2D.size();i++){
 					// show the old features
-					circle(left, point3To2(hisFeatures[i]), 2, Scalar(0,255,0,0), -1);
+					circle(left, hisFeatures2D[i], 2, Scalar(0,255,0,0), -1);
 				}
 
-				// feature Tracking with Singular Value Decomposition
-				//vector<int> oldResult, newResult;
-				//vector<Point2f> curFeatures = currentBildData->features;
-				//if(hisFeatures.size()>0&&curFeatures.size()>0){
-				//	featureAssociate(hisFeatures, curFeatures, 15, oldResult, newResult);
-				//	for(int i=0;i<oldResult.size();i++){
-				//		Point2f trans(204,0);
-				//		line(testimg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
-				//	}
-				//	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
-				//}
+				if(hisFeatures.size()>0&&curFeatures.size()>0){
+					featureAssociate(hisFeatures, curFeatures, ASSOCIATESITA, oldIndexResult, newIndexResult);
+					for(int i=0;i<oldIndexResult.size();i++){
+						Point2f trans(204,0);
+						//line(testimg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
+						line(testimg, hisFeatures2D[oldIndexResult[i]], curFeatures2D[newIndexResult[i]]+trans, Scalar(255,255,0,0));
+					}
+					cout<<"The number of useful features is: "<<oldResult.size()<<endl;
+				}
 
 				// call calibration
-				vector<vector<Point3f>> caliResult;
-				calibration(caliResult, currentBildData->features, 13);
+				
+				calibration(caliResult, currentBildData->features, 15);
 				//calibration(caliResult, newResult, 18);
 
 				Mat graphImg = Mat(size, CV_8UC3, showdata);
-				for(int k=0;k<caliResult.size();k++){
-					int firstSize = caliResult[k].size();
-					for(int i=0;i<firstSize;i++){
-						for(int j=0;j<firstSize;j++){
-							line(graphImg, point3To2(caliResult[k][i]), point3To2(caliResult[k][j]), Scalar(0, 255, 255, 0));
-						}
-					}
-				}
+				//for(int k=0;k<caliResult.size();k++){
+				//	int firstSize = caliResult[k].size();
+				//	for(int i=0;i<firstSize;i++){
+				//		for(int j=0;j<firstSize;j++){
+				//			line(graphImg, point3To2(caliResult[k][i]), point3To2(caliResult[k][j]), Scalar(0, 255, 255, 0));
+				//		}
+				//	}
+				//}
 				imshow("OpenCVRGBGraph", graphImg);
 
-				vector<Point3f> maxSet;
-				findMaxPointsSet(caliResult, maxSet);
 				
-				vector<Point3f> oldResult, newResult;
-				vector<Point3f> curFeatures = currentBildData->features;
+				findMaxPointsSet(caliResult, maxSet);
+
+				
 				//Mat R = Mat(3,3,CV_32FC1);
 				//Mat T = Mat(3,1,CV_32FC1);
 
 					
 				cout<<"======= "<<isDataUsed<<" ======= "<<hisFeatures.size()<<" ======= "<<curFeatures.size()<<endl<<endl;
 				if(hisFeatures.size()>0 && curFeatures.size()>0){
-					featureAssociate2(hisFeatures, curFeatures, 15, oldResult, newResult);
+					featureAssociate2(hisFeatures, curFeatures, ASSOCIATESITA, oldResult, newResult);
 
 					// The first Limination
 					// consider the size of the coorespondence points
@@ -1003,10 +899,10 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					//	continue;
 					//}
 
-					for(int i=0;i<oldResult.size();i++){
-						Point2f trans(204,0);
-						line(testimg, point3To2(oldResult[i]), point3To2(newResult[i])+trans, Scalar(255,255,0,0));
-					}
+					//for(int i=0;i<oldResult.size();i++){
+					//	Point2f trans(204,0);
+					//	line(testimg, point3To2(oldResult[i]), point3To2(newResult[i])+trans, Scalar(255,255,0,0));
+					//}
 					cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 #ifdef SVDTRACK
 					SVDFindRAndT(oldResult, newResult, R, T);
@@ -1022,11 +918,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						
 #ifdef UQTRACK		
 					// get the rotated angle
-					float angle = UQFindRAndT(oldResult, newResult, R, T, Q);
+					float angle = UQFindRAndT(oldResult, newResult, R, T);
 					cout<<"The rotation matrix is: "<<R<<endl<<endl;
 					cout<<"The translation matrix is: "<<T<<endl<<endl;
 
-					RR = R*RR;
+					
 
 					// The second Limination
 					// consider the angle of rotation 
@@ -1104,6 +1000,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						cout<<"The frame has noise, but the maximal number of the allowed jumped frames are arrived!"<<endl;
 					}
 					obj->updateGraph(newResult, R, T);
+					RR = R*RR;
 					jumpedFeatures = 0;
 				} else {
 					cout<<"The frame has big noise, and will be throw out!"<<endl;
@@ -1131,8 +1028,6 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				PostMessage(pObjViewContext->hWnd, WM_PAINT, 0, 0);	
 				PostMessage(pKoordViewContext->hWnd, WM_PAINT, 0, 0);	
 
-
-#endif
 				char c = waitKey(100);
 				if(c == 27) break;
 #ifdef TEST

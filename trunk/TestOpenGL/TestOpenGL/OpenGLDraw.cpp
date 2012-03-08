@@ -190,15 +190,55 @@ void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData){
  
 	float factor = 2.04/204;
 
+	
+
 	glBegin(GL_POINTS);
 	for(int i=0;i<204;i++) {
 		for(int j=0;j<204;j++) {
+			//float h = pOpenGLWinUI->aBalance-bildData->ampData[i*204+j]/pOpenGLWinUI->aContrast;
+			////if(h<0) h=0;
+			//int hi = int(h/60);
+			//float f = h/60-hi;
+			//switch(hi){
+			//	case 0:
+			//		glColor3f(1,f,0);
+			//		break;
+			//	case 1:
+			//		glColor3f(1-f,1,0);
+			//		break;
+			//	case 2:
+			//		glColor3f(0,1,f);
+			//		break;
+			//	case 3:
+			//		glColor3f(0,1-f,1);
+			//		break;
+			//	case 4:
+			//		glColor3f(f,0,1);
+			//		break;
+			//	default:
+			//		glColor3f(1,0,1-f);
+			//}
 			//glVertex3f((i-102)*factor, (j-102)*factor, -bildData->disData[i*204+j]);
 			glVertex3f(bildData->threeDData[(i*204+j)*3], bildData->threeDData[(i*204+j)*3 +1], -bildData->threeDData[(i*204+j)*3 +2]);
 		}
 	}
-			
 	glEnd();    
+
+	glBegin(GL_LINE_STRIP);
+	if(bildData->features.size()>0){
+		glColor3f(1.0f, 0.0f, 0.0f);
+		glPointSize(10);
+		for(int i=0;i<bildData->features.size();i++){
+			glVertex3f(bildData->features[i].x, bildData->features[i].y, -bildData->features[i].z);
+		}
+		//for(int i=0;i<bildData->comFeatures.size();i++){
+		//	glVertex3f(bildData->comFeatures[i].x, bildData->comFeatures[i].y, -bildData->comFeatures[i].z);
+		//}
+		glPointSize(1);
+		glColor3f(1.0f,1.0f,1.0f);
+	}
+	glEnd();		
+	
 
     glPopMatrix();                   // Don't forget to pop the Matrix
 
@@ -222,6 +262,7 @@ void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData){
 			}
 			glColor3f(grayValue,grayValue,grayValue);
 			glVertex3f((i-102)*factor, (j-102)*factor, 0);
+			//glVertex3f(i*factor, j*factor, 0);
 		}
 	}
 	//glVertex3f(0,0,-3);
@@ -414,16 +455,16 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 	float rate = factor/204;
 	int size = graph->nodeList.size();
 	float ballSize;
-	glTranslatef(-factor/2, factor/2, 0);
+	//glTranslatef(-factor/2, factor/2, 0);
 	for(int i=0;i<size;i++){
 		
 		if(graph->nodeList[i]->isFixed){
-			ballSize = 0.03;
+			ballSize = 0.02;
 			mat_diffuse[0] = 1.0;
 			mat_diffuse[1] = 0.0;
 			mat_diffuse[3] = 1.0;
 		} else {
-			ballSize = 0.02;
+			ballSize = 0.01;
 			mat_diffuse[0] = 0.07568;
 			mat_diffuse[1] = graph->nodeList[i]->timmer*0.1+0.2;
 			mat_diffuse[3] = 1.0;
@@ -431,12 +472,12 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 		glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 
 		//if(graph->nodeList[i]->isFixed){
-		glTranslatef(graph->nodeList[i]->x*rate,-graph->nodeList[i]->y*rate,-graph->nodeList[i]->z*rate);
+		glTranslatef(graph->nodeList[i]->x,-graph->nodeList[i]->y,-graph->nodeList[i]->z);
 		glutSolidSphere(ballSize, 20, 16);
-		glTranslatef(-graph->nodeList[i]->x*rate,graph->nodeList[i]->y*rate,graph->nodeList[i]->z*rate);
+		glTranslatef(-graph->nodeList[i]->x,graph->nodeList[i]->y,graph->nodeList[i]->z);
 		//}
 	}
-	glTranslatef(factor/2, -factor/2, 0);
+	//glTranslatef(factor/2, -factor/2, 0);
 
 	//glPointSize(8);
 	//for(int i=0;i<graph->nodeList.size();i++){
@@ -479,6 +520,15 @@ void displayCoord(OpenGLWinUI *pOpenGLWinUI, Mat R){
 	glPushMatrix();   // It is important to push the Matrix before 
 
 
+	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	
+                                 
+	// calling glRotatef and glTranslatef
+	glRotatef(pOpenGLWinUI->rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
+    glRotatef(pOpenGLWinUI->rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
+    glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
+
+	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
 
 	if(!R.empty()){
 	float glParam[16];
@@ -501,18 +551,11 @@ void displayCoord(OpenGLWinUI *pOpenGLWinUI, Mat R){
 	glParam[15] = 1;
 
 	//cout<<"The R is: "<<R<<endl;
-	glLoadMatrixf(glParam);
+	//glLoadMatrixf(glParam);
+	glMultMatrixf(glParam);
 	}
 
-	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 	
-                                 
-	// calling glRotatef and glTranslatef
-	glRotatef(pOpenGLWinUI->rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
-    glRotatef(pOpenGLWinUI->rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
-    glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
-
-	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
 
 	//float scale = sqrt(R.at<float>(0,1)*R.at<float>(0,1) + R.at<float>(0,2)*R.at<float>(0,2) + R.at<float>(0,3)*R.at<float>(0,3));
 	//float rX = R.at<float>(0,1)/scale;
