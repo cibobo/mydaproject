@@ -113,6 +113,7 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 	 */
 	static bool isZChanged = false;
 
+
 	switch(uMsg) {
 		case WM_CREATE:
 			/*  */
@@ -146,6 +147,10 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 			pOpenGLWinUI->aContrast = 12;
 			pOpenGLWinUI->aBalance = 250;
                                     
+			pOpenGLWinUI->colorIndex = 0;
+
+			//pOpenGLWinUI->colorList = 
+
 
 		return TRUE;
 
@@ -296,6 +301,13 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 				case 'K':
 					if(pOpenGLWinUI->aContrast > 0){
 						pOpenGLWinUI->aContrast -=1;
+					}
+					break;
+
+				// Change the color of the balls
+				case 'C':
+					if(++pOpenGLWinUI->colorIndex>=6){
+						pOpenGLWinUI->colorIndex = 0;
 					}
 					break;
 

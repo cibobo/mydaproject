@@ -1,4 +1,5 @@
 /* An example of the minimal Win32 & OpenGL program.  It only works in   16 bit color modes or higher (since it doesn't create a   palette). */
+
 #include <windows.h>			/* must include this before GL/gl.h */
 #include <GL/gl.h>			/* OpenGL header file */
 #include <GL/glu.h>			/* OpenGL utilities header file */
@@ -7,6 +8,13 @@
 
 
 #include "glut/glut.h"
+
+static GLfloat COLORLIST[6][4] = {{1.0, 0.0, 0.0, 1.0},
+								   {1.0, 1.0, 0.0, 1.0},
+								   {0.0, 1.0, 1.0, 1.0},
+								   {1.0, 0.0, 1.0, 1.0},
+								   {1.0, 1.0, 1.0, 1.0},
+								   {0.7, 0.7, 0.7, 1.0}};
 
 struct OpenGLContext
 {
@@ -60,6 +68,9 @@ struct OpenGLWinUI
 
 	float aContrast;
 	float aBalance;
+
+	int colorIndex;
+
 
 	//int iKeyState;
 

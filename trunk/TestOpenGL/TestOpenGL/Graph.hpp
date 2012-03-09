@@ -30,6 +30,8 @@ public:
 	int index;
 	int timmer;
 	bool isFixed;
+	// to save the color of the node, in order to sepreate the points of different plane
+	int color;
 
 	Node();
 	Node(int timmer);
