@@ -22,11 +22,13 @@ Edge::Edge(Node *firstNode, Node *secondNode, float cost){
 Node::Node(){
 	this->timmer = 3;
 	this->isFixed = false;
+	this->color = -1;
 }
 
 Node::Node(int timmer){
 	this->timmer = timmer;
 	this->isFixed = false;
+	this->color = -1;
 }
 
 Node::Node(Point3f point){
@@ -35,6 +37,7 @@ Node::Node(Point3f point){
 	this->z = point.z;
 	this->timmer = 3;
 	this->isFixed = false;
+	this->color = -1;
 }
 
 Node::~Node(){
@@ -269,8 +272,8 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 			}
 
 			vector<Point3f> tempPoints = points;
-			float e = 0.003;
-			int timeThreshold = 25;
+			float e = 0.004;
+			int timeThreshold = 32;
 			for(int i=0;i<this->nodeList.size();i++){
 				Node *currentNode = this->nodeList[i];
 				int j;

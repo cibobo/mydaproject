@@ -65,7 +65,7 @@ list<BildData*> bildDataBuffer;
 // The difference between the index of the current frame and historical frame
 int DETECTINGRATE = 2;
 
-int MAXJUMPEDFEATURES = 3;
+int MAXJUMPEDFEATURES = 2;
 // The iterator fo the buffer, which define the position der historical data in used
 int bufferIterator = 1;
 
@@ -74,7 +74,7 @@ int currentFrameIndex = 0;
 int oldFrameIndex = 1;
 
 // framerate
-int FRAMERATE = 300;
+int FRAMERATE = 100;
 
 //int HISFRAMEINDEX = 3;
 
@@ -729,9 +729,6 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 * Test for the greate meng of SVD
 				 *
 				 *************************************************/
-
-
-
 				// save all features without calibration into the data
 				currentBildData->comFeatures.clear();
 				for(int i=0;i<features.size();i++){
@@ -776,14 +773,16 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 *
 				 * 1. Spread the features to different set, which are close to each others. The parameter eps set the size of the area
 				 * 2. Calculate the middel point of each set and show them
+				 * 3. Save the resault into the vector: SummerizedFeatures
+				 *
 				 *************************************************/
 				// to save the sets and the elements of set
 				vector<vector<KeyPoint>> groupFeatures;
-				calibration2(groupFeatures, features, eps);
+				// first calibration for the original features, which deal with the 2D point
+				calibration2D(groupFeatures, features, eps);
 				cout<<"After Summerize get "<<groupFeatures.size()<<" features!"<<endl;
 
-				// Save the features into the first place of data buffer
-				currentBildData->features.clear();
+				vector<Point3f> summerizedFeatures; 
 				for(int i=0;i<groupFeatures.size();i++){
 					float avrX2D = 0;
 					float avrY2D = 0;
@@ -809,17 +808,43 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					Point3f p3(avrX3D/groupSize, avrY3D/groupSize, avrZ3D/groupSize);
 					
 					currentBildData->features2D.push_back(p2);
-					currentBildData->features.push_back(p3);
+					//currentBildData->features.push_back(p3);
+					summerizedFeatures.push_back(p3);
 					
 					// show the current features
 					circle(right, p2, 1, Scalar(0,0,255,0), -1);
-
-					//translate vector from left to right
-					//Point2f trans(204, 0);
-					//line(testimg, p, p+trans, Scalar(255, 255, 0, 0));
 				}
 
 
+				/*************************************************
+				 *
+				 * Second Calibration to seprate different objects
+				 *
+				 *     assume now just on object
+				 * TODO: for more objects expand
+				 *
+				 *************************************************/
+				vector<vector<Point3f>> caliResult;
+				float CALIEPS3D = 0.25;
+
+				// Call calibration
+				calibration(caliResult, summerizedFeatures, CALIEPS3D);
+
+				// Clear the vector of the features
+				currentBildData->features.clear();
+				// Save the features into the first place of data buffer
+				findMaxPointsSet(caliResult, currentBildData->features);
+
+
+				/***************************************************
+				 *
+				 * Compare the historical features and the current features, in order to find the transformation of the object
+				 *
+				 * 1. Using FeatureAssociate to find the corresponding features in two frames
+				 * 2. Using Unit Quartnion to find the rotation and traslation matrix of the object
+				 * 3. Judge the transformation. Ignore the big noised frame
+				 *
+				 ***************************************************/
 				//The loop of the historical data, in oder to remove the "bad" frames
 				//cout<<"==================== Begin the loop of historical data ==========================="<<endl;
 
@@ -827,63 +852,16 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//vector<Point3f> hisFeatures = bildDataBuffer[bildDataBuffer.size()-1]->features;
 
 				// The current Features
-				vector<Point3f> curFeatures = currentBildData->features;
-				vector<Point2f> curFeatures2D = currentBildData->features2D;
+				vector<Point3f> curFeatures = currentBildData->features;	
 				// The historical Features
-				vector<Point2f> hisFeatures2D = bildDataBuffer.front()->features2D;
 				vector<Point3f> hisFeatures = bildDataBuffer.front()->features;
 
-				// The vector to save the index of SVC Association
-				vector<int> oldIndexResult, newIndexResult;
 				// The vector to save the points of SVC Association				
 				vector<Point3f> oldResult, newResult;
 
-				vector<vector<Point3f>> caliResult;
+				float ASSOCIATESITA = 0.09;
 
-				vector<Point3f> maxSet;
-
-				float ASSOCIATESITA = 0.15;
-
-				// set the new historical fram into the left OpenCV window 
-				//transFloatTo3Char(bildDataBuffer[bufferIterator]->ampData, hisShowdata, balance, contrast);
-				//Mat hisImg2 = Mat(size, CV_8UC3, hisShowdata);
-				//hisImg2.copyTo(left);
-
-				for(int i=0;i<hisFeatures2D.size();i++){
-					// show the old features
-					circle(left, hisFeatures2D[i], 2, Scalar(0,255,0,0), -1);
-				}
-
-				if(hisFeatures.size()>0&&curFeatures.size()>0){
-					featureAssociate(hisFeatures, curFeatures, ASSOCIATESITA, oldIndexResult, newIndexResult);
-					for(int i=0;i<oldIndexResult.size();i++){
-						Point2f trans(204,0);
-						//line(testimg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
-						line(testimg, hisFeatures2D[oldIndexResult[i]], curFeatures2D[newIndexResult[i]]+trans, Scalar(255,255,0,0));
-					}
-					cout<<"The number of useful features is: "<<oldResult.size()<<endl;
-				}
-
-				// call calibration
-				
-				calibration(caliResult, currentBildData->features, 15);
-				//calibration(caliResult, newResult, 18);
-
-				Mat graphImg = Mat(size, CV_8UC3, showdata);
-				//for(int k=0;k<caliResult.size();k++){
-				//	int firstSize = caliResult[k].size();
-				//	for(int i=0;i<firstSize;i++){
-				//		for(int j=0;j<firstSize;j++){
-				//			line(graphImg, point3To2(caliResult[k][i]), point3To2(caliResult[k][j]), Scalar(0, 255, 255, 0));
-				//		}
-				//	}
-				//}
-				imshow("OpenCVRGBGraph", graphImg);
-
-				
-				findMaxPointsSet(caliResult, maxSet);
-
-				
+			
 				//Mat R = Mat(3,3,CV_32FC1);
 				//Mat T = Mat(3,1,CV_32FC1);
 
@@ -926,14 +904,16 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 					// The second Limination
 					// consider the angle of rotation 
-					//bool isBig = isBigNoised(T, angle, jumpedFeatures+1, 3.5, 3);
-					bool isBig = isBigNoised2(obj, newResult, R, T, 0.35);
+					
+					
 #ifdef FRAME2
+					bool isBig = isBigNoised(T, angle, jumpedFeatures+1, 3.5, 10);
 					if(!isBig){
+						
 						cout<<"The roateted angle: "<<angle<<" is small than 3"<<endl;
 
 						obj->updateGraph(newResult, R, T);
-
+						RR = R*RR;
 						// if there is minimal 1 feature jumped, remove the unused frame
 						if(jumpedFeatures > 0){
 
@@ -968,7 +948,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						if(jumpedFeatures >= MAXJUMPEDFEATURES){
 							// update with the best R and T, which cooresponding to the smallest rotated angle
 							obj->updateGraph(memNewResult, memR, memT);	
-
+							RR = memR*RR;
 							// remove all data, which around the selected feature
 							list<BildData*>::iterator it = bildDataBuffer.end();
 							for(int i=MAXJUMPEDFEATURES;i>=0;i--){
@@ -993,6 +973,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 #ifdef FRAME1
 				//TODO: using the choosen strategy
+				bool isBig = isBigNoised2(obj, newResult, R, T, 0.35, 0.008);
 				if(!isBig || jumpedFeatures>=MAXJUMPEDFEATURES){
 					if(!isBig){
 						cout<<"The frame is not noised: "<<endl;
@@ -1012,8 +993,48 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 					//obj->updateGraph(newResult, R, T);
 				}
+
+				/********************************************
+				 *
+				 * OpenCV Show Windows
+				 *
+				 ********************************************/
+				vector<Point2f> curFeatures2D = currentBildData->features2D;
+				vector<Point2f> hisFeatures2D = bildDataBuffer.front()->features2D;
+				// The vector to save the index of SVC Association
+				vector<int> oldIndexResult, newIndexResult;
+
+				// set the new historical fram into the left OpenCV window 
+				//transFloatTo3Char(bildDataBuffer[bufferIterator]->ampData, hisShowdata, balance, contrast);
+				//Mat hisImg2 = Mat(size, CV_8UC3, hisShowdata);
+				//hisImg2.copyTo(left);
+
+				for(int i=0;i<hisFeatures2D.size();i++){
+					// show the old features
+					circle(left, hisFeatures2D[i], 2, Scalar(0,255,0,0), -1);
+				}
+
+				//if(hisFeatures.size()>0&&curFeatures.size()>0){
+				//	featureAssociate(hisFeatures, curFeatures, ASSOCIATESITA, oldIndexResult, newIndexResult);
+				//	for(int i=0;i<oldIndexResult.size();i++){
+				//		Point2f trans(204,0);
+				//		//line(testimg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
+				//		line(testimg, hisFeatures2D[oldIndexResult[i]], curFeatures2D[newIndexResult[i]]+trans, Scalar(255,255,0,0));
+				//	}
+				//	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
+				//}
 				imshow("OpenCVRGBTest", testimg);
-			
+
+				Mat graphImg = Mat(size, CV_8UC3, showdata);
+				//for(int k=0;k<caliResult.size();k++){
+				//	int firstSize = caliResult[k].size();
+				//	for(int i=0;i<firstSize;i++){
+				//		for(int j=0;j<firstSize;j++){
+				//			line(graphImg, point3To2(caliResult[k][i]), point3To2(caliResult[k][j]), Scalar(0, 255, 255, 0));
+				//		}
+				//	}
+				//}
+				imshow("OpenCVRGBGraph", graphImg);
 
 				//cout<<"==================== End the loop of historical data ==========================="<<endl;
 #endif	

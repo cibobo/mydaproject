@@ -273,7 +273,7 @@ void calibration(vector<vector<Point3f>> &result, vector<Point3f> points, float 
 
 
 
-void calibration2(vector<vector<KeyPoint>> &groupFeatures, vector<KeyPoint> features, float eps){
+void calibration2D(vector<vector<KeyPoint>> &groupFeatures, vector<KeyPoint> features, float eps){
 	// to save the set Nr. for each feature
 	vector<int> pointer;
 	// the beginning set Nr. is -1 
@@ -509,6 +509,15 @@ void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, f
 			}
 		}
 	}	
+
+	// calculate the average displacement
+	float disSum = 0;
+	for(int i=0;i<findFeatureOld.size();i++){
+		disSum += sqrt((findFeatureOld[i].x - findFeatureNew[i].x)*(findFeatureOld[i].x - findFeatureNew[i].x)
+					 + (findFeatureOld[i].y - findFeatureNew[i].y)*(findFeatureOld[i].y - findFeatureNew[i].y)
+					 + (findFeatureOld[i].z - findFeatureNew[i].z)*(findFeatureOld[i].z - findFeatureNew[i].z));
+	}
+	cout<<"The average displacement is: "<<disSum/findFeatureOld.size()<<endl;
 	delete []rowMax;
 }
 
@@ -737,14 +746,14 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 	cout<<"The Centeriol for D is: "<<tempD<<endl;
 
 	//kalman filter
-	Mat kTempD = Mat(6,1,CV_32FC1);
-	featureKalmanFilter(tempD, kTempD);
+	//Mat kTempD = Mat(6,1,CV_32FC1);
+	//featureKalmanFilter(tempD, kTempD);
 
-	cout<<"The Centeriol for D after Kalman Filter is: "<<kTempD<<endl;
+	//cout<<"The Centeriol for D after Kalman Filter is: "<<kTempD<<endl;
 
-	T = kTempD.rowRange(0,3) - R * tempM;
+	//T = kTempD.rowRange(0,3) - R * tempM;
 
-	//T = tempD - R * tempM;
+	T = tempD - R * tempM;
 	//cout<<"R*M= "<<R*tempM<<endl<<endl;
 	//cout<<"T= "<<T<<endl;
 	//cout<<T.cols<<" , "<<T.rows<<" | "<<T.channels()<<endl;
@@ -812,7 +821,7 @@ bool isBigNoised(Mat T, float angular, int frameDiff, float eLinear, float eAngu
 }
 
 //TODO: Combination with the ObjectUpdata function
-bool isBigNoised2( Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float aRate){
+bool isBigNoised2( Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float aRate, float e){
 	if(points.size()<=0){
 		return false;
 	} else {
@@ -820,7 +829,6 @@ bool isBigNoised2( Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float a
 			return false;
 		} else {
 			int coorPoints = 0;
-			float e=0.2;
 			int size = graph->nodeList.size();
 			for(int i=0;i<size;i++){
 				Mat oldPoint = Mat(graph->nodeList[i]->getPoint());

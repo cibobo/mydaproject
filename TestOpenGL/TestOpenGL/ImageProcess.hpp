@@ -24,7 +24,7 @@ bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsign
 
 void calibration(vector<vector<Point3f>> &result, vector<Point3f> points, float eps);
 
-void calibration2(vector<vector<KeyPoint>> &groupFeatures, vector<KeyPoint> features, float eps);
+void calibration2D(vector<vector<KeyPoint>> &groupFeatures, vector<KeyPoint> features, float eps);
 
 void findMaxPointsSet(vector<vector<Point3f>> pointsSets, vector<Point3f> &maxSet);
 
@@ -38,6 +38,6 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 
 bool isBigNoised(Mat T, float angle, int frameDiff, float eLinear, float eAngular);
 
-bool isBigNoised2(Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float aRate);
+bool isBigNoised2(Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float aRate, float e);
 
 #endif

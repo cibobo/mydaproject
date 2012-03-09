@@ -224,20 +224,21 @@ void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData){
 	}
 	glEnd();    
 
-	glBegin(GL_LINE_STRIP);
+	glPointSize(10);
+	//glBegin(GL_LINE_STRIP);
+	glBegin(GL_POINTS);
 	if(bildData->features.size()>0){
 		glColor3f(1.0f, 0.0f, 0.0f);
-		glPointSize(10);
 		for(int i=0;i<bildData->features.size();i++){
 			glVertex3f(bildData->features[i].x, bildData->features[i].y, -bildData->features[i].z);
 		}
 		//for(int i=0;i<bildData->comFeatures.size();i++){
 		//	glVertex3f(bildData->comFeatures[i].x, bildData->comFeatures[i].y, -bildData->comFeatures[i].z);
 		//}
-		glPointSize(1);
 		glColor3f(1.0f,1.0f,1.0f);
 	}
-	glEnd();		
+	glEnd();
+	glPointSize(1);
 	
 
     glPopMatrix();                   // Don't forget to pop the Matrix
@@ -460,13 +461,23 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 		
 		if(graph->nodeList[i]->isFixed){
 			ballSize = 0.02;
-			mat_diffuse[0] = 1.0;
-			mat_diffuse[1] = 0.0;
-			mat_diffuse[3] = 1.0;
+			//mat_diffuse[0] = 1.0;
+			//mat_diffuse[1] = 0.0;
+			//mat_diffuse[3] = 1.0;
+
+			// if the color of the node are not set
+			if(graph->nodeList[i]->color == -1){
+				graph->nodeList[i]->color = pOpenGLWinUI->colorIndex;
+			}
+			mat_diffuse[0] = COLORLIST[graph->nodeList[i]->color][0];
+			mat_diffuse[1] = COLORLIST[graph->nodeList[i]->color][1];
+			mat_diffuse[2] = COLORLIST[graph->nodeList[i]->color][2];
+			mat_diffuse[3] = COLORLIST[graph->nodeList[i]->color][3];
 		} else {
 			ballSize = 0.01;
 			mat_diffuse[0] = 0.07568;
 			mat_diffuse[1] = graph->nodeList[i]->timmer*0.1+0.2;
+			mat_diffuse[2] = 0.07568;
 			mat_diffuse[3] = 1.0;
 		}
 		glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
