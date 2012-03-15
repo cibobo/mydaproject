@@ -30,7 +30,7 @@ void findMaxPointsSet(vector<vector<Point3f>> pointsSets, vector<Point3f> &maxSe
 
 void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew);
 
-void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew);
+float featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew);
 
 void SVDFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T);
 
@@ -39,5 +39,7 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 bool isBigNoised(Mat T, float angle, int frameDiff, float eLinear, float eAngular);
 
 bool isBigNoised2(Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float aRate, float e);
+
+void calcEulerAngleFromR(Mat R, Vec3d &euler1, Vec3d &euler2);
 
 #endif

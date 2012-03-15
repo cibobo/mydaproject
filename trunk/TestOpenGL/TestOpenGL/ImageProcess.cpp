@@ -434,7 +434,7 @@ void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, fl
 /*
  * The Input points are 3D points, but just the information for x and y is useful to deal with the SVD
  */
-void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew){
+float featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew){
 	// set the number of the old features as the row size
 	int rowSize = oldFeature.size();
 	// set the number of the new features as the column size
@@ -517,8 +517,10 @@ void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, f
 					 + (findFeatureOld[i].y - findFeatureNew[i].y)*(findFeatureOld[i].y - findFeatureNew[i].y)
 					 + (findFeatureOld[i].z - findFeatureNew[i].z)*(findFeatureOld[i].z - findFeatureNew[i].z));
 	}
-	cout<<"The average displacement is: "<<disSum/findFeatureOld.size()<<endl;
+	float avrDis = disSum/findFeatureOld.size();
+	cout<<"The average displacement is: "<<avrDis<<endl;
 	delete []rowMax;
+	return avrDis;
 }
 
 /****************************************************************************************
@@ -732,6 +734,7 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 	
 	//cout<<"R = "<<R<<endl<<endl;
 	//cout<<R.cols<<" , "<<R.rows<<" | "<<R.channels()<<" , "<<R.type()<<endl;
+	//cout<<"Determinand of R is: "<<determinant(R)<<endl;
 	
 	Mat tempM = Mat(avrM).rowRange(0,3);
 	Mat tempD = Mat(avrD).rowRange(0,3);
@@ -742,18 +745,18 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 
 	//cout<<tempM<<endl;
 	//cout<<tempM.cols<<" , "<<tempM.rows<<" | "<<tempM.channels()<<" , "<<tempM.type()<<endl;
-	cout<<"The Centeriol for M is: "<<tempM<<endl;
-	cout<<"The Centeriol for D is: "<<tempD<<endl;
+	//cout<<"The Centeriol for M is: "<<tempM<<endl;
+	//cout<<"The Centeriol for D is: "<<tempD<<endl;
 
 	//kalman filter
-	//Mat kTempD = Mat(6,1,CV_32FC1);
-	//featureKalmanFilter(tempD, kTempD);
+	Mat kTempD = Mat(6,1,CV_32FC1);
+	featureKalmanFilter(tempD, kTempD);
 
-	//cout<<"The Centeriol for D after Kalman Filter is: "<<kTempD<<endl;
+	cout<<"The Centeriol for D after Kalman Filter is: "<<kTempD<<endl;
 
-	//T = kTempD.rowRange(0,3) - R * tempM;
+	T = kTempD.rowRange(0,3) - R * tempM;
 
-	T = tempD - R * tempM;
+	//T = tempD - R * tempM;
 	//cout<<"R*M= "<<R*tempM<<endl<<endl;
 	//cout<<"T= "<<T<<endl;
 	//cout<<T.cols<<" , "<<T.rows<<" | "<<T.channels()<<endl;
@@ -852,5 +855,39 @@ bool isBigNoised2( Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float a
 				return true;
 			}
 		}
+	}
+}
+
+// To calculate the euler angle with rotationsmatrix.
+// The result is saved into a vector with 3 elements
+void calcEulerAngleFromR(Mat R, Vec3d &euler1, Vec3d &euler2){
+	float pei = 3.1416;
+	if(fabs(R.at<float>(2,0)) != 1){
+		euler1[0] = -asin(R.at<float>(2,0));
+		euler2[0] = pei - euler1[0];
+
+		double cosTheta1 = cos(euler1[0]);
+		double cosTheta2 = cos(euler2[0]);
+		
+		euler1[1] = atan2(R.at<float>(2,1)/cosTheta1, R.at<float>(2,2)/cosTheta1);
+		euler2[1] = atan2(R.at<float>(2,1)/cosTheta2, R.at<float>(2,2)/cosTheta2);
+
+		euler1[2] = atan2(R.at<float>(1,0)/cosTheta1, R.at<float>(0,0)/cosTheta1);
+		euler2[2] = atan2(R.at<float>(1,0)/cosTheta2, R.at<float>(0,0)/cosTheta2);
+	} else {
+		euler1[2] = euler2[2] = 0;
+
+		float R31 = -R.at<float>(2,0);
+		
+		euler1[0] = euler2[0] = R31*pei/2;
+		euler1[1] = euler2[1]  = R31*euler1[2] + atan2(R31*R.at<float>(0,1), R31*R.at<float>(0,2));
+		
+		//if(R.at<float>(2,0) == -1){
+		//	euler1[0] = euler2[0] = pei/2;
+		//	euler1[1] = euler2[1]  = euler1[2] + atan2(R.at<float>(0,1), R.at<float>(0,2));
+		//} else {
+		//	euler1[0] = euler2[0] = -pei/2;
+		//	euler1[1] = euler2[1]  = euler1[2] + atan2(-R.at<float>(0,1), -R.at<float>(0,2));
+		//}
 	}
 }

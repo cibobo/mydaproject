@@ -49,6 +49,9 @@ public:
 	vector<Node*> nodeList;
 	int indexCount;
 	int lifeTime;
+	// The rotationmatrix from beginning status to the current status
+	Mat R;
+	Mat T;
 
 	Graph();
 	Graph(vector<Point3f> points);

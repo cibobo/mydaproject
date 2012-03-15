@@ -224,6 +224,7 @@ void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData){
 	}
 	glEnd();    
 
+	// draw the features
 	glPointSize(10);
 	//glBegin(GL_LINE_STRIP);
 	glBegin(GL_POINTS);
@@ -429,6 +430,7 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glLoadIdentity();
 
+	glViewport(0, 0, height, height);
 	//set the view point
 	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
 	glPushMatrix();   // It is important to push the Matrix before 
@@ -467,7 +469,10 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 
 			// if the color of the node are not set
 			if(graph->nodeList[i]->color == -1){
-				graph->nodeList[i]->color = pOpenGLWinUI->colorIndex;
+				//graph->nodeList[i]->color = pOpenGLWinUI->colorIndex;
+				float traceR = graph->R.at<float>(0,0) + graph->R.at<float>(1,1) + graph->R.at<float>(2,2);
+				float angle = acos((traceR-1)/2);
+				graph->nodeList[i]->color = int(fabs(angle)*2/3.1416);
 			}
 			mat_diffuse[0] = COLORLIST[graph->nodeList[i]->color][0];
 			mat_diffuse[1] = COLORLIST[graph->nodeList[i]->color][1];
@@ -483,9 +488,9 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 		glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 
 		//if(graph->nodeList[i]->isFixed){
-		glTranslatef(graph->nodeList[i]->x,-graph->nodeList[i]->y,-graph->nodeList[i]->z);
+		glTranslatef(graph->nodeList[i]->x,graph->nodeList[i]->y,-graph->nodeList[i]->z);
 		glutSolidSphere(ballSize, 20, 16);
-		glTranslatef(-graph->nodeList[i]->x,graph->nodeList[i]->y,graph->nodeList[i]->z);
+		glTranslatef(-graph->nodeList[i]->x,-graph->nodeList[i]->y,graph->nodeList[i]->z);
 		//}
 	}
 	//glTranslatef(factor/2, -factor/2, 0);
@@ -516,6 +521,48 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 			
 	//glutSolidTeapot(0.8);
                     // Don't forget to pop the Matrix
+	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
+	glFlush();
+	glPopMatrix();   
+
+
+
+	glLoadIdentity();
+	glViewport(height, 0, height, height);
+
+	gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+	glPushMatrix();   // It is important to push the Matrix before 
+
+	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
+	glTranslatef(-1, 0, 0);
+
+	drawCoordi();
+	int oldColor = -1;
+	float x = 0;
+	for(int i=0;i<size;i++){
+
+		if(graph->nodeList[i]->isFixed){
+			ballSize = 0.02;
+			int newColor = graph->nodeList[i]->color;
+			mat_diffuse[0] = COLORLIST[graph->nodeList[i]->color][0];
+			mat_diffuse[1] = COLORLIST[graph->nodeList[i]->color][1];
+			mat_diffuse[2] = COLORLIST[graph->nodeList[i]->color][2];
+			mat_diffuse[3] = COLORLIST[graph->nodeList[i]->color][3];
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+
+			if(newColor == oldColor){
+				x += 0.3;
+			} else {
+				x = 0;
+				oldColor = newColor;
+			}
+			//float x = graph->nodeList[i]->timmer/30.0;
+			float y = graph->nodeList[i]->color/8.0;
+			glTranslatef(x,y,0);
+			glutSolidSphere(ballSize, 20, 16);
+			glTranslatef(-x,-y,0);
+		}
+	}
 	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
 	glFlush();
 	glPopMatrix();   
