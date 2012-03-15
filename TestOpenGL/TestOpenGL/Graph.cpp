@@ -62,7 +62,7 @@ Point3f Node::getPoint(){
 Graph::Graph(){
 	this->indexCount = 0;
 	this->lifeTime = 0;
-
+	this->R = Mat::eye(3,3,CV_32FC1);
 	// test
 	//this->nodeList.push_back(new Node(Point3f(30, 0, 2)));
 	//this->nodeList.push_back(new Node(Point3f(-15, -22, 2)));
@@ -74,6 +74,7 @@ Graph::Graph(vector<Point3f> points){
 		this->addNode(points[i]);
 	}
 	this->lifeTime = 0;
+	this->R = Mat::eye(3,3,CV_32FC1);
 }
 
 Graph::~Graph(){
@@ -273,7 +274,7 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 
 			vector<Point3f> tempPoints = points;
 			float e = 0.004;
-			int timeThreshold = 32;
+			int timeThreshold = 30;
 			for(int i=0;i<this->nodeList.size();i++){
 				Node *currentNode = this->nodeList[i];
 				int j;

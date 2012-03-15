@@ -9,8 +9,12 @@
 //#define SVDTRACK
 #define UQTRACK
 
-#define FRAME1
-//#define FRAME2
+// frame choosen strategy with the percent of associate points
+//#define FRAME1
+// frame choosen strategy with compare of rotated angel
+//#define FRAME2 
+// frame choosen strategy with the percent of associate points and the average distance between them
+#define FRAME3
 
 
 //#define TEST
@@ -79,6 +83,8 @@ int FRAMERATE = 100;
 //int HISFRAMEINDEX = 3;
 
 DistanceFilter *dFilter;
+
+int frameIndex;
 
 Graph *obj;
 
@@ -253,6 +259,7 @@ void inputThreadProc(void *param){
 
 	cout<<"Upgrading Distance Filter and Save Data into Buffer....."<<endl;
 	for(int i=1;i<20;i++){
+		frameIndex = i;
 		//loadNormalDataFromFile("distance", i, bildData->disData);
 		BildData *temp = new BildData();
 		loadAllDataFromFile(i, temp);
@@ -271,8 +278,10 @@ void inputThreadProc(void *param){
 	LeaveCriticalSection (&glInitCrs);
 
 	for(int i=20;i<750;i++){
+		cout<<endl<<"============================= "<<i<<" ==========================="<<endl;
 		EnterCriticalSection(&pauseCrs);
 		EnterCriticalSection(&frameCrs);
+		frameIndex = i;
 		//loadNormalDataFromFile("distance", i, bildData->disData);
 		//loadNormalDataFromFile("intensity", i, bildData->intData);
 		//loadNormalDataFromFile("amplitude", i, bildData->ampData);
@@ -289,7 +298,14 @@ void inputThreadProc(void *param){
 #endif
 
 #ifdef FRAME2
-		// if sepcial process begin, the old data would be removed
+		// if sepcial process begin, the old data would not be removed
+		if(jumpedFeatures<1){
+			bildDataBuffer.pop_front();
+		}
+#endif
+
+#ifdef FRAME3
+		// if sepcial process begin, the old data would not be removed
 		if(jumpedFeatures<1){
 			bildDataBuffer.pop_front();
 		}
@@ -333,9 +349,19 @@ void inputThreadProc(void *param){
 	for(int i=0;i<20;i++){
 		BildData *temp = new BildData();
 		getPMDData(temp);
+#ifdef FRAME1
 		if(bildDataBuffer.size()>=DETECTINGRATE){
+			//delete the first element from the list
 			bildDataBuffer.pop_front();
 		}
+#endif
+
+#ifdef FRAME3
+		// if sepcial process begin, the old data would not be removed
+		if(jumpedFeatures<1){
+			bildDataBuffer.pop_front();
+		}
+#endif
 		bildDataBuffer.push_back(temp);
 
 		dFilter->Upgrade(temp->disData);
@@ -381,7 +407,7 @@ void objWindowThreadPorc(void *param ){
 
 	
 
-	if(!CreateOpenGLWindow("Object Window", 0, 0, 1000, 1000, PFD_TYPE_RGBA, 0, pObjGLWinUI, pObjViewContext)){
+	if(!CreateOpenGLWindow("Object Window", 0, 0, 1500, 750, PFD_TYPE_RGBA, 0, pObjGLWinUI, pObjViewContext)){
 		exit(0);
 	}
 
@@ -506,9 +532,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 		}
 
 		//Start Koordinatensystem Window Thread 
-		if(_beginthread (koordWindowThreadPorc, 0, NULL)==-1){
-			cout<<"Failed to create KoordWindow thread"<<endl;
-		}
+		//if(_beginthread (koordWindowThreadPorc, 0, NULL)==-1){
+		//	cout<<"Failed to create KoordWindow thread"<<endl;
+		//}
 		// Start ARToolKit Window Thread 
 		//if(_beginthread (arToolKitThreadProc, 0, NULL)==-1){
 		//	cout<<"Failed to create ARToolKit thread"<<endl;
@@ -570,6 +596,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			obj = new Graph();
 
 			float memAngle = 360;
+			float memAvrDis = numeric_limits<float>::max();
 			Mat memR, memT;
 			vector<Point3f> memNewResult;
 			int memIndex = 0;
@@ -825,7 +852,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 *
 				 *************************************************/
 				vector<vector<Point3f>> caliResult;
-				float CALIEPS3D = 0.25;
+				float CALIEPS3D = 0.2;
 
 				// Call calibration
 				calibration(caliResult, summerizedFeatures, CALIEPS3D);
@@ -868,7 +895,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					
 				cout<<"======= "<<isDataUsed<<" ======= "<<hisFeatures.size()<<" ======= "<<curFeatures.size()<<endl<<endl;
 				if(hisFeatures.size()>0 && curFeatures.size()>0){
-					featureAssociate2(hisFeatures, curFeatures, ASSOCIATESITA, oldResult, newResult);
+					float avrDis = featureAssociate2(hisFeatures, curFeatures, ASSOCIATESITA, oldResult, newResult);
 
 					// The first Limination
 					// consider the size of the coorespondence points
@@ -991,7 +1018,69 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				}
 #endif
 
+#ifdef FRAME3
+				//TODO: using the choosen strategy
+				bool isBig = isBigNoised2(obj, newResult, R, T, 0.35, 0.005);
+				if(!isBig){
+					cout<<"The frame is not noised: "<<endl;
+					obj->updateGraph(newResult, R, T);
+					RR = R*RR;
+					RR.copyTo(obj->R);
+					if(jumpedFeatures > 0){
+						bildDataBuffer.erase(--(--bildDataBuffer.end()));
+						jumpedFeatures = 0;
+						memAvrDis = numeric_limits<float>::max();
+						memAngle = 360;
+					}
+				} else {
+					cout<<"The frame has big noise, and will be throw out!"<<endl;
+					// if the noised frame has a smaller distance between the associated points
+					if(avrDis < memAvrDis){
+						memAvrDis = avrDis;
+					//if(angle<memAngle){
+					//	memAngle = angle;
+						R.copyTo(memR);
+						T.copyTo(memT);
+						memIndex = frameIndex;
+						memNewResult = newResult;
+						// if this noised frame is not the first frame, that means, there is already a noised frame before this frame 
+						if(jumpedFeatures > 0){
+							// remove the frame before
+							bildDataBuffer.erase(--(--bildDataBuffer.end()));
+						}
+					} else {
+						bildDataBuffer.pop_back();
+					}
+					cout<<"Jumped! The jumped features: "<<jumpedFeatures<<endl;
+					jumpedFeatures++;
+
+					if(jumpedFeatures>MAXJUMPEDFEATURES){
+						cout<<"The frame has noise, but the maximal number of the allowed jumped frames are arrived!"<<endl;
+						cout<<"The frmae "<<memIndex<<" has been choice to get an approximation"<<endl;
+						//cout<<"The selected Rotationmatrix and Translationmatrix are: "<<endl;
+						//cout<<"memR = "<<memR<<endl;
+						//cout<<"memT = "<<memT<<endl;
+						obj->updateGraph(memNewResult, memR, memT);
+						RR = memR*RR;
+						RR.copyTo(obj->R);
+
+						jumpedFeatures = 0;
+						memAvrDis = numeric_limits<float>::max();
+						memAngle = 360;
+					}
+
+				}
+#endif
+
 					//obj->updateGraph(newResult, R, T);
+					//float traceR = obj->R.at<float>(0,0) + obj->R.at<float>(1,1) + obj->R.at<float>(2,2);
+					//float angleR = acos((traceR-1)/2);
+					////graph->nodeList[i]->color = int(fabs(angle)/90);
+					//cout<<"The total rotated angle: "<<angleR*180/3.14<<endl;
+					Vec3d euler1, euler2;
+					calcEulerAngleFromR(obj->R, euler1, euler2);
+					cout<<"The total rotated angle 1: "<<euler1[0]*180/3.14<<" , "<<euler1[1]*180/3.14<<" , "<<euler1[2]*180/3.14<<" , "<<endl;
+					cout<<"The total rotated angle 2: "<<euler2[0]*180/3.14<<" , "<<euler2[1]*180/3.14<<" , "<<euler2[2]*180/3.14<<" , "<<endl;
 				}
 
 				/********************************************
@@ -1047,7 +1136,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				// display 3D structur of the Object in an OpenGL Window
 				PostMessage(pObjViewContext->hWnd, WM_PAINT, 0, 0);	
-				PostMessage(pKoordViewContext->hWnd, WM_PAINT, 0, 0);	
+				//PostMessage(pKoordViewContext->hWnd, WM_PAINT, 0, 0);	
 
 				char c = waitKey(100);
 				if(c == 27) break;
