@@ -49,6 +49,7 @@ public:
 	vector<Node*> nodeList;
 	int indexCount;
 	int lifeTime;
+	int fixNodeCount;
 	// The rotationmatrix from beginning status to the current status
 	Mat R;
 	Mat T;

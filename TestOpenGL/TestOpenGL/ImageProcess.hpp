@@ -18,6 +18,8 @@ void transAmplitudeToGrayValue(float *src, unsigned char *dst);
 
 Point2f point3To2(Point3f point);
 
+void filterDepthDate(float threeDData[], double sigma);
+
 void initKalmanFilter();
 
 bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsigned char *data);

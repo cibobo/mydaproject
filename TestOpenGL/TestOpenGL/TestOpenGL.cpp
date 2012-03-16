@@ -623,7 +623,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//get the current Bild Data, which is saved at the last position of the List
 				BildData *currentBildData = bildDataBuffer.back();
 				
-				
+				// Gaussian Filter
+				filterDepthDate(currentBildData->threeDData, 0.5);
+
 				// create the data for a RGB image
 				unsigned char showdata[41616*3];
 				
@@ -1023,9 +1025,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				bool isBig = isBigNoised2(obj, newResult, R, T, 0.35, 0.005);
 				if(!isBig){
 					cout<<"The frame is not noised: "<<endl;
-					obj->updateGraph(newResult, R, T);
 					RR = R*RR;
 					RR.copyTo(obj->R);
+					//TODO: using all features to update object
+					obj->updateGraph(curFeatures, R, T);
+
 					if(jumpedFeatures > 0){
 						bildDataBuffer.erase(--(--bildDataBuffer.end()));
 						jumpedFeatures = 0;
@@ -1042,7 +1046,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						R.copyTo(memR);
 						T.copyTo(memT);
 						memIndex = frameIndex;
-						memNewResult = newResult;
+						//TODO: using all features to update object
+						memNewResult = curFeatures;
 						// if this noised frame is not the first frame, that means, there is already a noised frame before this frame 
 						if(jumpedFeatures > 0){
 							// remove the frame before
@@ -1060,9 +1065,10 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						//cout<<"The selected Rotationmatrix and Translationmatrix are: "<<endl;
 						//cout<<"memR = "<<memR<<endl;
 						//cout<<"memT = "<<memT<<endl;
-						obj->updateGraph(memNewResult, memR, memT);
 						RR = memR*RR;
 						RR.copyTo(obj->R);
+						obj->updateGraph(memNewResult, memR, memT);
+
 
 						jumpedFeatures = 0;
 						memAvrDis = numeric_limits<float>::max();
