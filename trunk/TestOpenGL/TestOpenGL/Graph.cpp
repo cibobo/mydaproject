@@ -62,6 +62,7 @@ Point3f Node::getPoint(){
 Graph::Graph(){
 	this->indexCount = 0;
 	this->lifeTime = 0;
+	this->fixNodeCount = 0;
 	this->R = Mat::eye(3,3,CV_32FC1);
 	// test
 	//this->nodeList.push_back(new Node(Point3f(30, 0, 2)));
@@ -74,6 +75,7 @@ Graph::Graph(vector<Point3f> points){
 		this->addNode(points[i]);
 	}
 	this->lifeTime = 0;
+	this->fixNodeCount = 0;
 	this->R = Mat::eye(3,3,CV_32FC1);
 }
 
@@ -284,12 +286,13 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 					//if they are very close
 					if((fabs(currentNode->x - tempPoints[j].x) < e) && 
 					   (fabs(currentNode->y - tempPoints[j].y) < e) && 
-					   (fabs(currentNode->z - tempPoints[j].z) < e)){
+					   (fabs(currentNode->z - tempPoints[j].z) < e)){ //&& !currentNode->isFixed){
 						   //increase the life time of the node in graph
 						   currentNode->timmer +=2;
 						   //if the life time of the node is bigger than the threshold
 						   if(currentNode->timmer >= timeThreshold){
 							   currentNode->isFixed = true;
+							   this->fixNodeCount++;
 						   }
 						   //delete the point from tempPoints
 						   tempPoints.erase(tempPoints.begin()+j);
@@ -311,11 +314,18 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 					//		this->deleteNode(i);
 					//	}
 					//}
-				}
+				} 	
 			}
 
 			//add the rest new node into the nodelist
-			this->addNodes(tempPoints);				
+			this->addNodes(tempPoints);	
+
+			//if lesser than 3 fixed node have been found, which means, that no plane can be identified. Than reset the rotationsmatrix
+			if(this->fixNodeCount<3){
+				
+				this->R = Mat::eye(3,3,CV_32FC1);
+			}
+			//cout<<"The number of fixed nodeeeeeeeeeeeeeeeeeeeeeeee: "<<this->fixNodeCount<<endl;
 		}
 	}
 	return true;

@@ -190,8 +190,6 @@ void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData){
  
 	float factor = 2.04/204;
 
-	
-
 	glBegin(GL_POINTS);
 	for(int i=0;i<204;i++) {
 		for(int j=0;j<204;j++) {
@@ -469,10 +467,10 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 
 			// if the color of the node are not set
 			if(graph->nodeList[i]->color == -1){
-				//graph->nodeList[i]->color = pOpenGLWinUI->colorIndex;
-				float traceR = graph->R.at<float>(0,0) + graph->R.at<float>(1,1) + graph->R.at<float>(2,2);
-				float angle = acos((traceR-1)/2);
-				graph->nodeList[i]->color = int(fabs(angle)*2/3.1416);
+				graph->nodeList[i]->color = pOpenGLWinUI->colorIndex;
+				//float traceR = graph->R.at<float>(0,0) + graph->R.at<float>(1,1) + graph->R.at<float>(2,2);
+				//float angle = acos((traceR-1)/2);
+				//graph->nodeList[i]->color = int(fabs(angle)*2/3.1416);
 			}
 			mat_diffuse[0] = COLORLIST[graph->nodeList[i]->color][0];
 			mat_diffuse[1] = COLORLIST[graph->nodeList[i]->color][1];

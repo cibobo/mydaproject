@@ -55,6 +55,30 @@ Point2f point3To2(Point3f point){
 	return newPoint;
 }
 
+
+/****************************************************
+ *
+ * Gaussian Filter
+ *
+ * Using 1 dimentional Gaussian Filter to filter the depth daten of the 3D Daten
+ *
+ ***************************************************/
+void filterDepthDate(float threeDData[], double sigma){
+	int arraySize = 204*204;
+	float depthDaten[204*204];
+	for(int i=0;i<arraySize;i++){
+		depthDaten[i] = threeDData[i*3+2];
+	}
+	Mat src = Mat(1, arraySize, CV_32FC1, depthDaten);
+	Mat dst = Mat(1, arraySize, CV_32FC1);
+	GaussianBlur(src, dst, Size(0,0), sigma);
+
+	// save the depth information back to the array
+	for(int i=0;i<arraySize;i++){
+		threeDData[i*3+2] = dst.at<float>(0,i);
+	}
+}
+
 // (x,y,z,Vx,Vy,Vz)
 KalmanFilter kFilter(6,3,0);
 
