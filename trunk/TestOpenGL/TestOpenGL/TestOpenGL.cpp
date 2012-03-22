@@ -69,7 +69,7 @@ list<BildData*> bildDataBuffer;
 // The difference between the index of the current frame and historical frame
 int DETECTINGRATE = 2;
 
-int MAXJUMPEDFEATURES = 2;
+int MAXJUMPEDFEATURES = 3;
 // The iterator fo the buffer, which define the position der historical data in used
 int bufferIterator = 1;
 
@@ -78,7 +78,7 @@ int currentFrameIndex = 0;
 int oldFrameIndex = 1;
 
 // framerate
-int FRAMERATE = 100;
+int FRAMERATE = 30;
 
 //int HISFRAMEINDEX = 3;
 
@@ -248,7 +248,7 @@ void inputThreadProc(void *param){
 #ifdef OFFLINE
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	setDefaultLoadPath("VerticalRotation");
+	setDefaultLoadPath("RoboterRotation3");
 
 	//get the distance data for the first step
 	//loadNormalDataFromFile("distance", 3, bildData->disData);
@@ -277,11 +277,12 @@ void inputThreadProc(void *param){
 	LeaveCriticalSection (&cvInitCrs);
 	LeaveCriticalSection (&glInitCrs);
 
-	for(int i=20;i<750;i++){
+	for(int i=20;i<999;i++){
 		cout<<endl<<"============================= "<<i<<" ==========================="<<endl;
+		frameIndex = i;
 		EnterCriticalSection(&pauseCrs);
 		EnterCriticalSection(&frameCrs);
-		frameIndex = i;
+		
 		//loadNormalDataFromFile("distance", i, bildData->disData);
 		//loadNormalDataFromFile("intensity", i, bildData->intData);
 		//loadNormalDataFromFile("amplitude", i, bildData->ampData);
@@ -326,7 +327,7 @@ void inputThreadProc(void *param){
 #else
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	createDefaultPMDDataDirectory("VerticalRotation");
+	createDefaultPMDDataDirectory("RoboterRotation4");
 	setIsDataSaved(true);
 	cout<<"PMD Camera Connecting..."<<endl;
 	if(!createPMDCon()){
@@ -349,19 +350,12 @@ void inputThreadProc(void *param){
 	for(int i=0;i<20;i++){
 		BildData *temp = new BildData();
 		getPMDData(temp);
-#ifdef FRAME1
+
 		if(bildDataBuffer.size()>=DETECTINGRATE){
 			//delete the first element from the list
 			bildDataBuffer.pop_front();
 		}
-#endif
 
-#ifdef FRAME3
-		// if sepcial process begin, the old data would not be removed
-		if(jumpedFeatures<1){
-			bildDataBuffer.pop_front();
-		}
-#endif
 		bildDataBuffer.push_back(temp);
 
 		dFilter->Upgrade(temp->disData);
@@ -380,9 +374,19 @@ void inputThreadProc(void *param){
 			BildData *temp = new BildData();
 			getPMDData(temp);
 
+#ifdef FRAME1
 			if(bildDataBuffer.size()>=DETECTINGRATE){
+				//delete the first element from the list
 				bildDataBuffer.pop_front();
 			}
+#endif
+
+#ifdef FRAME3
+			// if sepcial process begin, the old data would not be removed
+			if(jumpedFeatures<1){
+				bildDataBuffer.pop_front();
+			}
+#endif
 			bildDataBuffer.push_back(temp);
 
 		} catch (CMemoryException * e){
@@ -601,7 +605,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			vector<Point3f> memNewResult;
 			int memIndex = 0;
 
+			// init Kalman filter
 			initKalmanFilter();
+			initQKFilter();
 			
 			while (!bDone) 
 			{ 	
@@ -624,7 +630,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				BildData *currentBildData = bildDataBuffer.back();
 				
 				// Gaussian Filter
-				filterDepthDate(currentBildData->threeDData, 0.5);
+				filterDepthDate(currentBildData->threeDData, 0.3);
 
 				// create the data for a RGB image
 				unsigned char showdata[41616*3];
@@ -854,10 +860,12 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 *
 				 *************************************************/
 				vector<vector<Point3f>> caliResult;
-				float CALIEPS3D = 0.2;
+				float CALIEPS3D = 0.18;
+				int minPts = 3;
 
 				// Call calibration
-				calibration(caliResult, summerizedFeatures, CALIEPS3D);
+				//calibration(caliResult, summerizedFeatures, CALIEPS3D);
+				DBSCAN(caliResult, summerizedFeatures, CALIEPS3D, minPts);
 
 				// Clear the vector of the features
 				currentBildData->features.clear();
@@ -887,6 +895,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				// The vector to save the points of SVC Association				
 				vector<Point3f> oldResult, newResult;
+				// The vector to save the index of SVC Association
+				vector<int> oldIndexResult, newIndexResult;
 
 				float ASSOCIATESITA = 0.09;
 
@@ -897,7 +907,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					
 				cout<<"======= "<<isDataUsed<<" ======= "<<hisFeatures.size()<<" ======= "<<curFeatures.size()<<endl<<endl;
 				if(hisFeatures.size()>0 && curFeatures.size()>0){
-					float avrDis = featureAssociate2(hisFeatures, curFeatures, ASSOCIATESITA, oldResult, newResult);
+					float avrDis = featureAssociate(hisFeatures, curFeatures, ASSOCIATESITA, oldResult, newResult, oldIndexResult, newIndexResult);
+					//calibrationWithDistance(oldResult, newResult);
 
 					// The first Limination
 					// consider the size of the coorespondence points
@@ -1022,13 +1033,15 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 #ifdef FRAME3
 				//TODO: using the choosen strategy
-				bool isBig = isBigNoised2(obj, newResult, R, T, 0.35, 0.005);
-				if(!isBig){
+				//bool isBig = isBigNoised2(obj, newResult, R, T, 0.35, 0.005);
+				//if(!isBig){
+				float corresRate = getCorresRate(obj, newResult, R, T, 0.005);
+				if(corresRate > 0.35){
 					cout<<"The frame is not noised: "<<endl;
 					RR = R*RR;
 					RR.copyTo(obj->R);
 					//TODO: using all features to update object
-					obj->updateGraph(curFeatures, R, T);
+					obj->updateGraph(newResult, R, T);
 
 					if(jumpedFeatures > 0){
 						bildDataBuffer.erase(--(--bildDataBuffer.end()));
@@ -1040,14 +1053,15 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					cout<<"The frame has big noise, and will be throw out!"<<endl;
 					// if the noised frame has a smaller distance between the associated points
 					if(avrDis < memAvrDis){
+						memIndex = frameIndex;
 						memAvrDis = avrDis;
 					//if(angle<memAngle){
-					//	memAngle = angle;
+						memAngle = angle;
 						R.copyTo(memR);
 						T.copyTo(memT);
-						memIndex = frameIndex;
+						
 						//TODO: using all features to update object
-						memNewResult = curFeatures;
+						memNewResult = newResult;
 						// if this noised frame is not the first frame, that means, there is already a noised frame before this frame 
 						if(jumpedFeatures > 0){
 							// remove the frame before
@@ -1065,6 +1079,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						//cout<<"The selected Rotationmatrix and Translationmatrix are: "<<endl;
 						//cout<<"memR = "<<memR<<endl;
 						//cout<<"memT = "<<memT<<endl;
+						//if(memAngle > 35 && obj->fixNodeCount > 1){
+						//	cout<<"Even the maximal number of jumped frame is arrived, because of the too big rotated angle, the choosed frame will be still throw out!"<<endl;
+						//	jumpedFeatures--;
+						//} else {
+						
 						RR = memR*RR;
 						RR.copyTo(obj->R);
 						obj->updateGraph(memNewResult, memR, memT);
@@ -1073,6 +1092,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						jumpedFeatures = 0;
 						memAvrDis = numeric_limits<float>::max();
 						memAngle = 360;
+						//}
 					}
 
 				}
@@ -1096,8 +1116,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 ********************************************/
 				vector<Point2f> curFeatures2D = currentBildData->features2D;
 				vector<Point2f> hisFeatures2D = bildDataBuffer.front()->features2D;
-				// The vector to save the index of SVC Association
-				vector<int> oldIndexResult, newIndexResult;
+
 
 				// set the new historical fram into the left OpenCV window 
 				//transFloatTo3Char(bildDataBuffer[bufferIterator]->ampData, hisShowdata, balance, contrast);

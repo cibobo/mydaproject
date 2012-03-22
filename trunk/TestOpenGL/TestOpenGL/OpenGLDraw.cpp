@@ -470,7 +470,16 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 				graph->nodeList[i]->color = pOpenGLWinUI->colorIndex;
 				//float traceR = graph->R.at<float>(0,0) + graph->R.at<float>(1,1) + graph->R.at<float>(2,2);
 				//float angle = acos((traceR-1)/2);
-				//graph->nodeList[i]->color = int(fabs(angle)*2/3.1416);
+				//if(angle<0)
+				//	angle += 3.1416*2;
+				//graph->nodeList[i]->color = int(angle*2/3.1416);
+
+				//Vec3d euler1, euler2;
+				//calcEulerAngleFromR(graph->R, euler1, euler2);
+				//float angle = euler1[1];
+				//if(angle<0)
+				//	angle += 3.1416*2;
+				//graph->nodeList[i]->color = int(angle*2/3.1416);
 			}
 			mat_diffuse[0] = COLORLIST[graph->nodeList[i]->color][0];
 			mat_diffuse[1] = COLORLIST[graph->nodeList[i]->color][1];
