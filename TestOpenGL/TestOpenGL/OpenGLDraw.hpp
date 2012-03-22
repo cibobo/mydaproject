@@ -6,6 +6,7 @@
 #include "BildData.hpp"
 #include "Graph.hpp"
 #include "MyDataIO.hpp"
+#include "ImageProcess.hpp"
 
 using namespace cv;
 using namespace std;

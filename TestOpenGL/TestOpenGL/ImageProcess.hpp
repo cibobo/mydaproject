@@ -22,17 +22,23 @@ void filterDepthDate(float threeDData[], double sigma);
 
 void initKalmanFilter();
 
+void initQKFilter();
+
 bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsigned char *data);
 
 void calibration(vector<vector<Point3f>> &result, vector<Point3f> points, float eps);
 
 void calibration2D(vector<vector<KeyPoint>> &groupFeatures, vector<KeyPoint> features, float eps);
 
+void calibrationWithDistance(vector<Point3f> &oldResult, vector<Point3f> &newResult);
+
+void DBSCAN(vector<vector<Point3f>> &C, vector<Point3f> D, float eps, int minPts);
+
 void findMaxPointsSet(vector<vector<Point3f>> pointsSets, vector<Point3f> &maxSet);
 
-void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew);
+void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew);
 
-float featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew);
+float featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew, vector<int> &findIndexOld, vector<int> &findIndexNew);
 
 void SVDFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T);
 
@@ -41,6 +47,8 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 bool isBigNoised(Mat T, float angle, int frameDiff, float eLinear, float eAngular);
 
 bool isBigNoised2(Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float aRate, float e);
+
+float getCorresRate(Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float e);
 
 void calcEulerAngleFromR(Mat R, Vec3d &euler1, Vec3d &euler2);
 

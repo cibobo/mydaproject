@@ -79,8 +79,16 @@ void filterDepthDate(float threeDData[], double sigma){
 	}
 }
 
+/****************************************************************************************
+ *
+ * Kalman Fileter
+ *
+ ***************************************************************************************/
 // (x,y,z,Vx,Vy,Vz)
 KalmanFilter kFilter(6,3,0);
+
+// (q0, q1, q2, q3)
+KalmanFilter qKFilter(3, 3, 0);
 
 void initKalmanFilter(){
 	//kFilter.statePre.at<float>(0) = 0;
@@ -102,10 +110,29 @@ void initKalmanFilter(){
 }
 
 
-void featureKalmanFilter(Mat measure, Mat &estimate){
+// init the kalman filter for Quanternion
+void initQKFilter(){
+	qKFilter.statePre = Mat::zeros(3,1,CV_32FC1);
+	setIdentity(qKFilter.transitionMatrix);
+	setIdentity(qKFilter.measurementMatrix);
+
+	setIdentity(kFilter.processNoiseCov, Scalar::all(0.1));
+	setIdentity(kFilter.measurementNoiseCov, Scalar::all(1e-1));
+	setIdentity(kFilter.errorCovPost, Scalar::all(0.1));
+}
+
+void updateKalmanFilter(Mat measure, Mat &estimate){
 	for(int i=0;i<10;i++){
 		Mat prediction = kFilter.predict();
 		estimate = kFilter.correct(measure);
+		//cout<<"loop: "<<i<<"  "<<estimate<<endl;
+	}
+}
+
+void updateQKalmanFilter(Mat measure, Mat &estimate){
+	for(int i=0;i<3;i++){
+		Mat prediction = qKFilter.predict();
+		estimate = qKFilter.correct(measure);
 		//cout<<"loop: "<<i<<"  "<<estimate<<endl;
 	}
 }
@@ -118,11 +145,11 @@ void featureKalmanFilter(Mat measure, Mat &estimate){
 //#define BRIGHT_TEST
 
 bool brightnessControll(int vectorSize, float &contrast, int &detecParam, unsigned char *data){
-	int MINFEATURECOUNT = 22;
-	int MAXFEATURECOUNT = 45;
+	//int MINFEATURECOUNT = 22;
+	//int MAXFEATURECOUNT = 45;
 
-	//int MINFEATURECOUNT = 42;
-	//int MAXFEATURECOUNT = 65;
+	int MINFEATURECOUNT = 42;
+	int MAXFEATURECOUNT = 65;
 
 	float MINSTANDARDENERGY = 300000.0;
 	float MAXSTANDARDENERGY = 450000.0;
@@ -256,8 +283,9 @@ void calibration(vector<vector<Point3f>> &result, vector<Point3f> points, float 
 				//calculate the distance between two features
 				float xDis = fabs(points[i].x - points[j].x);
 				float yDis = fabs(points[i].y - points[j].y);
+				float zDis = fabs(points[i].z - points[j].z);
 				//if they are too close
-				if((xDis*xDis + yDis*yDis)<eps*eps){
+				if((xDis*xDis + yDis*yDis + zDis*zDis)<eps*eps){
 					// if the feature j is not include in this set
 					if(pointer.at(j) != index){
 						// add the feature j into the set of close features for feature i 
@@ -279,9 +307,10 @@ void calibration(vector<vector<Point3f>> &result, vector<Point3f> points, float 
 				//calculate the distance between two features
 				float xDis = fabs(points[i].x - points[j].x);
 				float yDis = fabs(points[i].y - points[j].y);
+				float zDis = fabs(points[i].z - points[j].z);
 				//if they are too close
 				//if(xDis<eps && yDis<eps){
-				if((xDis*xDis + yDis*yDis)<eps*eps){
+				if((xDis*xDis + yDis*yDis + zDis*zDis)<eps*eps){
 					// if the feature j is not include in this set
 					if(pointer.at(j) != index){
 						temp.push_back(points[j]);
@@ -355,6 +384,117 @@ void calibration2D(vector<vector<KeyPoint>> &groupFeatures, vector<KeyPoint> fea
 		}
 	}
 }
+/**************************************************
+ *
+ * The Calibrations methode from the paper: 
+ *   Motion Segmentation in Long Image Sequences
+ *
+ *************************************************/
+void calibrationWithDistance(vector<Point3f> &oldResult, vector<Point3f> &newResult){
+	int size = oldResult.size();
+	// to save, how many point are faraway form the point i
+	vector<int> factor;
+	for(int i=0;i<size;i++){
+		factor.push_back(0);
+	}
+	for(int i=0;i<size;i++){
+		for(int j=i+1;j<size;j++){
+			double oldDis = sqrt((oldResult[i].x-oldResult[j].x) + (oldResult[i].y-oldResult[j].y) + (oldResult[i].z-oldResult[j].z));
+			double newDis = sqrt((newResult[i].x-newResult[j].x) + (newResult[i].y-newResult[j].y) + (newResult[i].z-newResult[j].z));
+
+			if(newDis-oldDis>0){
+				factor[i]++;
+				factor[j]++;
+			}
+		}
+	}
+
+	//TODO: create a graph for features
+	for(int i=0;i<oldResult.size();i++){
+		// if the point i is faraway from the others
+		if(factor[i] > size/2){
+			oldResult.erase(oldResult.begin() + i);
+			newResult.erase(newResult.begin() + i);
+		}
+	}
+}
+
+/**************************************************
+ *
+ * The Cluster methode with DBSCAN
+ *   Refference: http://de.wikipedia.org/wiki/DBSCAN
+ *   similar with my calibration's methode
+ *
+ *************************************************/
+float getEuclideanDis(Point3f p1, Point3f p2){
+	return (p1.x-p2.x)*(p1.x-p2.x) + (p1.y-p2.y)*(p1.y-p2.y) + (p1.z-p2.z)*(p1.z-p2.z);
+}
+
+void getRegionQuery(vector<int> &N, vector<Point3f> D, Point3f P, float eps){
+	for(int i=0;i<D.size();i++){
+		if(D[i]!= P && getEuclideanDis(P,D[i])<eps*eps){
+			N.push_back(i);
+		}
+	}
+}
+
+
+void DBSCAN(vector<vector<Point3f>> &C, vector<Point3f> D, float eps, int minPts){
+	int size = D.size();
+	// mark all points as not visited
+	vector<int> isVisited;
+	// marl all points as not yet member of any cluster
+	vector<int> isInCluster;
+	for(int i=0;i<size;i++){
+		isVisited.push_back(0);
+		isInCluster.push_back(0);
+	}
+	
+	for(int i=0;i<size;i++){
+		isVisited[i] = 1;
+		// save the index of pints 
+		vector<int> N;
+		getRegionQuery(N, D, D[i], eps);
+		if(N.size() < minPts){
+			// noise
+		} else {
+			// begin the function of expandCluster
+			// add P to cluster C
+			vector<Point3f> tempC;
+			tempC.push_back(D[i]);
+
+			isInCluster[i] = 1;
+			// for each point P'
+			for(int j=0;j<N.size();j++){
+				// the index of P'
+				int indexPP = N[j];
+				// if P' is not visited
+				if(isVisited[indexPP] == 0){
+					// mark P' as visited
+					isVisited[indexPP] = 1;
+					// get the neigbors of P'
+					vector<int> NN;
+					getRegionQuery(NN, D, D[indexPP], eps);
+					if(NN.size() >= minPts){
+						// N joined with N'
+						N.insert(N.begin(), NN.begin(), NN.end());
+					}
+				}
+				// if P' is not yet member of any cluster
+				if(isInCluster[indexPP] == 0){
+					// add P' to cluster C
+					tempC.push_back(D[indexPP]);
+					isInCluster[indexPP] = 1;
+				}
+			}
+			// next cluster
+			C.push_back(tempC);
+		}
+	}
+}
+
+
+
 void findMaxPointsSet(vector<vector<Point3f>> pointsSets, vector<Point3f> &maxSet){
 	int maxSize = 0;
 	int maxSizeIndex = 0;
@@ -374,7 +514,7 @@ void findMaxPointsSet(vector<vector<Point3f>> pointsSets, vector<Point3f> &maxSe
  * The algorithm to tacking the markers in different frames
  *
  ********************************************************/
-void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew){
+void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew){
 	// set the number of the old features as the row size
 	int rowSize = oldFeature.size();
 	// set the number of the new features as the column size
@@ -458,7 +598,9 @@ void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, fl
 /*
  * The Input points are 3D points, but just the information for x and y is useful to deal with the SVD
  */
-float featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew){
+float featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, 
+						vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew,
+						vector<int> &findIndexOld, vector<int> &findIndexNew){
 	// set the number of the old features as the row size
 	int rowSize = oldFeature.size();
 	// set the number of the new features as the column size
@@ -510,6 +652,9 @@ float featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, 
 	
 	findFeatureOld.clear();
 	findFeatureNew.clear();
+
+	findIndexOld.clear();
+	findIndexNew.clear();
 	// loop for the element, which were found as the biggest one for each row in last step
 	for(int i=0;i<m;i++){
 		int colIndex = rowMax[i];
@@ -527,9 +672,15 @@ float featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, 
 			if(rowSize <= colSize){
 				findFeatureOld.push_back(oldFeature[i]);
 				findFeatureNew.push_back(newFeature[colIndex]);
+
+				findIndexOld.push_back(i);
+				findIndexNew.push_back(colIndex);
 			} else {
 				findFeatureOld.push_back(oldFeature[colIndex]);
 				findFeatureNew.push_back(newFeature[i]);
+
+				findIndexOld.push_back(colIndex);
+				findIndexNew.push_back(i);
 			}
 		}
 	}	
@@ -721,7 +872,7 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 	}
 
 	// the unit quaternion
-	Mat q;
+	Mat q, qTemp;
 	// if a positive eigenvalue has been found
 	if(maxIndex>=0){
 		q = V(Range(maxIndex, maxIndex+1),Range(0,4));
@@ -733,12 +884,30 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 		return 0;
 	}
 
-	float scale = sqrt(q.at<float>(0,1)*q.at<float>(0,1) + q.at<float>(0,2)*q.at<float>(0,2) + q.at<float>(0,3)*q.at<float>(0,3));
-	float rX = q.at<float>(0,1)/scale;
-	float rY = q.at<float>(0,2)/scale;
-	float rZ = q.at<float>(0,3)/scale;
-	float angle = acos(q.at<float>(0,0))*2*180/3.14;
-	cout<<"The rotation is: "<<angle<<"  on vector:["<<rX<<" , "<<rY<<" , "<<rZ<<"]"<<endl;
+	float PI = 3.1416;
+	float angle = acos(q.at<float>(0,0))*2*180/PI;
+	cout<<"The rotation is: "<<angle<<endl;
+	//cout<<"The old qunternion is: "<<q<<endl;
+	// consider, that the angle Theta/2 is just between 0~pi
+	float sinValue = sqrt(1-q.at<float>(0,0)*q.at<float>(0,0));
+	// calculate the rotated vector
+	qTemp = q.colRange(1,4)/sinValue;
+	cout<<"The old rotated vector is: "<<qTemp<<endl;
+	// using kalman filter to filter this rotated vector
+	Mat qTran = Mat(3,1,CV_32FC1);
+	updateQKalmanFilter(qTemp.t(), qTran);
+	cout<<"The new rotated vector is: "<<qTran.t()<<endl;
+	q.at<float>(0,1) = qTran.at<float>(0,0)*sinValue;
+	q.at<float>(0,2) = qTran.at<float>(1,0)*sinValue;
+	q.at<float>(0,3) = qTran.at<float>(2,0)*sinValue;
+	//cout<<"The new qunternion is: "<<q<<endl;
+
+	//float scale = sqrt(q.at<float>(0,1)*q.at<float>(0,1) + q.at<float>(0,2)*q.at<float>(0,2) + q.at<float>(0,3)*q.at<float>(0,3));
+	//float rX = q.at<float>(0,1)/scale;
+	//float rY = q.at<float>(0,2)/scale;
+	//float rZ = q.at<float>(0,3)/scale;
+	//float angle = acos(q.at<float>(0,0))*2*180/3.14;
+	//cout<<"The rotation is: "<<angle<<"  on vector:["<<rX<<" , "<<rY<<" , "<<rZ<<"]"<<endl;
 
 	//Mat I = Mat::eye(4,4,CV_32FC1);
 	//cout<<"Test eigenvector:"<<(N-I*maxE)*q.t()<<endl;
@@ -774,7 +943,7 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 
 	//kalman filter
 	Mat kTempD = Mat(6,1,CV_32FC1);
-	featureKalmanFilter(tempD, kTempD);
+	updateKalmanFilter(tempD, kTempD);
 
 	cout<<"The Centeriol for D after Kalman Filter is: "<<kTempD<<endl;
 
@@ -786,37 +955,6 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 	//cout<<T.cols<<" , "<<T.rows<<" | "<<T.channels()<<endl;
 	return acos(q.at<float>(0,0))*2*180/3.14;
 }
-
-
-/****************************************************************************************
- *
- * Kalman Fileter
- * Reference: http://www.morethantechnical.com/2011/06/17/simple-kalman-filter-for-tracking-using-opencv-2-2-w-code/
- *
- ***************************************************************************************/
-//void featuresKalmanFilter(vector<Point3f> measure, vector<Point3f> &estimate){
-//	// just focus the positions but not the velocity 
-//	KalmanFilter kFilter(3,3,0);
-//	
-//	for(int i=0;i<measure.size();i++){
-//		Mat m = Mat(3,1,CV_32FC1, measure[i]);
-//		m.copyTo(kFilter.statePre);
-//
-//		//kFilter.transitionMatrix = Mat::eye(3,3,CV_32FC1);
-//
-//		setIdentity(kFilter.measurementMatrix);
-//		setIdentity(kFilter.transitionMatrix);
-//
-//		setIdentity(kFilter.processNoiseCov, Scalar::all(1e-4));
-//		setIdentity(kFilter.measurementNoiseCov, Scalar::all(1e-1));
-//		setIdentity(kFilter.errorCovPost, Scalar::all(0.1));
-//
-//		Mat e = kFilter.correct(m);
-//		Point3f ePoint = Point3f(e.at<float>(0),e.at<float>(1),e.at<float>(2));
-//		estimate.push_back(ePoint);
-//	}
-//
-//}
 
 /***************************************************************
  *
@@ -849,11 +987,25 @@ bool isBigNoised(Mat T, float angular, int frameDiff, float eLinear, float eAngu
 
 //TODO: Combination with the ObjectUpdata function
 bool isBigNoised2( Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float aRate, float e){
-	if(points.size()<=0){
+	float rate = getCorresRate(graph, points, R, T, e);
+	if(rate == -1) {
+		cout<<"The points or nodelist in graph is empty!"<<endl;
+		return true;
+	}
+	if(rate > aRate){
+		// if bigger than the avalible rate
 		return false;
 	} else {
+		return true;
+	}	
+}
+
+float getCorresRate(Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float e){
+	if(points.size()<=0){
+		return -1;
+	} else {
 		if(graph->nodeList.size()<=0){
-			return false;
+			return -1;
 		} else {
 			int coorPoints = 0;
 			int size = graph->nodeList.size();
@@ -872,12 +1024,7 @@ bool isBigNoised2( Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float a
 			}
 			float rate = float(coorPoints)/points.size();
 			cout<<"The coorespondence rate: "<<rate<<" = "<<coorPoints<<"/"<<points.size()<<endl;
-			if(rate > aRate){
-				// if bigger than the avalible rate
-				return false;
-			} else {
-				return true;
-			}
+			return rate;
 		}
 	}
 }
@@ -915,3 +1062,4 @@ void calcEulerAngleFromR(Mat R, Vec3d &euler1, Vec3d &euler2){
 		//}
 	}
 }
+
