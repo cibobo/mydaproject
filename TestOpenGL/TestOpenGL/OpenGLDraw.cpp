@@ -190,54 +190,64 @@ void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData){
  
 	float factor = 2.04/204;
 
-	glBegin(GL_POINTS);
-	for(int i=0;i<204;i++) {
-		for(int j=0;j<204;j++) {
-			//float h = pOpenGLWinUI->aBalance-bildData->ampData[i*204+j]/pOpenGLWinUI->aContrast;
-			////if(h<0) h=0;
-			//int hi = int(h/60);
-			//float f = h/60-hi;
-			//switch(hi){
-			//	case 0:
-			//		glColor3f(1,f,0);
-			//		break;
-			//	case 1:
-			//		glColor3f(1-f,1,0);
-			//		break;
-			//	case 2:
-			//		glColor3f(0,1,f);
-			//		break;
-			//	case 3:
-			//		glColor3f(0,1-f,1);
-			//		break;
-			//	case 4:
-			//		glColor3f(f,0,1);
-			//		break;
-			//	default:
-			//		glColor3f(1,0,1-f);
-			//}
-			//glVertex3f((i-102)*factor, (j-102)*factor, -bildData->disData[i*204+j]);
-			glVertex3f(bildData->threeDData[(i*204+j)*3], bildData->threeDData[(i*204+j)*3 +1], -bildData->threeDData[(i*204+j)*3 +2]);
-		}
-	}
-	glEnd();    
 
-	// draw the features
-	glPointSize(10);
-	//glBegin(GL_LINE_STRIP);
+
 	glBegin(GL_POINTS);
-	if(bildData->features.size()>0){
-		glColor3f(1.0f, 0.0f, 0.0f);
-		for(int i=0;i<bildData->features.size();i++){
-			glVertex3f(bildData->features[i].x, bildData->features[i].y, -bildData->features[i].z);
-		}
-		//for(int i=0;i<bildData->comFeatures.size();i++){
-		//	glVertex3f(bildData->comFeatures[i].x, bildData->comFeatures[i].y, -bildData->comFeatures[i].z);
-		//}
-		glColor3f(1.0f,1.0f,1.0f);
+	for(int i=0;i<bildData->filted3DData.size();i++){
+		int clusterIndex = bildData->clusterLabel.at<int>(i, 0);
+		glColor3f(COLORLIST[clusterIndex][0], COLORLIST[clusterIndex][1], COLORLIST[clusterIndex][2]);
+		glVertex3f(bildData->filted3DData[i].x, bildData->filted3DData[i].y, -bildData->filted3DData[i].z);
 	}
 	glEnd();
-	glPointSize(1);
+
+	//glBegin(GL_POINTS);
+	//for(int i=0;i<204;i++) {
+	//	for(int j=0;j<204;j++) {
+	//		//float h = pOpenGLWinUI->aBalance-bildData->ampData[i*204+j]/pOpenGLWinUI->aContrast;
+	//		////if(h<0) h=0;
+	//		//int hi = int(h/60);
+	//		//float f = h/60-hi;
+	//		//switch(hi){
+	//		//	case 0:
+	//		//		glColor3f(1,f,0);
+	//		//		break;
+	//		//	case 1:
+	//		//		glColor3f(1-f,1,0);
+	//		//		break;
+	//		//	case 2:
+	//		//		glColor3f(0,1,f);
+	//		//		break;
+	//		//	case 3:
+	//		//		glColor3f(0,1-f,1);
+	//		//		break;
+	//		//	case 4:
+	//		//		glColor3f(f,0,1);
+	//		//		break;
+	//		//	default:
+	//		//		glColor3f(1,0,1-f);
+	//		//}
+	//		//glVertex3f((i-102)*factor, (j-102)*factor, -bildData->disData[i*204+j]);	
+	//		glVertex3f(bildData->threeDData[(i*204+j)*3], bildData->threeDData[(i*204+j)*3 +1], -bildData->threeDData[(i*204+j)*3 +2]);
+	//	}
+	//}
+	//glEnd();    
+
+	// draw the features
+	//glPointSize(10);
+	////glBegin(GL_LINE_STRIP);
+	//glBegin(GL_POINTS);
+	//if(bildData->features.size()>0){
+	//	glColor3f(1.0f, 0.0f, 0.0f);
+	//	for(int i=0;i<bildData->features.size();i++){
+	//		glVertex3f(bildData->features[i].x, bildData->features[i].y, -bildData->features[i].z);
+	//	}
+	//	//for(int i=0;i<bildData->comFeatures.size();i++){
+	//	//	glVertex3f(bildData->comFeatures[i].x, bildData->comFeatures[i].y, -bildData->comFeatures[i].z);
+	//	//}
+	//	glColor3f(1.0f,1.0f,1.0f);
+	//}
+	//glEnd();
+	//glPointSize(1);
 	
 
     glPopMatrix();                   // Don't forget to pop the Matrix

@@ -1,5 +1,8 @@
 #include <math.h>
 #include <iostream>
+#include <cv.h>
+
+#include "BildData.hpp"
 
 /**
  * Construct a Filter for the distance, which will seperate the data in several layers.
@@ -26,6 +29,7 @@ public:
 	DistanceFilter();
 	DistanceFilter(float *dis);
 	DistanceFilter(float *dis, float epsilon, float rate);
+	DistanceFilter(BildData *bildData);
 	~DistanceFilter();
 
 	void Upgrade(float *dis);
@@ -36,4 +40,6 @@ public:
 	 * That's mean, just the data, that doesn't belongs to environment, will be hold in dst
 	 */
 	bool Filte(float *dis, float *src, float *dst);
+
+	bool DistanceFilter::Filte(BildData *bildData, float *dst);
 };
