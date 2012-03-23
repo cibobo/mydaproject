@@ -29,6 +29,10 @@ public:
 	// test complete features
 	vector<Point3f> comFeatures;
 
+	// to save the with DistanceFilter filtered data
+	vector<Point3f> filted3DData;
+	Mat clusterLabel;
+
 	int width;
 	int length;
 

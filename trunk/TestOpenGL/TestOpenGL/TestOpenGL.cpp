@@ -78,7 +78,7 @@ int currentFrameIndex = 0;
 int oldFrameIndex = 1;
 
 // framerate
-int FRAMERATE = 30;
+int FRAMERATE = 100;
 
 //int HISFRAMEINDEX = 3;
 
@@ -147,8 +147,10 @@ void openGLThreadPorc( void *param )
 			}
 		} else {
 			//display(pOpenGLWinUI, bildDataBuffer[0]);
+			EnterCriticalSection (&calcCrs);
 			display(pOpenGLWinUI, bildDataBuffer.back());
 			SwapBuffers(p3DDataViewContext->hDC);
+			LeaveCriticalSection (&calcCrs);
 		}
 		//display(pOpenGLWinUI, disData, intData, ampData);
 		//EnterCriticalSection(&pauseCrs);
@@ -657,7 +659,18 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				// create the array to save the filted data
 				float filteData[204*204];
-				bool isDiff = dFilter->Filte(currentBildData->disData, currentBildData->ampData, filteData);
+				//bool isDiff = dFilter->Filte(currentBildData->disData, currentBildData->ampData, filteData);
+				bool isDiff = dFilter->Filte(currentBildData, filteData);
+
+				// K-means algorithm
+				int fDSize = currentBildData->filted3DData.size();
+				Mat samples = Mat(currentBildData->filted3DData, true);
+				currentBildData->clusterLabel = Mat::zeros(fDSize, 1, CV_8UC1);
+				TermCriteria termcrit = TermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 10, 1.0);
+				int clusterCount = 5;
+				Mat centers = Mat(5,1,CV_32FC3);
+
+				kmeans(samples, clusterCount, currentBildData->clusterLabel, termcrit, 3, KMEANS_RANDOM_CENTERS, centers);
 
 
 				//if(!isDiff) continue;
