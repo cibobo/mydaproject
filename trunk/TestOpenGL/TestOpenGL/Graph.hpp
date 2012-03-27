@@ -76,6 +76,8 @@ public:
 	bool updateGraph(vector<Point3f> points, Mat R, Mat T);
 
 	Node *findNode(int index);
+
+	Point3f getMiddelPoint();
 };
 
 #endif

@@ -31,7 +31,13 @@ public:
 
 	// to save the with DistanceFilter filtered data
 	vector<Point3f> filted3DData;
+	vector<Point2f> filted2DData;
+	vector<int> filtedPointIndex;
 	Mat clusterLabel;
+
+	Mat featuresLabel;
+
+	vector<vector<Point3f>> culsterGroupe;
 
 	int width;
 	int length;

@@ -46,6 +46,14 @@ void DistanceFilter::Upgrade(float *dis){
 	}
 }
 
+void DistanceFilter::Upgrade(BildData *bildData){
+	for(int i=0;i<204*204;i++){
+		//if(fabs(dis[i]-origArray[i]) < this->eps){
+			this->origArray[i] = (this->origArray[i] + bildData->threeDData[i*3+2])/2;
+		//}
+	}
+}
+
 bool DistanceFilter::Filte(float *dis, float *src, float *dst){
 	this->eps = 0.05;
 	// count how many data are different
@@ -70,10 +78,10 @@ bool DistanceFilter::Filte(float *dis, float *src, float *dst){
 }
 
 bool DistanceFilter::Filte(BildData *bildData, float *dst){
-	this->eps = 0.5;
+	this->eps = 0.3;
 	// count how many data are different
 	int diffCount = 0;
-	this->diffRate = 0.17;
+	this->diffRate = 0.08;
 
 	//bildData->filted3DData.clear();
 	for(int i=0;i<204*204;i++){
@@ -81,8 +89,11 @@ bool DistanceFilter::Filte(BildData *bildData, float *dst){
 			dst[i] = 0;
 		} else {
 			dst[i] = bildData->ampData[i];
-			Point3f filtedPoint = Point3f(bildData->threeDData[i*3], bildData->threeDData[i*3 +1], bildData->threeDData[i*3 +2]);
-			bildData->filted3DData.push_back(filtedPoint); 
+			Point3f filted3DPoint = Point3f(bildData->threeDData[i*3], bildData->threeDData[i*3 +1], bildData->threeDData[i*3 +2]);
+			Point2f filted2DPoint = Point2f(bildData->threeDData[i*3], bildData->threeDData[i*3 +1]);
+			bildData->filted3DData.push_back(filted3DPoint);
+			bildData->filted2DData.push_back(filted2DPoint);
+			bildData->filtedPointIndex.push_back(i);
 			diffCount ++;
 		}
 	}

@@ -30,16 +30,24 @@ void calibration(vector<vector<Point3f>> &result, vector<Point3f> points, float 
 
 void calibration2D(vector<vector<KeyPoint>> &groupFeatures, vector<KeyPoint> features, float eps);
 
+void calibration3(vector<vector<Point3f>> &result, vector<vector<Point2f>> &resultIndex, vector<Point3f> points, vector<Point2f> indexs, float eps);
+
 void calibrationWithDistance(vector<Point3f> &oldResult, vector<Point3f> &newResult);
+
+float getEuclideanDis(Point3f p1, Point3f p2);
 
 void DBSCAN(vector<vector<Point3f>> &C, vector<Point3f> D, float eps, int minPts);
 
 void findMaxPointsSet(vector<vector<Point3f>> pointsSets, vector<Point3f> &maxSet);
 
+void findMaxIndexesSet(vector<vector<Point2f>> indexesSets, vector<Point2f> &maxSet);
+
 void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew);
 
-float featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew, vector<int> &findIndexOld, vector<int> &findIndexNew);
-
+void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, 
+					   vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew,
+					   vector<int> &findIndexOld, vector<int> &findIndexNew,
+					   float &avrDis, float &disPE);
 void SVDFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T);
 
 float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T);
