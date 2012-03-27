@@ -33,6 +33,7 @@ public:
 	~DistanceFilter();
 
 	void Upgrade(float *dis);
+	void Upgrade(BildData *bildData);
 
 	/*
 	 * Seperate the data with the input distance data.

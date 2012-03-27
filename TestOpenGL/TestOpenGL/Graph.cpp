@@ -351,3 +351,13 @@ vector<Point3f> Graph::getPoints(){
 	}
 	return points;
 }
+
+Point3f Graph::getMiddelPoint(){
+	Mat nodes = Mat(this->getPoints(), true);
+	Scalar midPointS = mean(nodes);
+	Mat midPointM = Mat(midPointS).rowRange(0,3);
+	midPointM.convertTo(midPointM, CV_32FC1);
+	Point3f midPoint = Point3f(midPointM.at<float>(0,0), midPointM.at<float>(1,0), midPointM.at<float>(2,0));
+	return midPoint;
+}
+	

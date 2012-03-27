@@ -42,6 +42,7 @@
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
 
+//#define KMEAN
 
 #include <iostream>
 #include <string>

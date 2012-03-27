@@ -53,6 +53,8 @@ bool isPause = false;
 bool isDataUsed = false;
 
 int jumpedFeatures = 0;
+// The parameter of the points association, which deside by the last frame
+float associaterate = 0.02;
 
 // The Context for 3D data Window
 //HWND openGLhnd;	
@@ -69,7 +71,7 @@ list<BildData*> bildDataBuffer;
 // The difference between the index of the current frame and historical frame
 int DETECTINGRATE = 2;
 
-int MAXJUMPEDFEATURES = 3;
+int MAXJUMPEDFEATURES = 2;
 // The iterator fo the buffer, which define the position der historical data in used
 int bufferIterator = 1;
 
@@ -118,7 +120,7 @@ void openGLThreadPorc( void *param )
 	//display(pOpenGLWinUI, disData, intData, ampData);
 	//EnterCriticalSection(&pauseCrs);
 	//display(pOpenGLWinUI, bildDataBuffer[0]);
-	display(pOpenGLWinUI, bildDataBuffer.back());
+	//display(pOpenGLWinUI, bildDataBuffer.back());
 	//LeaveCriticalSection(&pauseCrs);
 
 	//parameter to mark, whether the input process is in pause
@@ -250,14 +252,15 @@ void inputThreadProc(void *param){
 #ifdef OFFLINE
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	setDefaultLoadPath("RoboterRotation3");
+	setDefaultLoadPath("FullRotation");
 
 	//get the distance data for the first step
 	//loadNormalDataFromFile("distance", 3, bildData->disData);
 	BildData *temp = new BildData();
 	loadAllDataFromFile(3, temp);
 	//init a distance filter
-	dFilter = new DistanceFilter(temp->disData);
+	//dFilter = new DistanceFilter(temp->disData);
+	dFilter = new DistanceFilter(temp);
 
 	cout<<"Upgrading Distance Filter and Save Data into Buffer....."<<endl;
 	for(int i=1;i<20;i++){
@@ -272,7 +275,8 @@ void inputThreadProc(void *param){
 		//add the new element into the end of the List
 		bildDataBuffer.push_back(temp);
 
-		dFilter->Upgrade(temp->disData);
+		//dFilter->Upgrade(temp->disData);
+		dFilter->Upgrade(temp);
 	}
 	cout<<"Upgrading complete!"<<endl;
 	
@@ -560,11 +564,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			using namespace std;
 
 			namedWindow("OpenCVGrayScale", CV_WINDOW_AUTOSIZE);
-			namedWindow("OpenCVRGBTest", CV_WINDOW_AUTOSIZE);
-			namedWindow("OpenCVRGBResult", CV_WINDOW_AUTOSIZE);
-			namedWindow("OpenCVRGBGraph", CV_WINDOW_AUTOSIZE);
+			namedWindow("OpenCVCorrespondenz", CV_WINDOW_AUTOSIZE);
+			namedWindow("OpenCVFeatures", CV_WINDOW_AUTOSIZE);
+			namedWindow("OpenCVSummedFeatures", CV_WINDOW_AUTOSIZE);
 			Size size = Size(204, 204);
-			Mat img, featuresImg, testimg;
+			Mat img, featuresImg, testImg;
 			//bool isPause = false;
 			int balance = 200;
 			float contrast = 10;
@@ -646,15 +650,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				transFloatTo3Char(bildDataBuffer.front()->ampData, hisShowdata, balance, contrast);
 
 				// set the data to the RGB image
-				featuresImg = Mat(size, CV_8UC3, showdata);
-				Mat hisImg = Mat(size, CV_8UC3, hisShowdata);
-				testimg = Mat(204, 204*2, CV_8UC3);
+				Mat curMat = Mat(size, CV_8UC3, showdata);
+				curMat.copyTo(featuresImg);
 
-				Mat left = Mat(testimg, Range::all(), Range(0,204));
-				Mat right = Mat(testimg, Range::all(), Range(204,204*2));
+				Mat hisMat = Mat(size, CV_8UC3, hisShowdata);
 
-				hisImg.copyTo(left);
-				featuresImg.copyTo(right);
 				
 
 				// create the array to save the filted data
@@ -662,17 +662,61 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//bool isDiff = dFilter->Filte(currentBildData->disData, currentBildData->ampData, filteData);
 				bool isDiff = dFilter->Filte(currentBildData, filteData);
 
-				// K-means algorithm
-				int fDSize = currentBildData->filted3DData.size();
-				Mat samples = Mat(currentBildData->filted3DData, true);
+				/********************************************************
+				 *
+				 * Using K-means algorithm to calibrate the differen objects
+				 *
+				 *******************************************************/
+#ifdef KMEAN
+				// 3D Daten
+				//int fDSize = currentBildData->filted3DData.size();
+				//Mat samples = Mat(currentBildData->filted3DData, true);
+				//int clusterCount = 5;
+				//Mat centers = Mat(5,1,CV_32FC3);
+
+				// 2D Daten
+				int fDSize = currentBildData->filted2DData.size();
+				Mat samples = Mat(currentBildData->filted2DData, true);
+				int clusterCount = 4;
+				Mat centers = Mat(clusterCount,1,CV_32FC2);
+
 				currentBildData->clusterLabel = Mat::zeros(fDSize, 1, CV_8UC1);
 				TermCriteria termcrit = TermCriteria(CV_TERMCRIT_EPS+CV_TERMCRIT_ITER, 10, 1.0);
-				int clusterCount = 5;
-				Mat centers = Mat(5,1,CV_32FC3);
+				
 
 				kmeans(samples, clusterCount, currentBildData->clusterLabel, termcrit, 3, KMEANS_RANDOM_CENTERS, centers);
 
+				cout<<"The centers are: "<<centers<<endl;
 
+				if(obj->fixNodeCount>3){
+					Point3f midNode = obj->getMiddelPoint();
+					float minDis = numeric_limits<float>::max();
+					int minCluster = 0;
+					for(int i=0;i<clusterCount;i++){
+						centers = centers.reshape(1);
+						//Point3f center = Point3f(centers.at<float>(i,0), centers.at<float>(i,1), centers.at<float>(i,2));
+						//float currDis = getEuclideanDis(center, midNode);
+						// 2D
+						float currDis = sqrt((centers.at<float>(i,0)-midNode.x)*(centers.at<float>(i,0)-midNode.x) + 
+											 (centers.at<float>(i,1)-midNode.y)*(centers.at<float>(i,1)-midNode.y));
+						if(currDis < minDis){
+							minCluster = i;
+							minDis = currDis;
+						}
+					}
+					cout<<"The min Cluster is: "<<minCluster<<endl;
+					for(int i=0;i<204*204;i++){
+						filteData[i] = 0;
+					}
+					for(int i=0;i<fDSize;i++){
+						if(currentBildData->clusterLabel.at<int>(i,0) == minCluster){
+							filteData[currentBildData->filtedPointIndex[i]] = currentBildData->ampData[currentBildData->filtedPointIndex[i]];
+						}
+					}
+
+				}
+
+#endif
 				//if(!isDiff) continue;
 
 
@@ -688,9 +732,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 *
 				 ***************************************************************/
 				cout<<endl<<"================= Begin the Loop of the Brightness Controll =================="<<endl;
+#ifndef KMEAN
 				while(safeCount < MAXLOOPS){
 					
 					safeCount ++;
+#endif	
 					//Sleep(500);
 					// translate the filted data to a grayscale image 
 					transFloatToChar(filteData, data, balance, contrast);
@@ -711,19 +757,20 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					//draw historical features
 					//if(hisFeatures.size()>0){
 					//	for(int i=0;i<hisFeatures.size();i++){
-					//		circle(testimg, hisFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
+					//		circle(testImg, hisFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
 					//	}
 					//}
 
 					//draw
 					imshow("OpenCVGrayScale", img);
-					imshow("OpenCVRGBResult", featuresImg);
+					imshow("OpenCVFeatures", featuresImg);
 					
 					/**********************************
 					 *
 					 * The Distance Filter
 					 *
 					 *********************************/
+#ifndef KMEAN
 					if(!isDiff) break;
 
 					if(!brightnessControll(vectorSize, contrast, detecParam, data)){
@@ -731,6 +778,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					}
 					
 				} // Ende of the Loop for the Features' Detection
+#endif
 				cout<<"=================================== End  ===================================="<<endl<<endl;
 				
 				/***********************************
@@ -761,13 +809,13 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//		}
 				//		//cout<<xDis<<"  ";
 				//	}
-				//	//circle(testimg, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
+				//	//circle(testImg, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
 				//	circle(left, sumFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
 				//	circle(right, sumFeatures[i].pt, 1, Scalar(0,0,255,0), -1);
 
 				//	//translate vector from left to right
 				//	Point2f trans(204, 0);
-				//	line(testimg, sumFeatures[i].pt, sumFeatures[i].pt+trans, Scalar(255, 255, 0, 0));
+				//	line(testImg, sumFeatures[i].pt, sumFeatures[i].pt+trans, Scalar(255, 255, 0, 0));
 				//}
 				//cout<<"After Summerize get "<<sumFeatures.size()<<" features!"<<endl;
 				//int vectorSize = sumFeatures.size();
@@ -809,7 +857,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				//	for(int i=0;i<oldComResult.size();i++){
 				//		Point2f trans(204,0);
-				//		line(testimg, point3To2(oldComResult[i]), point3To2(newComResult[i])+trans, Scalar(255,255,0,0));
+				//		line(testImg, point3To2(oldComResult[i]), point3To2(newComResult[i])+trans, Scalar(255,255,0,0));
 				//	}
 				//	cout<<"The number of useful features is: "<<oldComResult.size()<<endl;
 				//}
@@ -858,9 +906,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					currentBildData->features2D.push_back(p2);
 					//currentBildData->features.push_back(p3);
 					summerizedFeatures.push_back(p3);
-					
+
 					// show the current features
-					circle(right, p2, 1, Scalar(0,0,255,0), -1);
+					//circle(right, p2, 1, Scalar(0,0,255,0), -1);
 				}
 
 
@@ -873,17 +921,25 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 *
 				 *************************************************/
 				vector<vector<Point3f>> caliResult;
-				float CALIEPS3D = 0.18;
+				vector<vector<Point2f>> caliIndex;
+				float CALIEPS3D = 0.12;
 				int minPts = 3;
 
 				// Call calibration
 				//calibration(caliResult, summerizedFeatures, CALIEPS3D);
-				DBSCAN(caliResult, summerizedFeatures, CALIEPS3D, minPts);
+				//DBSCAN(caliResult, summerizedFeatures, CALIEPS3D, minPts);
+				calibration3(caliResult, caliIndex, summerizedFeatures, currentBildData->features2D, CALIEPS3D);
+
+
+
 
 				// Clear the vector of the features
 				currentBildData->features.clear();
+				currentBildData->features2D.clear();
 				// Save the features into the first place of data buffer
 				findMaxPointsSet(caliResult, currentBildData->features);
+				findMaxIndexesSet(caliIndex, currentBildData->features2D);
+
 
 
 				/***************************************************
@@ -911,7 +967,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				// The vector to save the index of SVC Association
 				vector<int> oldIndexResult, newIndexResult;
 
-				float ASSOCIATESITA = 0.09;
+				
 
 			
 				//Mat R = Mat(3,3,CV_32FC1);
@@ -920,7 +976,25 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					
 				cout<<"======= "<<isDataUsed<<" ======= "<<hisFeatures.size()<<" ======= "<<curFeatures.size()<<endl<<endl;
 				if(hisFeatures.size()>0 && curFeatures.size()>0){
-					float avrDis = featureAssociate(hisFeatures, curFeatures, ASSOCIATESITA, oldResult, newResult, oldIndexResult, newIndexResult);
+					float avrDis, disPE;
+					featureAssociate(hisFeatures, curFeatures, associaterate, oldResult, newResult, oldIndexResult, newIndexResult, avrDis, disPE);
+					// if the P is nan, restart the feature association with the smaller associate rate
+					if(_isnan(disPE)){
+						associaterate = 0.02;
+						featureAssociate(hisFeatures, curFeatures, associaterate, oldResult, newResult, oldIndexResult, newIndexResult, avrDis, disPE);
+					}
+					//int assCount = 0;
+					//do{
+					//	featureAssociate(hisFeatures, curFeatures, associaterate, oldResult, newResult, oldIndexResult, newIndexResult, avrDis, disPE);
+					//	assCount++;
+					//}while(_isnan(disPE) && assCount<5);
+					//if(assCount == 5) cout<<"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFeld!"<<endl;
+	
+					//if(avrDis < 0.02){			
+						associaterate = avrDis * 1.1;
+					//} else {
+					//	associaterate = 0.022;
+					//}
 					//calibrationWithDistance(oldResult, newResult);
 
 					// The first Limination
@@ -932,7 +1006,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 					//for(int i=0;i<oldResult.size();i++){
 					//	Point2f trans(204,0);
-					//	line(testimg, point3To2(oldResult[i]), point3To2(newResult[i])+trans, Scalar(255,255,0,0));
+					//	line(testImg, point3To2(oldResult[i]), point3To2(newResult[i])+trans, Scalar(255,255,0,0));
 					//}
 					cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 #ifdef SVDTRACK
@@ -943,7 +1017,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					isDataUsed = true;
 					cout<<"The loop Count is: "<<isDataUsed<<endl;
 				}
-				imshow("OpenCVRGBTest", testimg);					
+				imshow("OpenCVCorrespondenz", testImg);					
 #endif
 
 						
@@ -960,67 +1034,52 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					
 					
 #ifdef FRAME2
-					bool isBig = isBigNoised(T, angle, jumpedFeatures+1, 3.5, 10);
-					if(!isBig){
-						
-						cout<<"The roateted angle: "<<angle<<" is small than 3"<<endl;
+					if(disPE < 0.3){
+						cout<<"The distance from P to E is: "<<disPE<<" is small than 0.1"<<endl;
 
 						obj->updateGraph(newResult, R, T);
 						RR = R*RR;
 						// if there is minimal 1 feature jumped, remove the unused frame
 						if(jumpedFeatures > 0){
-
-							list<BildData*>::iterator it = bildDataBuffer.end();
-							// remove all frame, which are in front of the current frame
-							it--;	
-							for(int i=jumpedFeatures-1;i>=0;i--){
-								it--;
-								it = bildDataBuffer.erase(it);
-							}
-
-							cout<<"Get a good feature, the selected feature is: "<<jumpedFeatures<<endl;
-
+							bildDataBuffer.erase(--(--bildDataBuffer.end()));
 							jumpedFeatures = 0;
-							memAngle = 360;
-							memIndex = 0;
+							memAvrDis = numeric_limits<float>::max();
 						}
 					} else {
-						cout<<"The angle is too big: "<<angle<<". loop contunied!"<<endl;
-						cout<<"======================= Calling the special process ===================="<<endl;
+						cout<<"The frame has big noise, and will be throw out!"<<endl;
+						// if the noised frame has a smaller distance between the associated points
+						if(disPE < memAvrDis){
+							memIndex = frameIndex;
+							memAvrDis = disPE;
 
-						if(angle<memAngle){
-							memAngle = angle;
-							memR = R;
-							memT = T;
+							R.copyTo(memR);
+							T.copyTo(memT);
+						
+							//TODO: using all features to update object
 							memNewResult = newResult;
-							memIndex = jumpedFeatures;
+							// if this noised frame is not the first frame, that means, there is already a noised frame before this frame 
+							if(jumpedFeatures > 0){
+								// remove the frame before
+								bildDataBuffer.erase(--(--bildDataBuffer.end()));
+							}
+						} else {
+							bildDataBuffer.pop_back();
+						}
+						cout<<"Jumped! The jumped features: "<<jumpedFeatures<<endl;
+						jumpedFeatures++;
+
+						if(jumpedFeatures>MAXJUMPEDFEATURES){
+							cout<<"The frame has noise, but the maximal number of the allowed jumped frames are arrived!"<<endl;
+							cout<<"The frmae "<<memIndex<<" has been choice to get an approximation"<<endl;
+						
+							RR = memR*RR;
+							RR.copyTo(obj->R);
+							obj->updateGraph(memNewResult, memR, memT);
+
+							jumpedFeatures = 0;
+							memAvrDis = numeric_limits<float>::max();
 						}
 
-						cout<<"The Jumped features: "<<jumpedFeatures<<endl;
-
-						if(jumpedFeatures >= MAXJUMPEDFEATURES){
-							// update with the best R and T, which cooresponding to the smallest rotated angle
-							obj->updateGraph(memNewResult, memR, memT);	
-							RR = memR*RR;
-							// remove all data, which around the selected feature
-							list<BildData*>::iterator it = bildDataBuffer.end();
-							for(int i=MAXJUMPEDFEATURES;i>=0;i--){
-								it--;
-								// if the data is not for the selected frame, remove it
-								if(i!=memIndex){
-									it = bildDataBuffer.erase(it);
-								}
-							}
-
-							//cout<<"The current sizt of BildDataBuffer is: "<<bildDataBuffer.size()<<endl;
-							cout<<"The max jumped feature arrived, the selected feature is: "<<memIndex<<endl;
-
-							jumpedFeatures = -1;
-							memAngle = 360;
-							memIndex = 0;
-						} 
-
-						jumpedFeatures++;
 					}
 #endif
 
@@ -1096,7 +1155,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						//	cout<<"Even the maximal number of jumped frame is arrived, because of the too big rotated angle, the choosed frame will be still throw out!"<<endl;
 						//	jumpedFeatures--;
 						//} else {
-						
+						//cout<<"The current associate rate is: "<<associaterate<<endl;
 						RR = memR*RR;
 						RR.copyTo(obj->R);
 						obj->updateGraph(memNewResult, memR, memT);
@@ -1136,32 +1195,48 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//Mat hisImg2 = Mat(size, CV_8UC3, hisShowdata);
 				//hisImg2.copyTo(left);
 
+				
+				testImg = Mat(204, 204*2, CV_8UC3);
+
+				Mat left = Mat(testImg, Range::all(), Range(0,204));
+				Mat right = Mat(testImg, Range::all(), Range(204,204*2));
+
+				hisMat.copyTo(left);
+				curMat.copyTo(right);
+
 				for(int i=0;i<hisFeatures2D.size();i++){
 					// show the old features
 					circle(left, hisFeatures2D[i], 2, Scalar(0,255,0,0), -1);
 				}
 
+				for(int i=0;i<curFeatures2D.size();i++){
+					// show the old features
+					circle(right, curFeatures2D[i], 2, Scalar(0,0,255,0), -1);
+				}
+
 				//if(hisFeatures.size()>0&&curFeatures.size()>0){
 				//	featureAssociate(hisFeatures, curFeatures, ASSOCIATESITA, oldIndexResult, newIndexResult);
-				//	for(int i=0;i<oldIndexResult.size();i++){
-				//		Point2f trans(204,0);
-				//		//line(testimg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
-				//		line(testimg, hisFeatures2D[oldIndexResult[i]], curFeatures2D[newIndexResult[i]]+trans, Scalar(255,255,0,0));
-				//	}
+					for(int i=0;i<oldIndexResult.size();i++){
+						Point2f trans(204,0);
+						//line(testImg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
+						line(testImg, hisFeatures2D[oldIndexResult[i]], curFeatures2D[newIndexResult[i]]+trans, Scalar(255,255,0,0));
+					}
 				//	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 				//}
-				imshow("OpenCVRGBTest", testimg);
+				imshow("OpenCVCorrespondenz", testImg);
 
-				Mat graphImg = Mat(size, CV_8UC3, showdata);
-				//for(int k=0;k<caliResult.size();k++){
-				//	int firstSize = caliResult[k].size();
-				//	for(int i=0;i<firstSize;i++){
-				//		for(int j=0;j<firstSize;j++){
-				//			line(graphImg, point3To2(caliResult[k][i]), point3To2(caliResult[k][j]), Scalar(0, 255, 255, 0));
-				//		}
-				//	}
-				//}
-				imshow("OpenCVRGBGraph", graphImg);
+				Mat graphImg;
+				curMat.copyTo(graphImg);
+				for(int k=0;k<caliIndex.size();k++){
+					int firstSize = caliIndex[k].size();
+					for(int i=0;i<firstSize;i++){
+						circle(graphImg, caliIndex[k][i], 2, Scalar(0,0,255), -1);
+						for(int j=i;j<firstSize;j++){
+							line(graphImg, caliIndex[k][i], caliIndex[k][j], Scalar(0, 255, 255, 0));
+						}
+					}
+				}
+				imshow("OpenCVSummedFeatures", graphImg);
 
 				//cout<<"==================== End the loop of historical data ==========================="<<endl;
 #endif	
@@ -1263,7 +1338,6 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 
 			LeaveCriticalSection (&cvInitCrs);
-			destroyWindow("OpenCVWindow");
 		}//end cv and std namespace
 		
 		

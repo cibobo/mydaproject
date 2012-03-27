@@ -384,6 +384,76 @@ void calibration2D(vector<vector<KeyPoint>> &groupFeatures, vector<KeyPoint> fea
 		}
 	}
 }
+void calibration3(vector<vector<Point3f>> &result, vector<vector<Point2f>> &resultIndex, vector<Point3f> points, vector<Point2f> indexs, float eps){
+	vector<int> pointer;
+	// the beginning set Nr. is -1 
+	for(int i=0;i<points.size();i++){
+		pointer.push_back(-1);
+	}
+	// the loop for all points
+	for(int i=0;i<points.size();i++){
+		vector<Point3f> temp;
+		vector<Point2f> tempIndex;
+		int index;
+		// if the set Nr. for the current feature is not be set
+		if(pointer.at(i) == -1){
+			// create a new set, and add the current feature to it
+			temp.push_back(points[i]);
+			tempIndex.push_back(indexs[i]);
+			// get the set Nr.
+			index = result.size();
+			for(int j=0;j<points.size();j++){
+				//calculate the distance between two features
+				float xDis = fabs(points[i].x - points[j].x);
+				float yDis = fabs(points[i].y - points[j].y);
+				float zDis = fabs(points[i].z - points[j].z);
+				//if they are too close
+				if((xDis*xDis + yDis*yDis + zDis*zDis)<eps*eps){
+					// if the feature j is not include in this set
+					if(pointer.at(j) != index){
+						// add the feature j into the set of close features for feature i 
+						temp.push_back(points[j]);
+						tempIndex.push_back(indexs[j]);
+						// set the set Nr. for feature j
+						pointer.at(j) = index;
+					}
+				}
+			}
+			// add the new set to the groupFeatures
+			result.push_back(temp);
+			resultIndex.push_back(tempIndex);
+		// if the set Nr. for the current feature has been already set 
+		} else {
+			// get the set Nr.
+			index = pointer.at(i);
+			// get the set
+			temp = result.at(index);
+			tempIndex = resultIndex.at(index);
+			for(int j=0;j<points.size();j++){
+				//calculate the distance between two features
+				float xDis = fabs(points[i].x - points[j].x);
+				float yDis = fabs(points[i].y - points[j].y);
+				float zDis = fabs(points[i].z - points[j].z);
+				//if they are too close
+				//if(xDis<eps && yDis<eps){
+				if((xDis*xDis + yDis*yDis + zDis*zDis)<eps*eps){
+					// if the feature j is not include in this set
+					if(pointer.at(j) != index){
+						temp.push_back(points[j]);
+						tempIndex.push_back(indexs[j]);
+						pointer.at(j) = index;
+					}
+				}
+			}
+			// reset the set of groupFeatures 
+			result.at(index) = temp;
+			resultIndex.at(index) = tempIndex;
+		}
+	}
+}
+
+
+
 /**************************************************
  *
  * The Calibrations methode from the paper: 
@@ -509,6 +579,20 @@ void findMaxPointsSet(vector<vector<Point3f>> pointsSets, vector<Point3f> &maxSe
 	}
 }
 
+void findMaxIndexesSet(vector<vector<Point2f>> indexesSets, vector<Point2f> &maxSet){
+	int maxSize = 0;
+	int maxSizeIndex = 0;
+	for(int i=0;i<indexesSets.size();i++){
+		if(indexesSets[i].size()>maxSize){
+			maxSize = indexesSets[i].size();
+			maxSizeIndex = i;
+		}
+	}
+	if(maxSize > 0){
+		maxSet = indexesSets[maxSizeIndex];
+	}
+}
+
 /*********************************************************
  *
  * The algorithm to tacking the markers in different frames
@@ -598,9 +682,10 @@ void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, f
 /*
  * The Input points are 3D points, but just the information for x and y is useful to deal with the SVD
  */
-float featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, 
-						vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew,
-						vector<int> &findIndexOld, vector<int> &findIndexNew){
+void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, 
+					   vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew,
+					   vector<int> &findIndexOld, vector<int> &findIndexNew,
+					   float &avrDis, float &disPE){
 	// set the number of the old features as the row size
 	int rowSize = oldFeature.size();
 	// set the number of the new features as the column size
@@ -629,11 +714,18 @@ float featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, f
 		G = Mat(tempG.t());
 		E = Mat::eye(colSize, rowSize, CV_32FC1);
 	}
+	cout<<"===================== THE SVD ======================="<<endl;
+	//cout<<G<<endl<<endl;
 
 	// Using the Singular Value Decomposition, using the full_uv molde to get the full-size square orthogonal matrices T and U
 	SVD svd = SVD(G, SVD::FULL_UV);
+	//cout<<svd.u<<endl<<endl;
+	//cout<<svd.vt<<endl<<endl;
 	// calculate the new Matrix P
 	Mat P = svd.u * E * svd.vt;
+
+	
+	cout<<P<<endl<<endl;
 
 	int m = P.size().height;
 	int n = P.size().width;
@@ -655,6 +747,8 @@ float featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, f
 
 	findIndexOld.clear();
 	findIndexNew.clear();
+
+	disPE = 0;
 	// loop for the element, which were found as the biggest one for each row in last step
 	for(int i=0;i<m;i++){
 		int colIndex = rowMax[i];
@@ -668,6 +762,7 @@ float featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, f
 		}
 		// if the loop of the column is complete, a frame coorespondence for two frames are found.
 		if(j==m){
+			disPE += fabs(1-maxValue);
 			// push the result into the vectors
 			if(rowSize <= colSize){
 				findFeatureOld.push_back(oldFeature[i]);
@@ -685,17 +780,25 @@ float featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, f
 		}
 	}	
 
+	cout<<"The average distance from P to E is: "<<disPE/findIndexOld.size()<<endl;
 	// calculate the average displacement
 	float disSum = 0;
+	float disMax = -1;
 	for(int i=0;i<findFeatureOld.size();i++){
-		disSum += sqrt((findFeatureOld[i].x - findFeatureNew[i].x)*(findFeatureOld[i].x - findFeatureNew[i].x)
-					 + (findFeatureOld[i].y - findFeatureNew[i].y)*(findFeatureOld[i].y - findFeatureNew[i].y)
-					 + (findFeatureOld[i].z - findFeatureNew[i].z)*(findFeatureOld[i].z - findFeatureNew[i].z));
+		float dis = sqrt((findFeatureOld[i].x - findFeatureNew[i].x)*(findFeatureOld[i].x - findFeatureNew[i].x)
+					 + (findFeatureOld[i].y - findFeatureNew[i].y)*(findFeatureOld[i].y - findFeatureNew[i].y));
+					 //+ (findFeatureOld[i].z - findFeatureNew[i].z)*(findFeatureOld[i].z - findFeatureNew[i].z));
+
+		disSum += dis;
+		if(dis>disMax)
+			disMax = dis;
 	}
-	float avrDis = disSum/findFeatureOld.size();
+	cout<<"The maximal displacement is: "<<disMax<<endl;
+	avrDis = disSum/findFeatureOld.size();
 	cout<<"The average displacement is: "<<avrDis<<endl;
+
+	
 	delete []rowMax;
-	return avrDis;
 }
 
 /****************************************************************************************
