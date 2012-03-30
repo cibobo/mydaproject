@@ -28,6 +28,7 @@ public:
 
 	// test complete features
 	vector<Point3f> comFeatures;
+	vector<Point2f> comFeatures2D;
 
 	// to save the with DistanceFilter filtered data
 	vector<Point3f> filted3DData;
