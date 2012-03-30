@@ -682,7 +682,7 @@ void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, f
 /*
  * The Input points are 3D points, but just the information for x and y is useful to deal with the SVD
  */
-void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, 
+bool featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, 
 					   vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew,
 					   vector<int> &findIndexOld, vector<int> &findIndexNew,
 					   float &avrDis, float &disPE){
@@ -725,7 +725,7 @@ void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, fl
 	Mat P = svd.u * E * svd.vt;
 
 	
-	cout<<P<<endl<<endl;
+	//cout<<P<<endl<<endl;
 
 	int m = P.size().height;
 	int n = P.size().width;
@@ -761,8 +761,9 @@ void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, fl
 			}
 		}
 		// if the loop of the column is complete, a frame coorespondence for two frames are found.
-		if(j==m){
+		if(j==m && maxValue>0.71){
 			disPE += fabs(1-maxValue);
+			cout<<i<<" : "<<maxValue<<endl;
 			// push the result into the vectors
 			if(rowSize <= colSize){
 				findFeatureOld.push_back(oldFeature[i]);
@@ -780,7 +781,8 @@ void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, fl
 		}
 	}	
 
-	cout<<"The average distance from P to E is: "<<disPE/findIndexOld.size()<<endl;
+	disPE = disPE/findIndexOld.size();
+	cout<<"The average distance from P to E is: "<<disPE<<endl;
 	// calculate the average displacement
 	float disSum = 0;
 	float disMax = -1;
@@ -797,8 +799,15 @@ void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, fl
 	avrDis = disSum/findFeatureOld.size();
 	cout<<"The average displacement is: "<<avrDis<<endl;
 
+	avrDis = disMax;
 	
 	delete []rowMax;
+	if(_isnan(disPE) || findFeatureOld.size()<3){
+		// return false if the matrix P is NaN, or the number of associate points smaller than 3
+		return false;
+	} else {
+		return true;
+	}
 }
 
 /****************************************************************************************
@@ -987,6 +996,8 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 		return 0;
 	}
 
+	cout<<q<<endl;
+
 	float PI = 3.1416;
 	float angle = acos(q.at<float>(0,0))*2*180/PI;
 	cout<<"The rotation is: "<<angle<<endl;
@@ -994,8 +1005,13 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 	// consider, that the angle Theta/2 is just between 0~pi
 	float sinValue = sqrt(1-q.at<float>(0,0)*q.at<float>(0,0));
 	// calculate the rotated vector
-	qTemp = q.colRange(1,4)/sinValue;
+	if(sinValue != 0){
+		qTemp = q.colRange(1,4)/sinValue;
+	} else {
+		qTemp = Mat::zeros(1,3,CV_32FC1);
+	}
 	cout<<"The old rotated vector is: "<<qTemp<<endl;
+	
 	// using kalman filter to filter this rotated vector
 	Mat qTran = Mat(3,1,CV_32FC1);
 	updateQKalmanFilter(qTemp.t(), qTran);

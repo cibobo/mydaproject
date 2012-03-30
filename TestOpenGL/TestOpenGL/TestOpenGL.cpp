@@ -71,7 +71,7 @@ list<BildData*> bildDataBuffer;
 // The difference between the index of the current frame and historical frame
 int DETECTINGRATE = 2;
 
-int MAXJUMPEDFEATURES = 2;
+int MAXJUMPEDFEATURES = 3;
 // The iterator fo the buffer, which define the position der historical data in used
 int bufferIterator = 1;
 
@@ -80,7 +80,12 @@ int currentFrameIndex = 0;
 int oldFrameIndex = 1;
 
 // framerate
-int FRAMERATE = 100;
+int FRAMERATE = 50;
+
+// The input path
+const char *INPUTPATH = "RoboterRotation4";
+
+char *OUTPUTPATH = "HandRotation";
 
 //int HISFRAMEINDEX = 3;
 
@@ -252,7 +257,7 @@ void inputThreadProc(void *param){
 #ifdef OFFLINE
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	setDefaultLoadPath("FullRotation");
+	setDefaultLoadPath(INPUTPATH);
 
 	//get the distance data for the first step
 	//loadNormalDataFromFile("distance", 3, bildData->disData);
@@ -333,7 +338,7 @@ void inputThreadProc(void *param){
 #else
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	createDefaultPMDDataDirectory("RoboterRotation4");
+	createDefaultPMDDataDirectory(OUTPUTPATH);
 	setIsDataSaved(true);
 	cout<<"PMD Camera Connecting..."<<endl;
 	if(!createPMDCon()){
@@ -350,7 +355,7 @@ void inputThreadProc(void *param){
 	// init distance filter
 	BildData *temp = new BildData();
 	getPMDData(temp);
-	dFilter = new DistanceFilter(temp->disData);
+	dFilter = new DistanceFilter(temp);
 
 	cout<<"Upgrading Distance Filter and Save Data into Buffer....."<<endl;
 	for(int i=0;i<20;i++){
@@ -364,7 +369,7 @@ void inputThreadProc(void *param){
 
 		bildDataBuffer.push_back(temp);
 
-		dFilter->Upgrade(temp->disData);
+		dFilter->Upgrade(temp);
 	}
 	cout<<"Upgrading complete!"<<endl;
 
@@ -385,6 +390,13 @@ void inputThreadProc(void *param){
 				//delete the first element from the list
 				bildDataBuffer.pop_front();
 			}
+#endif
+
+#ifdef FRAME2
+		// if sepcial process begin, the old data would not be removed
+		if(jumpedFeatures<1){
+			bildDataBuffer.pop_front();
+		}
 #endif
 
 #ifdef FRAME3
@@ -607,6 +619,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 			float memAngle = 360;
 			float memAvrDis = numeric_limits<float>::max();
+			float memDisPE = numeric_limits<float>::max();
 			Mat memR, memT;
 			vector<Point3f> memNewResult;
 			int memIndex = 0;
@@ -826,22 +839,24 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 *
 				 *************************************************/
 				// save all features without calibration into the data
-				currentBildData->comFeatures.clear();
-				for(int i=0;i<features.size();i++){
-					int indexI = int(features[i].pt.y);
-					int indexJ = int(features[i].pt.x);
-					float x = currentBildData->threeDData[(indexI*204 + indexJ)*3];
-					float y = currentBildData->threeDData[(indexI*204 + indexJ)*3 +1];
-					float z = currentBildData->threeDData[(indexI*204 + indexJ)*3 +2];
-					Point3f tdp = Point3f(x,y,z);
-					//tdFeatures.push_back(tdp);
-					currentBildData->comFeatures.push_back(tdp);
-				}
+				//currentBildData->comFeatures.clear();
+				//currentBildData->comFeatures2D.clear();
+				//for(int i=0;i<features.size();i++){
+				//	int indexI = int(features[i].pt.y);
+				//	int indexJ = int(features[i].pt.x);
+				//	float x = currentBildData->threeDData[(indexI*204 + indexJ)*3];
+				//	float y = currentBildData->threeDData[(indexI*204 + indexJ)*3 +1];
+				//	float z = currentBildData->threeDData[(indexI*204 + indexJ)*3 +2];
+				//	Point3f tdp = Point3f(x,y,z);
+				//	//tdFeatures.push_back(tdp);
+				//	currentBildData->comFeatures.push_back(tdp);
+				//	currentBildData->comFeatures2D.push_back(Point2f(indexJ, indexI));
+				//}
 
-				//vector<Point3f> hisComFeatures = bildDataBuffer[bildDataBuffer.size()-1]->comFeatures;
-				vector<Point3f> hisComFeatures = bildDataBuffer.front()->comFeatures;
-				vector<Point3f> oldComResult;
-				vector<Point3f> newComResult;
+				////vector<Point3f> hisComFeatures = bildDataBuffer[bildDataBuffer.size()-1]->comFeatures;
+				//vector<Point3f> hisComFeatures = bildDataBuffer.front()->comFeatures;
+				//vector<Point3f> oldComResult;
+				//vector<Point3f> newComResult;
 
 				//cout<<"======= "<<isDataUsed<<" ======= "<<hisComFeatures.size()<<" ======= "<<currentBildData->comFeatures.size()<<endl<<endl;
 				//if(hisComFeatures.size()>0 && currentBildData->comFeatures.size()>0){
@@ -929,6 +944,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//calibration(caliResult, summerizedFeatures, CALIEPS3D);
 				//DBSCAN(caliResult, summerizedFeatures, CALIEPS3D, minPts);
 				calibration3(caliResult, caliIndex, summerizedFeatures, currentBildData->features2D, CALIEPS3D);
+				//calibration3(caliResult, caliIndex, currentBildData->comFeatures, currentBildData->comFeatures2D, CALIEPS3D);
 
 
 
@@ -977,12 +993,12 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				cout<<"======= "<<isDataUsed<<" ======= "<<hisFeatures.size()<<" ======= "<<curFeatures.size()<<endl<<endl;
 				if(hisFeatures.size()>0 && curFeatures.size()>0){
 					float avrDis, disPE;
-					featureAssociate(hisFeatures, curFeatures, associaterate, oldResult, newResult, oldIndexResult, newIndexResult, avrDis, disPE);
+					bool isAssSuccess = featureAssociate(hisFeatures, curFeatures, associaterate, oldResult, newResult, oldIndexResult, newIndexResult, avrDis, disPE);
 					// if the P is nan, restart the feature association with the smaller associate rate
-					if(_isnan(disPE)){
-						associaterate = 0.02;
-						featureAssociate(hisFeatures, curFeatures, associaterate, oldResult, newResult, oldIndexResult, newIndexResult, avrDis, disPE);
-					}
+					//if(_isnan(disPE)){
+					//	associaterate = 0.02;
+					//	featureAssociate(hisFeatures, curFeatures, associaterate, oldResult, newResult, oldIndexResult, newIndexResult, avrDis, disPE);
+					//}
 					//int assCount = 0;
 					//do{
 					//	featureAssociate(hisFeatures, curFeatures, associaterate, oldResult, newResult, oldIndexResult, newIndexResult, avrDis, disPE);
@@ -990,24 +1006,15 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					//}while(_isnan(disPE) && assCount<5);
 					//if(assCount == 5) cout<<"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFeld!"<<endl;
 	
-					//if(avrDis < 0.02){			
-						associaterate = avrDis * 1.1;
-					//} else {
-					//	associaterate = 0.022;
-					//}
+
+					if(avrDis < 0.02){			
+						associaterate = avrDis;
+					} else {
+						associaterate = 0.022;
+					}
 					//calibrationWithDistance(oldResult, newResult);
 
-					// The first Limination
-					// consider the size of the coorespondence points
-					//if(oldResult.size()<5){
-					//	cout<<"The number of coorespondence points is too small! loop continue"<<endl;
-					//	continue;
-					//}
 
-					//for(int i=0;i<oldResult.size();i++){
-					//	Point2f trans(204,0);
-					//	line(testImg, point3To2(oldResult[i]), point3To2(newResult[i])+trans, Scalar(255,255,0,0));
-					//}
 					cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 #ifdef SVDTRACK
 					SVDFindRAndT(oldResult, newResult, R, T);
@@ -1107,33 +1114,46 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//TODO: using the choosen strategy
 				//bool isBig = isBigNoised2(obj, newResult, R, T, 0.35, 0.005);
 				//if(!isBig){
+				if(frameIndex == 140) 
+					cout<<endl;
 				float corresRate = getCorresRate(obj, newResult, R, T, 0.005);
-				if(corresRate > 0.35){
+				if(corresRate > 0.35 && isAssSuccess){
 					cout<<"The frame is not noised: "<<endl;
 					RR = R*RR;
 					RR.copyTo(obj->R);
 					//TODO: using all features to update object
-					obj->updateGraph(newResult, R, T);
+					obj->updateGraph(curFeatures, R, T);
+					//MAXJUMPEDFEATURES = 3;
+
 
 					if(jumpedFeatures > 0){
 						bildDataBuffer.erase(--(--bildDataBuffer.end()));
 						jumpedFeatures = 0;
 						memAvrDis = numeric_limits<float>::max();
-						memAngle = 360;
+						memDisPE = numeric_limits<float>::max();
 					}
 				} else {
 					cout<<"The frame has big noise, and will be throw out!"<<endl;
+					if(!isAssSuccess){
+						avrDis = numeric_limits<float>::max()/10;
+						disPE = numeric_limits<float>::max()/10;
+						//MAXJUMPEDFEATURES++;
+						//cout<<"The Maximal JumpedFeatures are new defined!"<<MAXJUMPEDFEATURES<<endl;
+					}
 					// if the noised frame has a smaller distance between the associated points
-					if(avrDis < memAvrDis){
+					//if(avrDis < memAvrDis){
+					if(disPE < memDisPE){
 						memIndex = frameIndex;
 						memAvrDis = avrDis;
-					//if(angle<memAngle){
+						memDisPE = disPE;
+
 						memAngle = angle;
 						R.copyTo(memR);
 						T.copyTo(memT);
 						
 						//TODO: using all features to update object
-						memNewResult = newResult;
+						memNewResult = curFeatures;
+
 						// if this noised frame is not the first frame, that means, there is already a noised frame before this frame 
 						if(jumpedFeatures > 0){
 							// remove the frame before
@@ -1163,7 +1183,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 						jumpedFeatures = 0;
 						memAvrDis = numeric_limits<float>::max();
-						memAngle = 360;
+						memDisPE = numeric_limits<float>::max();
+						//MAXJUMPEDFEATURES = 3;
 						//}
 					}
 

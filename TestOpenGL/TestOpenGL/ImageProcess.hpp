@@ -44,7 +44,7 @@ void findMaxIndexesSet(vector<vector<Point2f>> indexesSets, vector<Point2f> &max
 
 void featureAssociate2(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew);
 
-void featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, 
+bool featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, float sigma, 
 					   vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew,
 					   vector<int> &findIndexOld, vector<int> &findIndexNew,
 					   float &avrDis, float &disPE);
