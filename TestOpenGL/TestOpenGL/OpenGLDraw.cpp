@@ -255,7 +255,7 @@ void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData){
 		//}
 		glColor3f(1.0f, 0.0f, 0.0f);
 		for(int i=0;i<bildData->features.size();i++){
-			glVertex3f(bildData->features[i].x, bildData->features[i].y, -bildData->features[i].z);
+			glVertex3f(bildData->features[i].coord.x, bildData->features[i].coord.y, -bildData->features[i].coord.z);
 		}
 		//for(int i=0;i<bildData->comFeatures.size();i++){
 		//	glVertex3f(bildData->comFeatures[i].x, bildData->comFeatures[i].y, -bildData->comFeatures[i].z);

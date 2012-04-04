@@ -3,6 +3,8 @@
 
 #include <cv.h>
 
+#include "PMDPoint.hpp"
+
 using namespace std;
 using namespace cv;
 
@@ -20,11 +22,13 @@ public:
 	// Pointer of 3D Data
 	float *threeDData;
 
-	// Features
-	vector<Point3f> features;
+	//// Features
+	//vector<Point3f> features;
 
-	// 2D Features for the OpenCV Windows
-	vector<Point2f> features2D;
+	//// 2D Features for the OpenCV Windows
+	//vector<Point2f> features2D;
+
+	vector<PMDPoint> features;
 
 	// test complete features
 	vector<Point3f> comFeatures;

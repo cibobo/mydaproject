@@ -100,6 +100,21 @@ Mat R = Mat::eye(3,3,CV_32FC1);
 Mat T = Mat::zeros(3,1,CV_32FC1);
 
 
+template<class T>
+void findMaxSet(vector<vector<T>> sets, vector<T> &maxSet){
+	int maxSize = 0;
+	int maxSizeIndex = 0;
+	for(int i=0;i<sets.size();i++){
+		if(sets[i].size()>maxSize){
+			maxSize = sets[i].size();
+			maxSizeIndex = i;
+		}
+	}
+	if(maxSize > 0){
+		maxSet = sets[maxSizeIndex];
+	}
+}
+
 // this function is called by a new thread 
 void openGLThreadPorc( void *param ) 
 { 
@@ -617,9 +632,12 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 			obj = new Graph();
 
+
+			// Parameters for the frame choice
 			float memAngle = 360;
 			float memAvrDis = numeric_limits<float>::max();
 			float memDisPE = numeric_limits<float>::max();
+			float memSumP = -1;
 			Mat memR, memT;
 			vector<Point3f> memNewResult;
 			int memIndex = 0;
@@ -893,7 +911,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				calibration2D(groupFeatures, features, eps);
 				cout<<"After Summerize get "<<groupFeatures.size()<<" features!"<<endl;
 
-				vector<Point3f> summerizedFeatures; 
+				//vector<Point3f> summerizedFeatures; 
+				vector<PMDPoint> summerizedFeatures; 
 				for(int i=0;i<groupFeatures.size();i++){
 					float avrX2D = 0;
 					float avrY2D = 0;
@@ -918,12 +937,12 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					Point2f p2(avrX2D/groupSize, avrY2D/groupSize);
 					Point3f p3(avrX3D/groupSize, avrY3D/groupSize, avrZ3D/groupSize);
 					
-					currentBildData->features2D.push_back(p2);
-					//currentBildData->features.push_back(p3);
-					summerizedFeatures.push_back(p3);
-
-					// show the current features
-					//circle(right, p2, 1, Scalar(0,0,255,0), -1);
+					//currentBildData->features2D.push_back(p2);
+					////currentBildData->features.push_back(p3);
+					//summerizedFeatures.push_back(p3);
+					
+					PMDPoint newPMDPoint = PMDPoint(p3,p2);
+					summerizedFeatures.push_back(newPMDPoint);
 				}
 
 
@@ -935,28 +954,31 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 * TODO: for more objects expand
 				 *
 				 *************************************************/
-				vector<vector<Point3f>> caliResult;
-				vector<vector<Point2f>> caliIndex;
+				//vector<vector<Point3f>> caliResult;
+				//vector<vector<Point2f>> caliIndex;
+				vector<vector<PMDPoint>> caliResult;
 				float CALIEPS3D = 0.12;
 				int minPts = 3;
 
 				// Call calibration
 				//calibration(caliResult, summerizedFeatures, CALIEPS3D);
 				//DBSCAN(caliResult, summerizedFeatures, CALIEPS3D, minPts);
-				calibration3(caliResult, caliIndex, summerizedFeatures, currentBildData->features2D, CALIEPS3D);
+				//calibration3(caliResult, caliIndex, summerizedFeatures, currentBildData->features2D, CALIEPS3D);
 				//calibration3(caliResult, caliIndex, currentBildData->comFeatures, currentBildData->comFeatures2D, CALIEPS3D);
+				calibrationPMDPoint(caliResult, summerizedFeatures, CALIEPS3D);
 
 
 
 
 				// Clear the vector of the features
+				//currentBildData->features.clear();
+				//currentBildData->features2D.clear();
+				//// Save the features into the first place of data buffer
+				//findMaxPointsSet(caliResult, currentBildData->features);
+				//findMaxIndexesSet(caliIndex, currentBildData->features2D);
+
 				currentBildData->features.clear();
-				currentBildData->features2D.clear();
-				// Save the features into the first place of data buffer
-				findMaxPointsSet(caliResult, currentBildData->features);
-				findMaxIndexesSet(caliIndex, currentBildData->features2D);
-
-
+				findMaxPMDPointSet(caliResult, currentBildData->features);
 
 				/***************************************************
 				 *
@@ -974,14 +996,21 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//vector<Point3f> hisFeatures = bildDataBuffer[bildDataBuffer.size()-1]->features;
 
 				// The current Features
-				vector<Point3f> curFeatures = currentBildData->features;	
+				//vector<Point3f> curFeatures = currentBildData->features;	
+				//// The historical Features
+				//vector<Point3f> hisFeatures = bildDataBuffer.front()->features;
+
+				//// The vector to save the points of SVC Association				
+				//vector<Point3f> oldResult, newResult;
+				//// The vector to save the index of SVC Association
+				//vector<int> oldIndexResult, newIndexResult;
+
+				vector<PMDPoint> curFeatures = currentBildData->features;	
 				// The historical Features
-				vector<Point3f> hisFeatures = bildDataBuffer.front()->features;
+				vector<PMDPoint> hisFeatures = bildDataBuffer.front()->features;
 
 				// The vector to save the points of SVC Association				
-				vector<Point3f> oldResult, newResult;
-				// The vector to save the index of SVC Association
-				vector<int> oldIndexResult, newIndexResult;
+				vector<PMDPoint> oldResult, newResult;
 
 				
 
@@ -992,8 +1021,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					
 				cout<<"======= "<<isDataUsed<<" ======= "<<hisFeatures.size()<<" ======= "<<curFeatures.size()<<endl<<endl;
 				if(hisFeatures.size()>0 && curFeatures.size()>0){
-					float avrDis, disPE;
-					bool isAssSuccess = featureAssociate(hisFeatures, curFeatures, associaterate, oldResult, newResult, oldIndexResult, newIndexResult, avrDis, disPE);
+					float avrDis, disPE, sumP;
+					bool isAssSuccess = featureAssociatePMD(hisFeatures, curFeatures, associaterate, oldResult, newResult, avrDis, disPE, sumP);
+					//bool isAssSuccess = featureAssociate(hisFeatures, curFeatures, associaterate, oldResult, newResult, oldIndexResult, newIndexResult, avrDis, disPE);
 					// if the P is nan, restart the feature association with the smaller associate rate
 					//if(_isnan(disPE)){
 					//	associaterate = 0.02;
@@ -1029,8 +1059,14 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 						
 #ifdef UQTRACK		
+					vector<Point3f> old3DPointResult, new3DPointResult;
+					for(int i=0;i<oldResult.size();i++){
+						old3DPointResult.push_back(oldResult[i].coord);
+						new3DPointResult.push_back(newResult[i].coord);
+					}
 					// get the rotated angle
-					float angle = UQFindRAndT(oldResult, newResult, R, T);
+					//float angle = UQFindRAndT(oldResult, newResult, R, T);
+					float angle = UQFindRAndT(old3DPointResult, new3DPointResult, R, T);
 					cout<<"The rotation matrix is: "<<R<<endl<<endl;
 					cout<<"The translation matrix is: "<<T<<endl<<endl;
 
@@ -1041,29 +1077,39 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					
 					
 #ifdef FRAME2
-					if(disPE < 0.3){
-						cout<<"The distance from P to E is: "<<disPE<<" is small than 0.1"<<endl;
+					vector<Point3f> cur3DPointFeatures;
+					for(int i=0;i<curFeatures.size();i++){
+						cur3DPointFeatures.push_back(curFeatures[i].coord);
+					}
+					if(isAssSuccess){
+						cout<<"The sum of nonzero elements of Matrix P is: "<<sumP<<endl;
 
-						obj->updateGraph(newResult, R, T);
+						obj->updateGraph(cur3DPointFeatures, R, T);
 						RR = R*RR;
 						// if there is minimal 1 feature jumped, remove the unused frame
 						if(jumpedFeatures > 0){
 							bildDataBuffer.erase(--(--bildDataBuffer.end()));
 							jumpedFeatures = 0;
 							memAvrDis = numeric_limits<float>::max();
+							memSumP = -1;
 						}
 					} else {
 						cout<<"The frame has big noise, and will be throw out!"<<endl;
 						// if the noised frame has a smaller distance between the associated points
-						if(disPE < memAvrDis){
+						if(sumP > memSumP || _isnan(disPE)){
 							memIndex = frameIndex;
 							memAvrDis = disPE;
+							if(_isnan(disPE)){
+								memSumP = -1;
+							} else {
+								memSumP = sumP;
+							}
 
 							R.copyTo(memR);
 							T.copyTo(memT);
 						
 							//TODO: using all features to update object
-							memNewResult = newResult;
+							memNewResult = cur3DPointFeatures;
 							// if this noised frame is not the first frame, that means, there is already a noised frame before this frame 
 							if(jumpedFeatures > 0){
 								// remove the frame before
@@ -1085,6 +1131,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 							jumpedFeatures = 0;
 							memAvrDis = numeric_limits<float>::max();
+							memSumP = -1;
 						}
 
 					}
@@ -1111,18 +1158,19 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 #endif
 
 #ifdef FRAME3
-				//TODO: using the choosen strategy
-				//bool isBig = isBigNoised2(obj, newResult, R, T, 0.35, 0.005);
-				//if(!isBig){
-				if(frameIndex == 140) 
-					cout<<endl;
-				float corresRate = getCorresRate(obj, newResult, R, T, 0.005);
+				vector<Point3f> cur3DPointFeatures;
+				for(int i=0;i<curFeatures.size();i++){
+					cur3DPointFeatures.push_back(curFeatures[i].coord);
+				}
+				//if(frameIndex == 78) 
+				//	cout<<endl;
+				float corresRate = getCorresRate(obj, new3DPointResult, R, T, 0.005);
 				if(corresRate > 0.35 && isAssSuccess){
 					cout<<"The frame is not noised: "<<endl;
 					RR = R*RR;
 					RR.copyTo(obj->R);
 					//TODO: using all features to update object
-					obj->updateGraph(curFeatures, R, T);
+					obj->updateGraph(cur3DPointFeatures, R, T);
 					//MAXJUMPEDFEATURES = 3;
 
 
@@ -1131,28 +1179,32 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						jumpedFeatures = 0;
 						memAvrDis = numeric_limits<float>::max();
 						memDisPE = numeric_limits<float>::max();
+						memSumP = -1;
 					}
 				} else {
 					cout<<"The frame has big noise, and will be throw out!"<<endl;
 					if(!isAssSuccess){
 						avrDis = numeric_limits<float>::max()/10;
 						disPE = numeric_limits<float>::max()/10;
+						sumP = 0;
 						//MAXJUMPEDFEATURES++;
 						//cout<<"The Maximal JumpedFeatures are new defined!"<<MAXJUMPEDFEATURES<<endl;
 					}
 					// if the noised frame has a smaller distance between the associated points
 					//if(avrDis < memAvrDis){
-					if(disPE < memDisPE){
+					//if(disPE < memDisPE){
+					if(sumP > memSumP){
 						memIndex = frameIndex;
 						memAvrDis = avrDis;
 						memDisPE = disPE;
+						memSumP = sumP;
 
 						memAngle = angle;
 						R.copyTo(memR);
 						T.copyTo(memT);
 						
 						//TODO: using all features to update object
-						memNewResult = curFeatures;
+						memNewResult = cur3DPointFeatures;
 
 						// if this noised frame is not the first frame, that means, there is already a noised frame before this frame 
 						if(jumpedFeatures > 0){
@@ -1184,6 +1236,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						jumpedFeatures = 0;
 						memAvrDis = numeric_limits<float>::max();
 						memDisPE = numeric_limits<float>::max();
+						memSumP = -1;
 						//MAXJUMPEDFEATURES = 3;
 						//}
 					}
@@ -1207,8 +1260,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 * OpenCV Show Windows
 				 *
 				 ********************************************/
-				vector<Point2f> curFeatures2D = currentBildData->features2D;
-				vector<Point2f> hisFeatures2D = bildDataBuffer.front()->features2D;
+				//vector<Point2f> curFeatures2D = currentBildData->features2D;
+				//vector<Point2f> hisFeatures2D = bildDataBuffer.front()->features2D;
 
 
 				// set the new historical fram into the left OpenCV window 
@@ -1225,22 +1278,27 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				hisMat.copyTo(left);
 				curMat.copyTo(right);
 
-				for(int i=0;i<hisFeatures2D.size();i++){
+				for(int i=0;i<hisFeatures.size();i++){
 					// show the old features
-					circle(left, hisFeatures2D[i], 2, Scalar(0,255,0,0), -1);
+					circle(left, hisFeatures[i].index, 2, Scalar(0,255,0,0), -1);
 				}
 
-				for(int i=0;i<curFeatures2D.size();i++){
+				//for(int i=0;i<summerizedFeatures.size();i++){
+				//	// show the old features
+				//	circle(right, summerizedFeatures[i].index, 2, Scalar(0,0,255,0), -1);
+				//}
+				for(int i=0;i<curFeatures.size();i++){
 					// show the old features
-					circle(right, curFeatures2D[i], 2, Scalar(0,0,255,0), -1);
+					circle(right, curFeatures[i].index, 2, Scalar(0,0,255,0), -1);
 				}
+
 
 				//if(hisFeatures.size()>0&&curFeatures.size()>0){
 				//	featureAssociate(hisFeatures, curFeatures, ASSOCIATESITA, oldIndexResult, newIndexResult);
-					for(int i=0;i<oldIndexResult.size();i++){
+					for(int i=0;i<oldResult.size();i++){
 						Point2f trans(204,0);
 						//line(testImg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
-						line(testImg, hisFeatures2D[oldIndexResult[i]], curFeatures2D[newIndexResult[i]]+trans, Scalar(255,255,0,0));
+						line(testImg, oldResult[i].index, newResult[i].index+trans, Scalar(255,255,0,0));
 					}
 				//	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 				//}
@@ -1248,13 +1306,19 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				Mat graphImg;
 				curMat.copyTo(graphImg);
-				for(int k=0;k<caliIndex.size();k++){
-					int firstSize = caliIndex[k].size();
-					for(int i=0;i<firstSize;i++){
-						circle(graphImg, caliIndex[k][i], 2, Scalar(0,0,255), -1);
-						for(int j=i;j<firstSize;j++){
-							line(graphImg, caliIndex[k][i], caliIndex[k][j], Scalar(0, 255, 255, 0));
-						}
+				//for(int k=0;k<caliResult.size();k++){
+				//	int firstSize = caliResult[k].size();
+				//	for(int i=0;i<firstSize;i++){
+				//		circle(graphImg, caliResult[k][i].index, 2, Scalar(0,0,255), -1);
+				//		for(int j=i;j<firstSize;j++){
+				//			line(graphImg, caliResult[k][i].index, caliResult[k][j].index, Scalar(0, 255, 255, 0));
+				//		}
+				//	}
+				//}
+				for(int i=0;i<curFeatures.size();i++){
+					circle(graphImg, curFeatures[i].index, 2, Scalar(0,0,255), -1);
+					for(int j=i;j<curFeatures.size();j++){
+						line(graphImg, curFeatures[i].index, curFeatures[j].index, Scalar(0, 255, 255, 0));
 					}
 				}
 				imshow("OpenCVSummedFeatures", graphImg);

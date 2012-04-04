@@ -14,6 +14,7 @@
 #include "MarkerDetection.hpp"
 #include "OpenGLDraw.hpp"
 #include "PMDCamIO.hpp"
+#include "PMDPoint.hpp"
 #include "TestOpenGL.h"
 
 
