@@ -48,6 +48,6 @@
 #include <string>
 
 
-
+#define BILDSIZE 204
 
 // TODO: Hier auf zusätzliche Header, die das Programm erfordert, verweisen.

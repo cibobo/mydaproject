@@ -55,6 +55,10 @@ Point2f point3To2(Point3f point){
 	return newPoint;
 }
 
+float getEuclideanDis(Point3f p1, Point3f p2){
+	return (p1.x-p2.x)*(p1.x-p2.x) + (p1.y-p2.y)*(p1.y-p2.y) + (p1.z-p2.z)*(p1.z-p2.z);
+}
+
 
 /****************************************************
  *
@@ -454,6 +458,74 @@ void calibration3(vector<vector<Point3f>> &result, vector<vector<Point2f>> &resu
 
 
 
+void calibrationPMDPoint(vector<vector<PMDPoint>> &result, vector<PMDPoint> points, float eps){
+	vector<int> pointer;
+	// the beginning set Nr. is -1 
+	for(int i=0;i<points.size();i++){
+		pointer.push_back(-1);
+	}
+	// the loop for all points
+	for(int i=0;i<points.size();i++){
+		vector<PMDPoint> temp;
+		int index;
+		// if the set Nr. for the current feature is not be set
+		if(pointer.at(i) == -1){
+			// create a new set, and add the current feature to it
+			temp.push_back(points[i]);
+			// get the set Nr.
+			index = result.size();
+			for(int j=0;j<points.size();j++){
+				//calculate the distance between two features
+				//float xDis = fabs(points[i].coord.x - points[j].coord.x);
+				//float yDis = fabs(points[i].coord.y - points[j].coord.y);
+				//float zDis = fabs(points[i].coord.z - points[j].coord.z);
+				////if they are too close
+				//if((xDis*xDis + yDis*yDis + zDis*zDis)<eps*eps){
+
+				float dis = getEuclideanDis(points[i].coord, points[j].coord);
+				if(dis < eps*eps){				
+					// if the feature j is not include in this set
+					if(pointer.at(j) != index){
+						// add the feature j into the set of close features for feature i 
+						temp.push_back(points[j]);
+						// set the set Nr. for feature j
+						pointer.at(j) = index;
+					}
+				}
+			}
+			// add the new set to the groupFeatures
+			result.push_back(temp);
+		// if the set Nr. for the current feature has been already set 
+		} else {
+			// get the set Nr.
+			index = pointer.at(i);
+			// get the set
+			temp = result.at(index);
+			for(int j=0;j<points.size();j++){
+				//calculate the distance between two features
+				//float xDis = fabs(points[i].coord.x - points[j].coord.x);
+				//float yDis = fabs(points[i].coord.y - points[j].coord.y);
+				//float zDis = fabs(points[i].coord.z - points[j].coord.z);
+				////if they are too close
+				////if(xDis<eps && yDis<eps){
+				//if((xDis*xDis + yDis*yDis + zDis*zDis)<eps*eps){
+				float dis = getEuclideanDis(points[i].coord, points[j].coord);
+				if(dis < eps*eps){		
+					// if the feature j is not include in this set
+					if(pointer.at(j) != index){
+						temp.push_back(points[j]);
+						pointer.at(j) = index;
+					}
+				}
+			}
+			// reset the set of groupFeatures 
+			result.at(index) = temp;
+		}
+	}
+}
+
+
+
 /**************************************************
  *
  * The Calibrations methode from the paper: 
@@ -496,9 +568,6 @@ void calibrationWithDistance(vector<Point3f> &oldResult, vector<Point3f> &newRes
  *   similar with my calibration's methode
  *
  *************************************************/
-float getEuclideanDis(Point3f p1, Point3f p2){
-	return (p1.x-p2.x)*(p1.x-p2.x) + (p1.y-p2.y)*(p1.y-p2.y) + (p1.z-p2.z)*(p1.z-p2.z);
-}
 
 void getRegionQuery(vector<int> &N, vector<Point3f> D, Point3f P, float eps){
 	for(int i=0;i<D.size();i++){
@@ -590,6 +659,35 @@ void findMaxIndexesSet(vector<vector<Point2f>> indexesSets, vector<Point2f> &max
 	}
 	if(maxSize > 0){
 		maxSet = indexesSets[maxSizeIndex];
+	}
+}
+
+void findMaxPMDPointSet(vector<vector<PMDPoint>> indexesSets, vector<PMDPoint> &maxSet){
+	int maxSize = 0;
+	int maxSizeIndex = 0;
+	for(int i=0;i<indexesSets.size();i++){
+		if(indexesSets[i].size()>maxSize){
+			maxSize = indexesSets[i].size();
+			maxSizeIndex = i;
+		}
+	}
+	if(maxSize > 0){
+		maxSet = indexesSets[maxSizeIndex];
+	}
+}
+
+template<class T>
+void findMaxSet(vector<vector<T>> sets, vector<T> &maxSet){
+	int maxSize = 0;
+	int maxSizeIndex = 0;
+	for(int i=0;i<sets.size();i++){
+		if(sets[i].size()>maxSize){
+			maxSize = sets[i].size();
+			maxSizeIndex = i;
+		}
+	}
+	if(maxSize > 0){
+		maxSet = sets[maxSizeIndex];
 	}
 }
 
@@ -807,6 +905,135 @@ bool featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, fl
 		return false;
 	} else {
 		return true;
+	}
+}
+
+bool featureAssociatePMD(vector<PMDPoint> oldFeature, vector<PMDPoint> newFeature, float sigma, 
+					   vector<PMDPoint> &findFeatureOld, vector<PMDPoint> &findFeatureNew,
+					   float &avrDis, float &disPE, float &sumP){
+	// set the number of the old features as the row size
+	int rowSize = oldFeature.size();
+	// set the number of the new features as the column size
+	int colSize = newFeature.size();
+	
+
+	Mat tempG = Mat(rowSize, colSize, CV_32FC1);
+	for(int i=0;i<rowSize;i++){
+		for(int j=0;j<colSize;j++){
+			float rSquare = (oldFeature[i].coord.x-newFeature[j].coord.x)*(oldFeature[i].coord.x-newFeature[j].coord.x) +
+							//(oldFeature[i].z-newFeature[j].z)*(oldFeature[i].z-newFeature[j].z) +
+						    (oldFeature[i].coord.y-newFeature[j].coord.y)*(oldFeature[i].coord.y-newFeature[j].coord.y);	
+			//float rSquare = getEuclideanDis(oldFeature[i].coord, newFeature[j].coord);
+			tempG.at<float>(i,j) = exp(-rSquare/(2*sigma*sigma));
+		}
+	}
+
+	Mat G;
+	Mat E;
+
+	// compare the row size and column size, the row size should bigger than the column size
+	if(rowSize <= colSize){
+		G = Mat(tempG);
+		E = Mat::eye(rowSize, colSize, CV_32FC1);
+	} else {
+		// if the column size is bigger, than set G as the transpose of temp
+		G = Mat(tempG.t());
+		E = Mat::eye(colSize, rowSize, CV_32FC1);
+	}
+	cout<<"===================== THE SVD ======================="<<endl;
+	//cout<<G<<endl<<endl;
+
+	// Using the Singular Value Decomposition, using the full_uv molde to get the full-size square orthogonal matrices T and U
+	SVD svd = SVD(G, SVD::FULL_UV);
+	//cout<<svd.u<<endl<<endl;
+	//cout<<svd.vt<<endl<<endl;
+	// calculate the new Matrix P
+	Mat P = svd.u * E * svd.vt;
+
+	
+	//cout<<P<<endl<<endl;
+
+	int m = P.size().height;
+	int n = P.size().width;
+	int *rowMax = new int[m];
+	// find the maximal element for each row, and save the column index into array rowMax
+	for(int i=0;i<m;i++){
+		float maxValue = P.at<float>(i,0);
+		rowMax[i] = 0;
+		for(int j=1;j<n;j++){
+			if(P.at<float>(i,j)>maxValue){
+				maxValue = P.at<float>(i,j);
+				rowMax[i] = j;
+			}
+		}
+	}
+	
+	findFeatureOld.clear();
+	findFeatureNew.clear();
+
+
+	disPE = 0;
+	sumP = 0;
+	// loop for the element, which were found as the biggest one for each row in last step
+	for(int i=0;i<m;i++){
+		int colIndex = rowMax[i];
+		float maxValue = P.at<float>(i, colIndex);
+		int j;
+		for(j=0;j<m;j++){
+			// if the biggest element of row is not the biggest one for the column, break
+			if(P.at<float>(j,colIndex) > maxValue){
+				break;
+			}
+		}
+		// if the loop of the column is complete, a frame coorespondence for two frames are found.
+		if(j==m && maxValue>0.71){
+			disPE += fabs(1-maxValue);
+			sumP += maxValue;
+			cout<<i<<" : "<<maxValue<<endl;
+			// push the result into the vectors
+			if(rowSize <= colSize){
+				findFeatureOld.push_back(oldFeature[i]);
+				findFeatureNew.push_back(newFeature[colIndex]);
+			} else {
+				findFeatureOld.push_back(oldFeature[colIndex]);
+				findFeatureNew.push_back(newFeature[i]);
+			}
+		}
+	}	
+
+	//sumP = sumP/findFeatureOld.size();
+	cout<<"The sum of nonzero elements of P is: "<<sumP<<endl;
+	disPE = disPE/findFeatureOld.size();
+	cout<<"The average distance from P to E is: "<<disPE<<endl;
+	// calculate the average displacement
+	float disSum = 0;
+	float disMax = -1;
+	for(int i=0;i<findFeatureOld.size();i++){
+		float dis = sqrt((findFeatureOld[i].coord.x - findFeatureNew[i].coord.x)*(findFeatureOld[i].coord.x - findFeatureNew[i].coord.x)
+					 + (findFeatureOld[i].coord.y - findFeatureNew[i].coord.y)*(findFeatureOld[i].coord.y - findFeatureNew[i].coord.y));
+					 //+ (findFeatureOld[i].z - findFeatureNew[i].z)*(findFeatureOld[i].z - findFeatureNew[i].z));
+
+		//float dis = sqrt(getEuclideanDis(findFeatureOld[i].coord, findFeatureNew[i].coord));
+		disSum += dis;
+		if(dis>disMax)
+			disMax = dis;
+	}
+	cout<<"The maximal displacement is: "<<disMax<<endl;
+	avrDis = disSum/findFeatureOld.size();
+	cout<<"The average displacement is: "<<avrDis<<endl;
+
+	avrDis = disMax;
+	
+	delete []rowMax;
+	if(_isnan(disPE) || findFeatureOld.size()<3){
+		// return false if the matrix P is NaN, or the number of associate points smaller than 3
+		return false;
+	} else {
+		//if(sumP > 0.95){
+			return true;
+		//} else {
+		//	return false;
+		//}
 	}
 }
 
