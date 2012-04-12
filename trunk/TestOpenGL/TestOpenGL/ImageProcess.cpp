@@ -532,7 +532,7 @@ void calibrationPMDPoint(vector<vector<PMDPoint>> &result, vector<PMDPoint> poin
  *   Motion Segmentation in Long Image Sequences
  *
  *************************************************/
-void calibrationWithDistance(vector<Point3f> &oldResult, vector<Point3f> &newResult){
+void calibrationWithDistance(vector<PMDPoint> &oldResult, vector<PMDPoint> &newResult, float eps){
 	int size = oldResult.size();
 	// to save, how many point are faraway form the point i
 	vector<int> factor;
@@ -541,10 +541,10 @@ void calibrationWithDistance(vector<Point3f> &oldResult, vector<Point3f> &newRes
 	}
 	for(int i=0;i<size;i++){
 		for(int j=i+1;j<size;j++){
-			double oldDis = sqrt((oldResult[i].x-oldResult[j].x) + (oldResult[i].y-oldResult[j].y) + (oldResult[i].z-oldResult[j].z));
-			double newDis = sqrt((newResult[i].x-newResult[j].x) + (newResult[i].y-newResult[j].y) + (newResult[i].z-newResult[j].z));
+			double oldDis = sqrt((oldResult[i].coord.x-oldResult[j].coord.x) + (oldResult[i].coord.y-oldResult[j].coord.y) + (oldResult[i].coord.z-oldResult[j].coord.z));
+			double newDis = sqrt((newResult[i].coord.x-newResult[j].coord.x) + (newResult[i].coord.y-newResult[j].coord.y) + (newResult[i].coord.z-newResult[j].coord.z));
 
-			if(newDis-oldDis>0){
+			if(fabs(newDis-oldDis)>eps){
 				factor[i]++;
 				factor[j]++;
 			}
