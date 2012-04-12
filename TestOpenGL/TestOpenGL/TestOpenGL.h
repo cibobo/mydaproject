@@ -12,6 +12,7 @@
 #include "Graph.hpp"
 #include "ImageProcess.hpp"
 #include "MarkerDetection.hpp"
+#include "MyFeatureDetector.hpp"
 #include "OpenGLDraw.hpp"
 #include "PMDCamIO.hpp"
 #include "PMDPoint.hpp"

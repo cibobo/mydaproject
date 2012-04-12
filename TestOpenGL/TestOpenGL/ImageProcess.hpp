@@ -35,7 +35,7 @@ void calibration3(vector<vector<Point3f>> &result, vector<vector<Point2f>> &resu
 
 void calibrationPMDPoint(vector<vector<PMDPoint>> &result, vector<PMDPoint> points, float eps);
 
-void calibrationWithDistance(vector<Point3f> &oldResult, vector<Point3f> &newResult);
+void calibrationWithDistance(vector<PMDPoint> &oldResult, vector<PMDPoint> &newResult, float eps);
 
 float getEuclideanDis(Point3f p1, Point3f p2);
 

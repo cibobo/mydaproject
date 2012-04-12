@@ -83,7 +83,7 @@ int oldFrameIndex = 1;
 int FRAMERATE = 50;
 
 // The input path
-const char *INPUTPATH = "RoboterRotation4";
+const char *INPUTPATH = "FullRotation";
 
 char *OUTPUTPATH = "HandRotation";
 
@@ -590,9 +590,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			using namespace cv; 
 			using namespace std;
 
-			namedWindow("OpenCVGrayScale", CV_WINDOW_AUTOSIZE);
+			//namedWindow("OpenCVGrayScale", CV_WINDOW_AUTOSIZE);
 			namedWindow("OpenCVCorrespondenz", CV_WINDOW_AUTOSIZE);
-			namedWindow("OpenCVFeatures", CV_WINDOW_AUTOSIZE);
+			//namedWindow("OpenCVFeatures", CV_WINDOW_AUTOSIZE);
 			namedWindow("OpenCVSummedFeatures", CV_WINDOW_AUTOSIZE);
 			Size size = Size(204, 204);
 			Mat img, featuresImg, testImg;
@@ -607,15 +607,19 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 
 			//parameter for STAR Detector
+			int MINFEATURECOUNT = 42;
+			int MAXFEATURECOUNT = 65;
+			int MAXDETECTLOOPS = 30;
+
 			int MAXSIZE = 8;
 			//int RESPONSETHRESHOLD = 70;
 			int detecParam = 70;
 			int LINETHRESHOLDPROJECTED = 5;
 			int LINETHRESHOLDBINARIZED = 6;
 			int SUPPRESSNONMAXSIZE = 1;
-
-			//the maximal loop times
 			int MAXLOOPS = 30;
+
+			MyFeatureDetector myFeatureDetector = MyFeatureDetector(MINFEATURECOUNT, MAXFEATURECOUNT, MAXDETECTLOOPS);
 			
 
 			//Test
@@ -762,54 +766,107 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 * The Loop for the Features' Detection. The result is just a between solution
 				 *
 				 ***************************************************************/
+				
 				cout<<endl<<"================= Begin the Loop of the Brightness Controll =================="<<endl;
-#ifndef KMEAN
-				while(safeCount < MAXLOOPS){
+				
+				if(isDiff){
 					
-					safeCount ++;
-#endif	
-					//Sleep(500);
-					// translate the filted data to a grayscale image 
-					transFloatToChar(filteData, data, balance, contrast);
-					img = Mat(size, CV_8UC1, data);
-					
-					features.clear();
-					//set the parameter of the STAR Detector
-					StarDetector detector = StarDetector(MAXSIZE, detecParam, LINETHRESHOLDPROJECTED, LINETHRESHOLDBINARIZED, SUPPRESSNONMAXSIZE);
-					detector(img, features);
-					
-					//draw features
-					int vectorSize = features.size();
-					cout<<"find "<<features.size()<<" features!"<<endl;
-					for(int i=0;i<features.size();i++){
-						circle(featuresImg, features[i].pt, 1, Scalar(0,0,255,0), -1); 
-					}
-							
-					//draw historical features
-					//if(hisFeatures.size()>0){
-					//	for(int i=0;i<hisFeatures.size();i++){
-					//		circle(testImg, hisFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
-					//	}
-					//}
-
-					//draw
-					imshow("OpenCVGrayScale", img);
-					imshow("OpenCVFeatures", featuresImg);
-					
-					/**********************************
-					 *
-					 * The Distance Filter
-					 *
-					 *********************************/
-#ifndef KMEAN
-					if(!isDiff) break;
-
-					if(!brightnessControll(vectorSize, contrast, detecParam, data)){
-						break;
-					}
-					
-				} // Ende of the Loop for the Features' Detection
-#endif
+					myFeatureDetector.setDetectedData(filteData);
+					myFeatureDetector.usingSTAR();
+					features = myFeatureDetector.keypoints;
+				}
+				
+//#ifndef KMEAN
+//				while(safeCount < MAXLOOPS){
+//					
+//					safeCount ++;
+//#endif	
+//					//Sleep(500);
+//					// translate the filted data to a grayscale image 
+//					transFloatToChar(filteData, data, balance, contrast);
+//					//for(int i=0;i<204*204;i++){
+//					//	data[i] = 255-data[i];
+//					//}
+//					img = Mat(size, CV_8UC1, data);
+//					
+//					features.clear();
+//					//set the parameter of the STAR Detector
+//					StarDetector detector = StarDetector(MAXSIZE, detecParam, LINETHRESHOLDPROJECTED, LINETHRESHOLDBINARIZED, SUPPRESSNONMAXSIZE);
+//					detector(img, features);
+//
+//
+//					
+//					//SURF surfDetector = SURF(500, 1, 2, false);
+//					//Mat mask;
+//					//vector<float> descriptors;
+//					//surfDetector(img, mask, features,descriptors); 
+//					////draw features
+//					int vectorSize = features.size();
+//					cout<<"find "<<features.size()<<" features!"<<endl;
+//					for(int i=0;i<features.size();i++){
+//						circle(featuresImg, features[i].pt, 1, Scalar(0,0,255,0), -1); 
+//					//	CvPoint center;
+//					//	int radius;
+//					//	center.x = cvRound(features[i].pt.x);
+//					//	center.y = cvRound(features[i].pt.y);
+//					//	radius = cvRound(descriptors[i]);
+//					//	circle(featuresImg, center, radius, Scalar(0,0,255,0), 1, 8, 0);
+//					}
+//
+//
+//					//CvMemStorage* storage = cvCreateMemStorage(0);
+//					////Define sequence for storing surf keypoints and descriptors
+//					//CvSeq *imageKeypoints = 0, *imageDescriptors = 0;
+//
+//					////Extract SURF points by initializing parameters
+//					//CvSURFParams params = cvSURFParams(100, 2);
+//					//cvExtractSURF( &IplImage(img), 0, &imageKeypoints, &imageDescriptors, storage, params );
+//					////printf("Image Descriptors: %d\n", imageDescriptors->total);
+//
+//					////draw the keypoints on the captured frame
+//					//for(int i = 0; i < imageKeypoints->total; i++ )
+//					//{
+//					//	CvSURFPoint* r = (CvSURFPoint*)cvGetSeqElem( imageKeypoints, i );
+//					//	if(r->size > 25){
+//					//		CvPoint center;
+//					//		int radius;
+//					//		center.x = cvRound(r->pt.x);
+//					//		center.y = cvRound(r->pt.y);
+//					//		radius = cvRound(r->size*1.2/9.*2);
+//					//		cout<<"The descriptor: "<<r->size<<endl;
+//					//		cvCircle( &IplImage(featuresImg), center, radius, Scalar(0,0,255,0), 1, 8, 0 );
+//					//		KeyPoint *kPoint = (KeyPoint*)cvGetSeqElem( imageKeypoints, i );
+//					//		features.push_back(*kPoint);
+//					//	}
+//					//}
+//					//	
+//					//int vectorSize = features.size();
+//
+//					//draw historical features
+//					//if(hisFeatures.size()>0){
+//					//	for(int i=0;i<hisFeatures.size();i++){
+//					//		circle(testImg, hisFeatures[i].pt, 1, Scalar(0,255,0,0), -1);
+//					//	}
+//					//}
+//
+//					//draw
+//					imshow("OpenCVGrayScale", img);
+//					imshow("OpenCVFeatures", featuresImg);
+//					
+//					/**********************************
+//					 *
+//					 * The Distance Filter
+//					 *
+//					 *********************************/
+//#ifndef KMEAN
+//					if(!isDiff) break;
+//
+//					if(!brightnessControll(vectorSize, contrast, detecParam, data)){
+//						break;
+//					}
+//					
+//				} // Ende of the Loop for the Features' Detection
+//#endif
 				cout<<"=================================== End  ===================================="<<endl<<endl;
 				
 				/***********************************
@@ -911,7 +968,6 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				calibration2D(groupFeatures, features, eps);
 				cout<<"After Summerize get "<<groupFeatures.size()<<" features!"<<endl;
 
-				//vector<Point3f> summerizedFeatures; 
 				vector<PMDPoint> summerizedFeatures; 
 				for(int i=0;i<groupFeatures.size();i++){
 					float avrX2D = 0;
@@ -945,6 +1001,18 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					summerizedFeatures.push_back(newPMDPoint);
 				}
 
+				//vector<PMDPoint> summerizedFeatures; 
+				//for(int i=0;i<features.size();i++){
+				//	int indexI = int(features[i].pt.y);
+				//	int indexJ = int(features[i].pt.x);
+				//	float x = currentBildData->threeDData[(indexI*204 + indexJ)*3];
+				//	float y = currentBildData->threeDData[(indexI*204 + indexJ)*3 +1];
+				//	float z = currentBildData->threeDData[(indexI*204 + indexJ)*3 +2];
+				//	Point2f p2 = Point2f(indexJ, indexI);
+				//	Point3f p3 = Point3f(x,y,z);
+				//	PMDPoint newPMDPoint = PMDPoint(p3,p2);
+				//	summerizedFeatures.push_back(newPMDPoint);
+				//}
 
 				/*************************************************
 				 *
@@ -954,29 +1022,14 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 * TODO: for more objects expand
 				 *
 				 *************************************************/
-				//vector<vector<Point3f>> caliResult;
-				//vector<vector<Point2f>> caliIndex;
 				vector<vector<PMDPoint>> caliResult;
-				float CALIEPS3D = 0.12;
+				float CALIEPS3D = 0.14;
 				int minPts = 3;
 
 				// Call calibration
-				//calibration(caliResult, summerizedFeatures, CALIEPS3D);
-				//DBSCAN(caliResult, summerizedFeatures, CALIEPS3D, minPts);
-				//calibration3(caliResult, caliIndex, summerizedFeatures, currentBildData->features2D, CALIEPS3D);
-				//calibration3(caliResult, caliIndex, currentBildData->comFeatures, currentBildData->comFeatures2D, CALIEPS3D);
 				calibrationPMDPoint(caliResult, summerizedFeatures, CALIEPS3D);
 
-
-
-
-				// Clear the vector of the features
-				//currentBildData->features.clear();
-				//currentBildData->features2D.clear();
-				//// Save the features into the first place of data buffer
-				//findMaxPointsSet(caliResult, currentBildData->features);
-				//findMaxIndexesSet(caliIndex, currentBildData->features2D);
-
+				// Save the features into the first place of data buffer
 				currentBildData->features.clear();
 				findMaxPMDPointSet(caliResult, currentBildData->features);
 
@@ -992,19 +1045,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//The loop of the historical data, in oder to remove the "bad" frames
 				//cout<<"==================== Begin the loop of historical data ==========================="<<endl;
 
-				//save the detected features into the vector of historical features
-				//vector<Point3f> hisFeatures = bildDataBuffer[bildDataBuffer.size()-1]->features;
-
 				// The current Features
-				//vector<Point3f> curFeatures = currentBildData->features;	
-				//// The historical Features
-				//vector<Point3f> hisFeatures = bildDataBuffer.front()->features;
-
-				//// The vector to save the points of SVC Association				
-				//vector<Point3f> oldResult, newResult;
-				//// The vector to save the index of SVC Association
-				//vector<int> oldIndexResult, newIndexResult;
-
 				vector<PMDPoint> curFeatures = currentBildData->features;	
 				// The historical Features
 				vector<PMDPoint> hisFeatures = bildDataBuffer.front()->features;
@@ -1012,7 +1053,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				// The vector to save the points of SVC Association				
 				vector<PMDPoint> oldResult, newResult;
 
-				
+
+
 
 			
 				//Mat R = Mat(3,3,CV_32FC1);
@@ -1023,6 +1065,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				if(hisFeatures.size()>0 && curFeatures.size()>0){
 					float avrDis, disPE, sumP;
 					bool isAssSuccess = featureAssociatePMD(hisFeatures, curFeatures, associaterate, oldResult, newResult, avrDis, disPE, sumP);
+					//cout<<"Beforrrrrrrrrrrrrr: "<<oldResult.size()<<endl;
+					//calibrationWithDistance(oldResult, newResult, 0.001);
+					//cout<<"Afterrrrrrrrrrrrrr: "<<oldResult.size()<<endl;
 					//bool isAssSuccess = featureAssociate(hisFeatures, curFeatures, associaterate, oldResult, newResult, oldIndexResult, newIndexResult, avrDis, disPE);
 					// if the P is nan, restart the feature association with the smaller associate rate
 					//if(_isnan(disPE)){
