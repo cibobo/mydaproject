@@ -1,24 +1,30 @@
 #ifndef OBJECT_HPP
 #define OBJECT_HPP
 
-#include <cv.h>
+#include "Graph.hpp"
 
 using namespace std;
 using namespace cv;
 
-class Object{
+class Object : public Graph{
 
 public:
 	Object();
-	Object(std::vector<Point2f> points);
 	~Object();
 
-	void addNewMarker(Point2f point);
-	void addNewMarkers(vector<Point2f> points);
-	int getSize();
+	void update(vector<Point3f> points, Mat R, Mat T);
+	void initKalmanFilter();
+	void updateKalmanFilter();
 
-private:
-	std::vector<Point2f> markers;
+	Mat sumR;
+	Mat sumT;
+	Mat curR;
+	Mat curT;
+
+	// KalmanFilter for Translationsmatrix
+	KalmanFilter tFilter;
+	// KalmanFilter for the Qaternion
+	KalmanFilter qFilter;
 };
 
 #endif

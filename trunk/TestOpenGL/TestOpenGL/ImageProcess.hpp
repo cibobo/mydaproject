@@ -4,7 +4,8 @@
 #include <cv.h>
 //#include "Object.hpp"
 #include "Graph.hpp"
-#include "PMDPoint.hpp"
+//#include "PMDPoint.hpp"
+#include "BildData.hpp"
 
 using namespace cv;
 using namespace std;
@@ -65,6 +66,8 @@ void SVDFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 
 float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T);
 
+float m_UQFindRAndT(Mat &M, Mat &D, Mat &R, Mat &T);
+
 bool isBigNoised(Mat T, float angle, int frameDiff, float eLinear, float eAngular);
 
 bool isBigNoised2(Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float aRate, float e);
@@ -72,5 +75,13 @@ bool isBigNoised2(Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float aR
 float getCorresRate(Graph *graph, vector<Point3f> points, Mat &R, Mat &T, float e);
 
 void calcEulerAngleFromR(Mat R, Vec3d &euler1, Vec3d &euler2);
+
+void decPMDPointVector(vector<PMDPoint> pmdPoints, vector<Point3f> &points3D, vector<Point2f> &points2D);
+
+bool ICP(vector<PMDPoint> src, vector<PMDPoint> dst, Mat &R, Mat &T, vector<PMDPoint> &oldResult, vector<PMDPoint> &newResult);
+
+void createBoundingBox(vector<PMDPoint> &result, vector<PMDPoint> features, BildData *bildData);
+
+void createBoundingPoints(vector<PMDPoint> &result, vector<PMDPoint> features, BildData *bildData, int boxSize);
 
 #endif

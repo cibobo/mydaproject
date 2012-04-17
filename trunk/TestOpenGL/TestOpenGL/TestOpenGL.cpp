@@ -16,6 +16,8 @@
 // frame choosen strategy with the percent of associate points and the average distance between them
 #define FRAME3
 
+//#define USINGICP
+
 
 //#define TEST
 
@@ -71,21 +73,16 @@ list<BildData*> bildDataBuffer;
 // The difference between the index of the current frame and historical frame
 int DETECTINGRATE = 2;
 
-int MAXJUMPEDFEATURES = 3;
-// The iterator fo the buffer, which define the position der historical data in used
-int bufferIterator = 1;
+int MAXJUMPEDFEATURES = 5;
 
-
-int currentFrameIndex = 0;
-int oldFrameIndex = 1;
 
 // framerate
 int FRAMERATE = 50;
 
 // The input path
-const char *INPUTPATH = "FullRotation";
+const char *INPUTPATH = "RoboterRotation4";
 
-char *OUTPUTPATH = "HandRotation";
+char *OUTPUTPATH = "FullRotation";
 
 //int HISFRAMEINDEX = 3;
 
@@ -93,7 +90,7 @@ DistanceFilter *dFilter;
 
 int frameIndex;
 
-Graph *obj;
+Object *obj;
 
 Mat RR = Mat::eye(3,3,CV_32FC1);
 Mat R = Mat::eye(3,3,CV_32FC1);
@@ -634,7 +631,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 			unsigned char hisShowdata[41616*3];
 
-			obj = new Graph();
+			//obj = new Graph();
+			obj = new Object();
 
 
 			// Parameters for the frame choice
@@ -774,6 +772,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					myFeatureDetector.setDetectedData(filteData);
 					myFeatureDetector.usingSTAR();
 					features = myFeatureDetector.keypoints;
+
+					//saveNormalDataToPNG(INPUTPATH, frameIndex, myFeatureDetector.drawMat);
 				}
 				
 //#ifndef KMEAN
@@ -1001,18 +1001,18 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					summerizedFeatures.push_back(newPMDPoint);
 				}
 
-				//vector<PMDPoint> summerizedFeatures; 
-				//for(int i=0;i<features.size();i++){
-				//	int indexI = int(features[i].pt.y);
-				//	int indexJ = int(features[i].pt.x);
-				//	float x = currentBildData->threeDData[(indexI*204 + indexJ)*3];
-				//	float y = currentBildData->threeDData[(indexI*204 + indexJ)*3 +1];
-				//	float z = currentBildData->threeDData[(indexI*204 + indexJ)*3 +2];
-				//	Point2f p2 = Point2f(indexJ, indexI);
-				//	Point3f p3 = Point3f(x,y,z);
-				//	PMDPoint newPMDPoint = PMDPoint(p3,p2);
-				//	summerizedFeatures.push_back(newPMDPoint);
-				//}
+				vector<PMDPoint> allFeatures; 
+				for(int i=0;i<features.size();i++){
+					int indexI = int(features[i].pt.y);
+					int indexJ = int(features[i].pt.x);
+					float x = currentBildData->threeDData[(indexI*204 + indexJ)*3];
+					float y = currentBildData->threeDData[(indexI*204 + indexJ)*3 +1];
+					float z = currentBildData->threeDData[(indexI*204 + indexJ)*3 +2];
+					Point2f p2 = Point2f(indexJ, indexI);
+					Point3f p3 = Point3f(x,y,z);
+					PMDPoint newPMDPoint = PMDPoint(p3,p2);
+					allFeatures.push_back(newPMDPoint);
+				}
 
 				/*************************************************
 				 *
@@ -1022,6 +1022,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 * TODO: for more objects expand
 				 *
 				 *************************************************/
+
 				vector<vector<PMDPoint>> caliResult;
 				float CALIEPS3D = 0.14;
 				int minPts = 3;
@@ -1032,6 +1033,14 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				// Save the features into the first place of data buffer
 				currentBildData->features.clear();
 				findMaxPMDPointSet(caliResult, currentBildData->features);
+
+				
+				vector<vector<PMDPoint>> caliComResult;
+				calibrationPMDPoint(caliComResult, allFeatures, CALIEPS3D);
+
+				// Save the features into the first place of data buffer
+				currentBildData->comFeatures.clear();
+				findMaxPMDPointSet(caliComResult, currentBildData->comFeatures);
 
 				/***************************************************
 				 *
@@ -1045,23 +1054,23 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//The loop of the historical data, in oder to remove the "bad" frames
 				//cout<<"==================== Begin the loop of historical data ==========================="<<endl;
 
+				
 				// The current Features
 				vector<PMDPoint> curFeatures = currentBildData->features;	
 				// The historical Features
 				vector<PMDPoint> hisFeatures = bildDataBuffer.front()->features;
-
 				// The vector to save the points of SVC Association				
 				vector<PMDPoint> oldResult, newResult;
-
-
-
-
-			
+	
 				//Mat R = Mat(3,3,CV_32FC1);
 				//Mat T = Mat(3,1,CV_32FC1);
 
-					
+#ifdef USINGICP
+if(obj->fixNodeCount<=3){
+// original
+#endif
 				cout<<"======= "<<isDataUsed<<" ======= "<<hisFeatures.size()<<" ======= "<<curFeatures.size()<<endl<<endl;
+
 				if(hisFeatures.size()>0 && curFeatures.size()>0){
 					float avrDis, disPE, sumP;
 					bool isAssSuccess = featureAssociatePMD(hisFeatures, curFeatures, associaterate, oldResult, newResult, avrDis, disPE, sumP);
@@ -1203,90 +1212,89 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 #endif
 
 #ifdef FRAME3
-				vector<Point3f> cur3DPointFeatures;
-				for(int i=0;i<curFeatures.size();i++){
-					cur3DPointFeatures.push_back(curFeatures[i].coord);
-				}
-				//if(frameIndex == 78) 
-				//	cout<<endl;
-				float corresRate = getCorresRate(obj, new3DPointResult, R, T, 0.005);
-				if(corresRate > 0.35 && isAssSuccess){
-					cout<<"The frame is not noised: "<<endl;
-					RR = R*RR;
-					RR.copyTo(obj->R);
-					//TODO: using all features to update object
-					obj->updateGraph(cur3DPointFeatures, R, T);
-					//MAXJUMPEDFEATURES = 3;
-
-
-					if(jumpedFeatures > 0){
-						bildDataBuffer.erase(--(--bildDataBuffer.end()));
-						jumpedFeatures = 0;
-						memAvrDis = numeric_limits<float>::max();
-						memDisPE = numeric_limits<float>::max();
-						memSumP = -1;
+					vector<Point3f> cur3DPointFeatures;
+					for(int i=0;i<curFeatures.size();i++){
+						cur3DPointFeatures.push_back(curFeatures[i].coord);
 					}
-				} else {
-					cout<<"The frame has big noise, and will be throw out!"<<endl;
-					if(!isAssSuccess){
-						avrDis = numeric_limits<float>::max()/10;
-						disPE = numeric_limits<float>::max()/10;
-						sumP = 0;
-						//MAXJUMPEDFEATURES++;
-						//cout<<"The Maximal JumpedFeatures are new defined!"<<MAXJUMPEDFEATURES<<endl;
-					}
-					// if the noised frame has a smaller distance between the associated points
-					//if(avrDis < memAvrDis){
-					//if(disPE < memDisPE){
-					if(sumP > memSumP){
-						memIndex = frameIndex;
-						memAvrDis = avrDis;
-						memDisPE = disPE;
-						memSumP = sumP;
-
-						memAngle = angle;
-						R.copyTo(memR);
-						T.copyTo(memT);
-						
+					//if(frameIndex == 78) 
+					//	cout<<endl;
+					float corresRate = getCorresRate(obj, new3DPointResult, R, T, 0.005);
+					if(corresRate > 0.35 && isAssSuccess){
+						cout<<"The frame is not noised: "<<endl;
+						RR = R*RR;
+						RR.copyTo(obj->R);
 						//TODO: using all features to update object
-						memNewResult = cur3DPointFeatures;
+						obj->update(cur3DPointFeatures, R, T);
+						//MAXJUMPEDFEATURES = 3;
 
-						// if this noised frame is not the first frame, that means, there is already a noised frame before this frame 
 						if(jumpedFeatures > 0){
-							// remove the frame before
 							bildDataBuffer.erase(--(--bildDataBuffer.end()));
+							jumpedFeatures = 0;
+							memAvrDis = numeric_limits<float>::max();
+							memDisPE = numeric_limits<float>::max();
+							memSumP = -1;
 						}
 					} else {
-						bildDataBuffer.pop_back();
+						cout<<"The frame has big noise, and will be throw out!"<<endl;
+						if(!isAssSuccess){
+							avrDis = numeric_limits<float>::max()/10;
+							disPE = numeric_limits<float>::max()/10;
+							sumP = 0;
+							//MAXJUMPEDFEATURES++;
+							//cout<<"The Maximal JumpedFeatures are new defined!"<<MAXJUMPEDFEATURES<<endl;
+						}
+						// if the noised frame has a smaller distance between the associated points
+						//if(avrDis < memAvrDis){
+						//if(disPE < memDisPE){
+						if(sumP > memSumP){
+							memIndex = frameIndex;
+							memAvrDis = avrDis;
+							memDisPE = disPE;
+							memSumP = sumP;
+
+							memAngle = angle;
+							R.copyTo(memR);
+							T.copyTo(memT);
+							
+							//TODO: using all features to update object
+							memNewResult = cur3DPointFeatures;
+
+							// if this noised frame is not the first frame, that means, there is already a noised frame before this frame 
+							if(jumpedFeatures > 0){
+								// remove the frame before
+								bildDataBuffer.erase(--(--bildDataBuffer.end()));
+							}
+						} else {
+							bildDataBuffer.pop_back();
+						}
+						cout<<"Jumped! The jumped features: "<<jumpedFeatures<<endl;
+						jumpedFeatures++;
+
+						if(jumpedFeatures>MAXJUMPEDFEATURES){
+							cout<<"The frame has noise, but the maximal number of the allowed jumped frames are arrived!"<<endl;
+							cout<<"The frmae "<<memIndex<<" has been choice to get an approximation"<<endl;
+							//cout<<"The selected Rotationmatrix and Translationmatrix are: "<<endl;
+							//cout<<"memR = "<<memR<<endl;
+							//cout<<"memT = "<<memT<<endl;
+							//if(memAngle > 35 && obj->fixNodeCount > 1){
+							//	cout<<"Even the maximal number of jumped frame is arrived, because of the too big rotated angle, the choosed frame will be still throw out!"<<endl;
+							//	jumpedFeatures--;
+							//} else {
+							//cout<<"The current associate rate is: "<<associaterate<<endl;
+							RR = memR*RR;
+							RR.copyTo(obj->R);
+							obj->update(memNewResult, memR, memT);
+
+
+							jumpedFeatures = 0;
+							memAvrDis = numeric_limits<float>::max();
+							memDisPE = numeric_limits<float>::max();
+							memSumP = -1;
+							//MAXJUMPEDFEATURES = 3;
+							//}
+						}
+
 					}
-					cout<<"Jumped! The jumped features: "<<jumpedFeatures<<endl;
-					jumpedFeatures++;
-
-					if(jumpedFeatures>MAXJUMPEDFEATURES){
-						cout<<"The frame has noise, but the maximal number of the allowed jumped frames are arrived!"<<endl;
-						cout<<"The frmae "<<memIndex<<" has been choice to get an approximation"<<endl;
-						//cout<<"The selected Rotationmatrix and Translationmatrix are: "<<endl;
-						//cout<<"memR = "<<memR<<endl;
-						//cout<<"memT = "<<memT<<endl;
-						//if(memAngle > 35 && obj->fixNodeCount > 1){
-						//	cout<<"Even the maximal number of jumped frame is arrived, because of the too big rotated angle, the choosed frame will be still throw out!"<<endl;
-						//	jumpedFeatures--;
-						//} else {
-						//cout<<"The current associate rate is: "<<associaterate<<endl;
-						RR = memR*RR;
-						RR.copyTo(obj->R);
-						obj->updateGraph(memNewResult, memR, memT);
-
-
-						jumpedFeatures = 0;
-						memAvrDis = numeric_limits<float>::max();
-						memDisPE = numeric_limits<float>::max();
-						memSumP = -1;
-						//MAXJUMPEDFEATURES = 3;
-						//}
-					}
-
-				}
 #endif
 
 					//obj->updateGraph(newResult, R, T);
@@ -1299,6 +1307,48 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					cout<<"The total rotated angle 1: "<<euler1[0]*180/3.14<<" , "<<euler1[1]*180/3.14<<" , "<<euler1[2]*180/3.14<<" , "<<endl;
 					cout<<"The total rotated angle 2: "<<euler2[0]*180/3.14<<" , "<<euler2[1]*180/3.14<<" , "<<euler2[2]*180/3.14<<" , "<<endl;
 				}
+#ifdef USINGICP
+} else {
+// ICP
+				//vector<PMDPoint> hisICPData, curICPData;
+				//int boxSize = 1;
+				//createBoundingPoints(curICPData, curFeatures, currentBildData, boxSize);
+				//createBoundingPoints(hisICPData, hisFeatures, bildDataBuffer.front(), boxSize);
+				//bool isICPSuccess = ICP(hisICPData, curICPData, R, T, oldResult, newResult);
+
+				//bool isICPSuccess = ICP(hisFeatures, summerizedFeatures, R, T, oldResult, newResult);
+				
+				//Using the complete features
+				vector<PMDPoint> hisComFeatures = bildDataBuffer.front()->comFeatures;
+				bool isICPSuccess = ICP(hisComFeatures, allFeatures, R, T, oldResult, newResult);
+
+				//currentBildData->features = newResult;
+				// The current Features
+				//curFeatures = newResult;	
+
+				//if(isICPSuccess || jumpedFeatures>=MAXJUMPEDFEATURES){
+				//	if(isICPSuccess){
+				//		cout<<"The frame is not noised: "<<endl;
+				//	} else {
+				//		cout<<"The frame has noise, but the maximal number of the allowed jumped frames are arrived!"<<endl;
+				//	}
+				if(summerizedFeatures.size()>=5 || jumpedFeatures>=MAXJUMPEDFEATURES){
+					vector<Point3f> ICPFeatures3D;
+					vector<Point2f> ICPFeatures2D;
+					//decPMDPointVector(newResult, ICPFeatures3D, ICPFeatures2D);
+					decPMDPointVector(curFeatures, ICPFeatures3D, ICPFeatures2D);
+					obj->updateGraph(ICPFeatures3D, R, T);	
+					jumpedFeatures = 0;
+				} else {
+					cout<<"The frame has too less features!"<<endl;
+					bildDataBuffer.pop_back();
+					cout<<"Jumped! The jumped features: "<<jumpedFeatures<<endl;
+					jumpedFeatures++;
+				}
+}
+#endif
+
+
 
 				/********************************************
 				 *
