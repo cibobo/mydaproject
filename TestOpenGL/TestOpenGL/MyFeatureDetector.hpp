@@ -23,6 +23,7 @@ public:
 
 
 	Mat detectedMat;
+	Mat drawMat;
 	float *detectedData;
 	vector<KeyPoint> keypoints;
 

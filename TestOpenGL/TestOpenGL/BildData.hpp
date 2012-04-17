@@ -31,8 +31,7 @@ public:
 	vector<PMDPoint> features;
 
 	// test complete features
-	vector<Point3f> comFeatures;
-	vector<Point2f> comFeatures2D;
+	vector<PMDPoint> comFeatures;
 
 	// to save the with DistanceFilter filtered data
 	vector<Point3f> filted3DData;
@@ -52,6 +51,7 @@ public:
 	~BildData();
 	void disCorrection();
 	//BildData* operator =(BildData* oldData);
+	void decompositionFeatures(vector<Point3f> &features, vector<Point2f> &indexes);
 };
 
 #endif

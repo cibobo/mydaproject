@@ -5,6 +5,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <highgui.h>
+
 #include "BildData.hpp"
 
 bool isDirectoryExist(const char *directory);
@@ -16,6 +18,8 @@ void createDefaultPMDDataDirectory(char *subPath);
 void saveAllDataToFile(int frameCount, BildData *bildData);
 
 void saveNormalDataToFile(const char *type, int frameCount, float *data);
+
+void saveNormalDataToPNG(const char *subPath, int frameCount, Mat data);
 
 void loadAllDataFromFile(int frameCount, BildData *bildData);
 

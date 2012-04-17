@@ -159,6 +159,48 @@ void saveNormalDataToFile(const char *type, int frameCount, float *data){
 	cout<<"The "<<frameCount<<" frame successful saved in "<<fullPath.data()<<endl;
 }
 
+void saveNormalDataToPNG(const char *subPath, int frameCount, Mat data){
+	string fullPath;
+	string fileName;
+	if(frameCount<10){
+		fileName.append(3,'0');
+		fileName.append(1,char(frameCount+48));
+	} else if(frameCount>=10 && frameCount<100){
+		fileName.append(2,'0');
+		fileName.append(1,char((frameCount/10)+48));
+		fileName.append(1,char((frameCount%10)+48));
+	} else if(frameCount>=100 && frameCount<1000){
+		fileName.append(1,'0');
+		fileName.append(1,char((frameCount/100)+48));
+		fileName.append(1,char(((frameCount%100)/10)+48));
+		fileName.append(1,char((frameCount%10)+48));
+	} else {
+		cout<<"the file name is bigger than 1000"<<endl;
+		exit(0);
+	}
+
+	fullPath.append(defaultRootPath);
+	fullPath.append(subPath);
+	fullPath.append("/");
+	fullPath.append("img");
+	//const char* ptrSavePath = fullPath.data();
+	////check the root path of the new data
+	//if(isDirectoryExist(ptrSavePath)){
+	//	cout<<"The root directory: "<<defaultSavePath<<" has been already exist!"<<endl;
+	//	exit(3);
+	//} else {
+	//	CreateDirectory(fullPath.data(), NULL);
+	//}
+	fullPath.append("/");
+	fullPath.append(fileName);
+	fullPath.append(".png");
+
+	//vector<int> param;
+	cv::imwrite(fullPath, data);
+	cout<<"Save image successful at "<<fullPath.data()<<endl;
+}
+
+
 void loadAllDataFromFile(int frameCount, BildData *bildData){
 	//string path("data/2/distance/");
 	string prefix;

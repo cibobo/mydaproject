@@ -320,12 +320,7 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 			//add the rest new node into the nodelist
 			this->addNodes(tempPoints);	
 
-			//if lesser than 3 fixed node have been found, which means, that no plane can be identified. Than reset the rotationsmatrix
-			if(this->fixNodeCount<3){
-				
-				this->R = Mat::eye(3,3,CV_32FC1);
-			}
-			//cout<<"The number of fixed nodeeeeeeeeeeeeeeeeeeeeeeee: "<<this->fixNodeCount<<endl;
+
 		}
 	}
 	return true;

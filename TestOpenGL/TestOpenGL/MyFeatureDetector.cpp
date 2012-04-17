@@ -26,7 +26,7 @@ void MyFeatureDetector::usingSTAR(){
 	unsigned char drawData[H_BILDSIZE*V_BILDSIZE*3];
 
 	transFloatTo3Char(detectedData, drawData, balance, contrast);
-	Mat drawMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3, drawData);
+	drawMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3, drawData);
 
 	for(int i=0;i<this->maxLoopCount;i++){
 		transFloatToChar(detectedData, tempData, balance, contrast);

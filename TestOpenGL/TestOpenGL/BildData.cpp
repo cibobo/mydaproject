@@ -33,6 +33,9 @@ void BildData::disCorrection(){
 	}
 }
 
+void BildData::decompositionFeatures(vector<Point3f> &features, vector<Point2f> &indexes){
+}
+
 //BildData* BildData::operator =(BildData *oldData){
 //	BildData *newData = new BildData();
 //

@@ -120,9 +120,9 @@ void initQKFilter(){
 	setIdentity(qKFilter.transitionMatrix);
 	setIdentity(qKFilter.measurementMatrix);
 
-	setIdentity(kFilter.processNoiseCov, Scalar::all(0.1));
-	setIdentity(kFilter.measurementNoiseCov, Scalar::all(1e-1));
-	setIdentity(kFilter.errorCovPost, Scalar::all(0.1));
+	setIdentity(qKFilter.processNoiseCov, Scalar::all(0.1));
+	setIdentity(qKFilter.measurementNoiseCov, Scalar::all(1e-1));
+	setIdentity(qKFilter.errorCovPost, Scalar::all(0.1));
 }
 
 void updateKalmanFilter(Mat measure, Mat &estimate){
@@ -1037,6 +1037,106 @@ bool featureAssociatePMD(vector<PMDPoint> oldFeature, vector<PMDPoint> newFeatur
 	}
 }
 
+
+void featureAssociateMat(Mat oldFeature, Mat newFeature, float sigma, vector<int> &findIndexOld, vector<int> &findIndexNew, float &dist){
+	// set the number of the old features as the row size
+	int rowSize = oldFeature.rows;
+	// set the number of the new features as the column size
+	int colSize = newFeature.rows;
+	//for(int i=0;i<rowSize;i++){
+	//	cout<<oldFeature.row(i)<<"   "<<newFeature.row(i)<<endl;
+	//}
+	//cout<<endl;
+	
+
+	Mat tempG = Mat(rowSize, colSize, CV_32FC1);
+	for(int i=0;i<rowSize;i++){
+		for(int j=0;j<colSize;j++){
+			float rSquare = (oldFeature.at<float>(i,0)-newFeature.at<float>(j,0))*(oldFeature.at<float>(i,0)-newFeature.at<float>(j,0)) +
+						    (oldFeature.at<float>(i,1)-newFeature.at<float>(j,1))*(oldFeature.at<float>(i,1)-newFeature.at<float>(j,1));
+
+			//float rSquare = getEuclideanDis(oldFeature.at<Point3f>(i,0), newFeature.at<Point3f>(j,0));
+			float value = exp(-rSquare/(2*sigma*sigma));
+			tempG.at<float>(i,j) = value;
+		}
+	}
+	//cout<<"G: "<<tempG<<endl;
+
+	Mat G;
+	Mat E;
+
+	// compare the row size and column size, the row size should bigger than the column size
+	if(rowSize <= colSize){
+		G = Mat(tempG);
+		E = Mat::eye(rowSize, colSize, CV_32FC1);
+	} else {
+		// if the column size is bigger, than set G as the transpose of temp
+		G = Mat(tempG.t());
+		E = Mat::eye(colSize, rowSize, CV_32FC1);
+	}
+
+	// Using the Singular Value Decomposition, using the full_uv molde to get the full-size square orthogonal matrices T and U
+	SVD svd = SVD(G, SVD::FULL_UV);
+	//cout<<"u:"<<svd.u<<endl<<endl;
+	//cout<<"E: "<<E<<endl<<endl;
+	//cout<<"vt: "<<svd.vt<<endl;
+	//cout<<"Sigma: "<<svd.w<<endl;
+	// calculate the new Matrix P
+	Mat P = svd.u * E * svd.vt;
+	//cout<<"P: "<<P<<endl;
+
+	int m = P.size().height;
+	int n = P.size().width;
+	int *rowMax = new int[m];
+	// find the maximal element for each row, and save the column index into array rowMax
+	for(int i=0;i<m;i++){
+		float maxValue = P.at<float>(i,0);
+		rowMax[i] = 0;
+		for(int j=1;j<n;j++){
+			if(P.at<float>(i,j)>maxValue){
+				maxValue = P.at<float>(i,j);
+				rowMax[i] = j;
+			}
+		}
+	}
+	
+	findIndexOld.clear();
+	findIndexNew.clear();
+	// loop for the element, which were found as the biggest one for each row in last step
+	for(int i=0;i<m;i++){
+		int colIndex = rowMax[i];
+		float maxValue = P.at<float>(i, colIndex);
+		int j;
+		for(j=0;j<m;j++){
+			// if the biggest element of row is not the biggest one for the column, break
+			if(P.at<float>(j,colIndex) > maxValue){
+				break;
+			}
+		}
+		// if the loop of the column is complete, a frame coorespondence for two frames are found.
+		if(j==m && maxValue>0.71){
+			cout<<i<<" : "<<maxValue<<endl;
+			// push the result into the vectors
+			if(rowSize <= colSize){
+				findIndexOld.push_back(i);
+				findIndexNew.push_back(colIndex);
+			} else {
+				findIndexOld.push_back(colIndex);
+				findIndexNew.push_back(i);
+			}
+		}
+	}
+	delete []rowMax;
+
+	dist = 0;
+	for(int i=0;i<findIndexOld.size();i++){
+		Mat oldRow = oldFeature.row(findIndexOld[i]);
+		Mat newRow = newFeature.row(findIndexNew[i]);
+		float qrDist = oldRow.dot(newRow);
+		dist += sqrt(qrDist);
+	}
+}
+
 /****************************************************************************************
  *
  * Use SVD to find the Rotation and Translate matrix
@@ -1135,6 +1235,15 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 	// D = RM + T * V
 	Mat M = Mat(oldFeatures, true);
 	Mat D = Mat(newFeatures, true);
+	float angle = m_UQFindRAndT(M, D, R, T);
+	return angle;
+}
+
+
+//#define QKALMANFILTERON
+#define TKALMANFILTERON
+
+float m_UQFindRAndT(Mat &M, Mat &D, Mat &R, Mat &T){
 
 	//cout<<"M is: "<<M<<endl;
 	//cout<<"D is: "<<D<<endl;
@@ -1230,6 +1339,7 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 	cout<<"The rotation is: "<<angle<<endl;
 	//cout<<"The old qunternion is: "<<q<<endl;
 	// consider, that the angle Theta/2 is just between 0~pi
+#ifdef QKALMANFILTERON
 	float sinValue = sqrt(1-q.at<float>(0,0)*q.at<float>(0,0));
 	// calculate the rotated vector
 	if(sinValue != 0){
@@ -1246,7 +1356,8 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 	q.at<float>(0,1) = qTran.at<float>(0,0)*sinValue;
 	q.at<float>(0,2) = qTran.at<float>(1,0)*sinValue;
 	q.at<float>(0,3) = qTran.at<float>(2,0)*sinValue;
-	//cout<<"The new qunternion is: "<<q<<endl;
+	cout<<"The new qunternion is: "<<q<<endl;
+#endif
 
 	//float scale = sqrt(q.at<float>(0,1)*q.at<float>(0,1) + q.at<float>(0,2)*q.at<float>(0,2) + q.at<float>(0,3)*q.at<float>(0,3));
 	//float rX = q.at<float>(0,1)/scale;
@@ -1288,14 +1399,16 @@ float UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat 
 	//cout<<"The Centeriol for D is: "<<tempD<<endl;
 
 	//kalman filter
+#ifdef TKALMANFILTERON
 	Mat kTempD = Mat(6,1,CV_32FC1);
 	updateKalmanFilter(tempD, kTempD);
 
 	cout<<"The Centeriol for D after Kalman Filter is: "<<kTempD<<endl;
 
 	T = kTempD.rowRange(0,3) - R * tempM;
-
-	//T = tempD - R * tempM;
+#else
+	T = tempD - R * tempM;
+#endif
 	//cout<<"R*M= "<<R*tempM<<endl<<endl;
 	//cout<<"T= "<<T<<endl;
 	//cout<<T.cols<<" , "<<T.rows<<" | "<<T.channels()<<endl;
@@ -1409,3 +1522,241 @@ void calcEulerAngleFromR(Mat R, Vec3d &euler1, Vec3d &euler2){
 	}
 }
 
+/********************************************************************************
+ *
+ * ICP Algortihm
+ *
+ *******************************************************************************/
+// find the nearest point of rsc from dst. The indices of the points in dst will be saved in vector pairs
+float flann_knn(Mat& dst, Mat& rsc, vector<int>& pairs, vector<float>& dists = vector<float>()) {
+	// find nearest neighbors using FLANN
+	cv::Mat m_indices(rsc.rows, 1, CV_32S);
+	cv::Mat m_dists(rsc.rows, 1, CV_32F);
+
+	Mat dst_32f = dst.reshape(1); 
+	//dst.convertTo(dst_32f,CV_32FC3);
+	Mat rsc_32f = rsc.reshape(1); 
+	//rsc.convertTo(rsc_32f,CV_32FC3);
+
+	assert(dst_32f.type() == CV_32FC1);
+
+	cv::flann::Index flann_index(dst_32f, cv::flann::KDTreeIndexParams(2));  // using 4 randomized kdtrees
+    flann_index.knnSearch(rsc_32f, m_indices, m_dists, 1, cv::flann::SearchParams(64) ); // maximum number of leafs checked
+
+    int* indices_ptr = m_indices.ptr<int>(0);
+    //float* dists_ptr = m_dists.ptr<float>(0);
+    for (int i=0;i<m_indices.rows;++i) {
+   		pairs.push_back(indices_ptr[i]);
+    }
+
+	dists.resize(m_dists.rows);
+	m_dists.copyTo(Mat(dists));
+
+	return cv::sum(m_dists)[0];
+}
+
+void decPMDPointVector(vector<PMDPoint> pmdPoints, vector<Point3f> &points3D, vector<Point2f> &points2D){
+	for(int i=0;i<pmdPoints.size();i++){
+		points3D.push_back(pmdPoints[i].coord);
+		points2D.push_back(pmdPoints[i].index);
+	}
+}
+
+//#define ASSOCIATE
+
+bool ICP(vector<PMDPoint> rsc, vector<PMDPoint> dst, Mat &R, Mat &T, vector<PMDPoint> &oldResult, vector<PMDPoint> &newResult){
+	cout<<"============================ Beginning of the ICP ======================="<<endl;
+	R = Mat::eye(3,3,CV_32FC1);
+	T = Mat::zeros(3,1,CV_32FC1);
+	
+	oldResult.clear();
+	newResult.clear();
+	oldResult = rsc;
+
+	vector<int> pairs;
+	vector<float> dists;
+	double minDist = numeric_limits<double>::max();
+	float sigma = 0.002;
+
+	// decomposition PMDPoint vector
+	vector<Point3f> rsc3D, dst3D;
+	vector<Point2f> rsc2D, dst2D;
+	decPMDPointVector(rsc, rsc3D, rsc2D);
+	decPMDPointVector(dst, dst3D, dst2D);
+
+	Mat m_rsc, m_dst; 
+	//if(dst.size() >= rsc.size()){
+		m_rsc = Mat(rsc3D);
+		m_dst = Mat(dst3D);
+	//} else {
+	//	m_rsc = Mat(dst3D);
+	//	m_dst = Mat(rsc3D);
+	//}
+
+	int maxLoop = 30;
+	int loopCount = 0;
+	while(true){
+		Mat tempR = Mat::eye(3,3,CV_32FC1);
+		Mat tempT = Mat::zeros(3,1,CV_32FC1); 
+
+#ifndef ASSOCIATE
+		pairs.clear();
+		dists.clear();
+
+		double curDist = flann_knn(m_dst, m_rsc, pairs, dists);
+	
+		if(minDist <= curDist){
+			// the best result is found
+			break;
+		}
+
+		minDist = curDist;
+		cout<<"The minimal distance of ICP is: "<<minDist<<endl;
+
+
+		// set new destination points with the nearest points
+		Mat tempDst(m_rsc.size(), m_rsc.type());
+		for(int i=0;i<m_rsc.rows;i++){
+			Point3f point = m_dst.at<Point3f>(pairs[i], 0);
+			tempDst.at<Point3f>(i,0) = point;
+			// copy to newResult
+			//if(dst.size() >= rsc.size()){
+				newResult.push_back(dst[pairs[i]]);
+			//} else {
+			//	newResult.push_back(rsc[pairs[i]]);
+			//}
+		}
+
+		// calculate the Transformation
+		float q = m_UQFindRAndT(m_rsc, tempDst, tempR, tempT);
+#else
+		vector<int> indicesRsc, indicesDst;
+		float curDist;
+		featureAssociateMat(m_rsc, m_dst, sigma, indicesRsc, indicesDst, curDist);
+
+		cout<<"The number of useful feature is: "<<indicesRsc.size()<<endl;
+		
+		if(minDist <= curDist){
+			// the best result is found
+			break;
+		}
+
+		minDist = curDist;
+		cout<<"The minimal distance of ICP is: "<<minDist<<endl;
+		//sigma = curDist/indicesRsc.size();
+
+		Mat tempRsc = Mat(indicesRsc.size(), 1, CV_32FC3);
+		Mat tempDst = Mat(indicesDst.size(), 1, CV_32FC3);
+		
+		oldResult.clear();
+		newResult.clear();
+		for(int i=0;i<indicesRsc.size();i++){
+			Point3f pointRsc = m_rsc.at<Point3f>(indicesRsc[i],0);
+			Point3f pointDst = m_dst.at<Point3f>(indicesDst[i],0);
+
+			tempRsc.at<Point3f>(i,0) = pointRsc;
+			tempDst.at<Point3f>(i,0) = pointDst;
+
+			oldResult.push_back(rsc[indicesRsc[i]]);
+			newResult.push_back(dst[indicesDst[i]]);
+		}
+		
+		float q = m_UQFindRAndT(tempRsc, tempDst, tempR, tempT);
+#endif
+		if(q==0){
+			cout<<"The ICP faild, because of the invalid positive eigenvalue!"<<endl;
+			return false;
+		}
+		R *= tempR;
+		T += tempT;
+
+		// update the resource points
+		for(int i=0;i<m_rsc.rows;i++){
+			Mat row = m_rsc.rowRange(i,i+1);
+			row = row.reshape(1);
+			row = row*R + T.t();
+			m_rsc.row(i) = row;
+			//m_rsc = m_rsc*R + T;
+		}
+
+		//if(curDist < 0.001 || loopCount > maxLoop){
+		//	// the best result is found
+		//	break;
+		//}
+		loopCount++;
+	}
+	cout << "converged" << endl;
+
+	//if(dst.size() < rsc.size()){
+	//	R = R.inv();
+	//	T = -T;
+
+	//	vector<PMDPoint> temp = oldResult;
+	//	oldResult.clear();
+	//	oldResult = newResult;
+	//	newResult.clear();
+	//	newResult = temp;
+	//}
+	
+	cout<<"============================ End of the ICP ======================="<<endl;
+	if(loopCount>maxLoop){
+		return false;
+	} else {
+		return true;
+	}
+}
+
+// Using bounding Box to get the ICP data
+void createBoundingBox(vector<PMDPoint> &result, vector<PMDPoint> features, BildData *bildData){
+	result.clear();
+	int size = features.size();
+	// calculate the 2D middel of all features
+	Point2f middel = Point2f(0,0);
+	for(int i= 0;i<size;i++){
+		middel.x += features[i].index.x;
+		middel.y += features[i].index.y;
+	}
+	middel.x = middel.x/size;
+	middel.y = middel.y/size;
+
+	//float maxDist = -1;
+	//for(int i=0;i<size;i++){
+	//	float dist = (features[i].coord.x - middel.x)*(features[i].coord.x - middel.x) +
+	//				 (features[i].coord.y - middel.y)*(features[i].coord.y - middel.y);
+	//	if(dist>maxDist){
+	//		maxDist = dist;
+	//	}
+	//}
+
+	//int boxSize = int(maxDist);
+	int boxSize = 15;
+	Point2i center = Point2i(int(middel.x), int(middel.y));
+	for(int i=center.x-boxSize;i<center.x+boxSize;i++){
+		for(int j=center.y-boxSize;j<center.y+boxSize;j++){
+			Point3f point3D = Point3f(bildData->threeDData[(i*H_BILDSIZE+j)*3],
+									  bildData->threeDData[(i*H_BILDSIZE+j)*3 +1],
+									  bildData->threeDData[(i*H_BILDSIZE+j)*3 +2]);
+			Point2f point2D = Point2f(i,j);
+			result.push_back(PMDPoint(point3D, point2D));
+		}
+	}
+}
+
+
+
+void createBoundingPoints(vector<PMDPoint> &result, vector<PMDPoint> features, BildData *bildData, int boxSize){
+	int size = features.size();
+	for(int i=0;i<size;i++){
+		Point2i curPoint = Point2i(int(features[i].index.x), int(features[i].index.y));
+		for(int j=curPoint.x-boxSize;j<=curPoint.x+boxSize;j++){
+			for(int k=curPoint.y-boxSize;k<=curPoint.y+boxSize;k++){
+				Point3f point3D = Point3f(bildData->threeDData[(j*H_BILDSIZE+k)*3],
+										  bildData->threeDData[(j*H_BILDSIZE+k)*3 +1],
+										  bildData->threeDData[(j*H_BILDSIZE+k)*3 +2]);
+				Point2f point2D = Point2f(j,k);
+				result.push_back(PMDPoint(point3D, point2D));
+			}
+		}
+	}
+}
+	
