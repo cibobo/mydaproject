@@ -577,9 +577,34 @@ void getRegionQuery(vector<int> &N, vector<Point3f> D, Point3f P, float eps){
 	}
 }
 
+int getRegionQuery(Point3f p, vector<int> &indices, float eps, int minPts, flann::Index *flann_index){
+	vector<float> dists;
+	vector<float> point;
+	point.push_back(p.x);
+	point.push_back(p.y);
+	point.push_back(p.z);
+
+	flann_index->knnSearch(point, indices, dists, minPts+1, flann::SearchParams(64));
+
+	for(int i=0;i<dists.size();i++){
+		if(dists[i]>eps || dists[i]==0){
+			indices.erase(indices.begin()+i);
+			dists.erase(dists.begin()+i);
+			i--;
+		}
+	}
+
+	return dists.size();
+}
+
+
+
 
 void DBSCAN(vector<vector<Point3f>> &C, vector<Point3f> D, float eps, int minPts){
 	int size = D.size();
+	Mat m_D = Mat(D);
+	cv::flann::Index flann_index(m_D, cv::flann::KDTreeIndexParams(2));
+
 	// mark all points as not visited
 	vector<int> isVisited;
 	// marl all points as not yet member of any cluster
@@ -593,7 +618,11 @@ void DBSCAN(vector<vector<Point3f>> &C, vector<Point3f> D, float eps, int minPts
 		isVisited[i] = 1;
 		// save the index of pints 
 		vector<int> N;
-		getRegionQuery(N, D, D[i], eps);
+		vector<float> dists;
+		Vec<float,3> point = Vec<float,3>(D[i]);
+		cv::flann::SearchParams sp = cv::flann::SearchParams(64);
+		int index = flann_index.radiusSearch(point, N, dists, eps, 64);
+		//getRegionQuery(N, D, D[i], eps);
 		if(N.size() < minPts){
 			// noise
 		} else {
@@ -615,6 +644,86 @@ void DBSCAN(vector<vector<Point3f>> &C, vector<Point3f> D, float eps, int minPts
 					vector<int> NN;
 					getRegionQuery(NN, D, D[indexPP], eps);
 					if(NN.size() >= minPts){
+						// N joined with N'
+						N.insert(N.begin(), NN.begin(), NN.end());
+					}
+				}
+				// if P' is not yet member of any cluster
+				if(isInCluster[indexPP] == 0){
+					// add P' to cluster C
+					tempC.push_back(D[indexPP]);
+					isInCluster[indexPP] = 1;
+				}
+			}
+			// next cluster
+			C.push_back(tempC);
+		}
+	}
+}
+
+
+
+void DBSCANPMDPoint(vector<vector<PMDPoint>> &C, vector<PMDPoint> D, Point3f center, float eps, int minPts){
+	int size = D.size();
+
+	vector<Point3f> D3D;
+	vector<Point2f> D2D;
+	decPMDPointVector(D, D3D, D2D);
+
+	Mat m_D = Mat(D3D);
+	m_D = m_D.reshape(1);
+	flann::Index flann_index(m_D, cv::flann::KDTreeIndexParams(2));
+	flann::SearchParams flann_par(64);
+	int flann_maxSize = 32;
+
+	// mark all points as not visited
+	vector<int> isVisited;
+	// marl all points as not yet member of any cluster
+	vector<int> isInCluster;
+	for(int i=0;i<size;i++){
+		isVisited.push_back(0);
+		isInCluster.push_back(0);
+	}
+	
+	for(int i=0;i<size;i++){
+		isVisited[i] = 1;
+		// save the index of pints 
+		vector<int> N;
+		
+		//getRegionQuery(N, D3D, D3D[i], eps);
+		int sizeN; 
+		if(i==0){
+			// In first loop, using the center as the beginning point
+			sizeN = getRegionQuery(center,N,eps,minPts,&flann_index);
+		} else {
+			sizeN = getRegionQuery(D3D[i],N,eps,minPts,&flann_index);
+		}
+		if(sizeN >= minPts){
+			// begin the function of expandCluster
+			// add P to cluster C
+			vector<PMDPoint> tempC;
+			tempC.push_back(D[i]);
+
+			isInCluster[i] = 1;
+			// for each point P'
+			for(int j=0;j<N.size();j++){
+				// the index of P'
+				int indexPP = N[j];
+				// if P' is not visited
+				if(isVisited[indexPP] == 0){
+					// mark P' as visited
+					isVisited[indexPP] = 1;
+					// get the neigbors of P'
+					vector<int> NN;
+					//getRegionQuery(NN, D3D, D3D[indexPP], eps);
+					//vector<float> point2;
+					//point2.push_back(D3D[indexPP].x);
+					//point2.push_back(D3D[indexPP].y);
+					//point2.push_back(D3D[indexPP].z);
+					//flann_index.radiusSearch(point2, NN, dists, eps, flann_maxSize, flann_par);
+					//if(NN.size() >= minPts){
+					int sizeNN = getRegionQuery(D3D[indexPP], NN, eps, minPts, &flann_index);
+					if(sizeNN >= minPts){
 						// N joined with N'
 						N.insert(N.begin(), NN.begin(), NN.end());
 					}
