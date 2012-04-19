@@ -2,6 +2,7 @@
 #define IMAGEPROCESS_HPP
 
 #include <cv.h>
+#include "flann/flann.hpp"
 //#include "Object.hpp"
 #include "Graph.hpp"
 //#include "PMDPoint.hpp"
@@ -41,6 +42,8 @@ void calibrationWithDistance(vector<PMDPoint> &oldResult, vector<PMDPoint> &newR
 float getEuclideanDis(Point3f p1, Point3f p2);
 
 void DBSCAN(vector<vector<Point3f>> &C, vector<Point3f> D, float eps, int minPts);
+
+void DBSCANPMDPoint(vector<vector<PMDPoint>> &C, vector<PMDPoint> D, Point3f center, float eps, int minPts);
 
 void findMaxPointsSet(vector<vector<Point3f>> pointsSets, vector<Point3f> &maxSet);
 

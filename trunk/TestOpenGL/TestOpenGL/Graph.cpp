@@ -292,6 +292,7 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 						   //if the life time of the node is bigger than the threshold
 						   if(currentNode->timmer >= timeThreshold){
 							   currentNode->isFixed = true;
+							   this->fixedNodeList.push_back(currentNode);
 							   this->fixNodeCount++;
 						   }
 						   //delete the point from tempPoints

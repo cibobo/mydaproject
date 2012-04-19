@@ -5,6 +5,7 @@
 
 #include "BildData.hpp"
 #include "Graph.hpp"
+#include "Object.hpp"
 #include "MyDataIO.hpp"
 #include "ImageProcess.hpp"
 
@@ -19,6 +20,6 @@ void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData);
 
 void display(OpenGLWinUI *pOpenGLWinUI, vector<Point2f> features);
 
-void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph);
+void display(OpenGLWinUI *pOpenGLWinUI, Object *graph);
 
 void displayCoord(OpenGLWinUI *pOpenGLWinUI, Mat R);

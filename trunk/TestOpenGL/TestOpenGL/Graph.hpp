@@ -47,6 +47,7 @@ public:
 class Graph{
 public:
 	vector<Node*> nodeList;
+	vector<Node*> fixedNodeList;
 	int indexCount;
 	int lifeTime;
 	int fixNodeCount;

@@ -446,7 +446,7 @@ void drawCoordi(){
 	//glutPostRedisplay();
 }
 
-void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
+void display(OpenGLWinUI *pOpenGLWinUI, Object *graph){
 	int height = pOpenGLWinUI->height;
 	int width = pOpenGLWinUI->width;
 
@@ -526,6 +526,22 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 		glTranslatef(-graph->nodeList[i]->x,-graph->nodeList[i]->y,graph->nodeList[i]->z);
 		//}
 	}
+
+	/*
+	 * draw center of object
+	 */
+	//Point3f center;
+	//graph->getMiddelPoint(center);
+	//ballSize = 0.03;
+	//mat_diffuse[0] = 1;
+	//mat_diffuse[1] = 1;
+	//mat_diffuse[2] = 1;
+	//mat_diffuse[3] = 1.0;
+	//glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+	//glTranslatef(center.x,center.y,-center.z);
+	//glutSolidSphere(ballSize, 20, 16);
+	//glTranslatef(-center.x,-center.y,center.z);
+
 	//glTranslatef(factor/2, -factor/2, 0);
 
 	//glPointSize(8);

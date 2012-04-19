@@ -1024,12 +1024,19 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 *************************************************/
 
 				vector<vector<PMDPoint>> caliResult;
-				float CALIEPS3D = 0.14;
-				int minPts = 3;
+				float CALIEPS3D = 0.17;
+				int minPts = 5;
 
-				// Call calibration
-				calibrationPMDPoint(caliResult, summerizedFeatures, CALIEPS3D);
+				
 
+				//Call calibration
+				//if(obj->fixNodeCount>=3){
+				//	Point3f center;
+				//	obj->getMiddelPoint(center);
+				//	DBSCANPMDPoint(caliResult, summerizedFeatures, center, CALIEPS3D, minPts);
+				//} else {
+					calibrationPMDPoint(caliResult, summerizedFeatures, CALIEPS3D);
+				//}
 				// Save the features into the first place of data buffer
 				currentBildData->features.clear();
 				findMaxPMDPointSet(caliResult, currentBildData->features);
