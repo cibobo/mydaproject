@@ -77,12 +77,13 @@ int MAXJUMPEDFEATURES = 5;
 
 
 // framerate
-int FRAMERATE = 50;
+int FRAMERATE = 30;
 
 // The input path
-const char *INPUTPATH = "RoboterRotation4";
+const char *INPUTPATH = "SquareMarker2";
 
-char *OUTPUTPATH = "FullRotation";
+char *OUTPUTPATH = "SquareMarker2";
+bool ISDATASAVED = true;
 
 //int HISFRAMEINDEX = 3;
 
@@ -350,8 +351,10 @@ void inputThreadProc(void *param){
 #else
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	createDefaultPMDDataDirectory(OUTPUTPATH);
-	setIsDataSaved(true);
+	if(ISDATASAVED){
+		createDefaultPMDDataDirectory(OUTPUTPATH);
+		setIsDataSaved(true);
+	}
 	cout<<"PMD Camera Connecting..."<<endl;
 	if(!createPMDCon()){
 		exit(1);
@@ -624,7 +627,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			int testP2 = 6;
 			int testP3 = 1;
 
-			float eps = 5;
+			
 
 			//The summerized KeyPoint fot the current frame
 			vector<KeyPoint> sumFeatures;
@@ -964,6 +967,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 *************************************************/
 				// to save the sets and the elements of set
 				vector<vector<KeyPoint>> groupFeatures;
+				float eps = 5;
 				// first calibration for the original features, which deal with the 2D point
 				calibration2D(groupFeatures, features, eps);
 				cout<<"After Summerize get "<<groupFeatures.size()<<" features!"<<endl;
