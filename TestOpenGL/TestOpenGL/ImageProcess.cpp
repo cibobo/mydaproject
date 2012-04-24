@@ -577,13 +577,18 @@ void getRegionQuery(vector<int> &N, vector<Point3f> D, Point3f P, float eps){
 	}
 }
 
+//#define USINGKNN
+
 int getRegionQuery(Point3f p, vector<int> &indices, float eps, int minPts, flann::Index *flann_index){
-	vector<float> dists;
 	vector<float> point;
 	point.push_back(p.x);
 	point.push_back(p.y);
 	point.push_back(p.z);
 
+	vector<float> dists;
+
+#ifdef USINGKNN
+	
 	flann_index->knnSearch(point, indices, dists, minPts+1, flann::SearchParams(64));
 
 	for(int i=0;i<dists.size();i++){
@@ -595,6 +600,21 @@ int getRegionQuery(Point3f p, vector<int> &indices, float eps, int minPts, flann
 	}
 
 	return dists.size();
+#else 
+	vector<int> tempIndices;
+	int maxSize = 32;
+	flann_index->radiusSearch(point, tempIndices, dists, eps*eps, maxSize, flann::SearchParams(64));
+
+	indices.clear();
+	for(int i=0;i<tempIndices.size();i++){
+		if(tempIndices[i]>0){
+			indices.push_back(tempIndices[i]);
+		} else {
+			break;
+		}
+	}
+	return indices.size();
+#endif
 }
 
 

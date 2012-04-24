@@ -19,7 +19,7 @@ public:
 	void usingSURF();
 
 	void setDetectedData(float *data);
-	bool brightnessControllSTAR(unsigned char *tempData);
+	int brightnessControllSTAR(unsigned char *tempData);
 
 
 	Mat detectedMat;
