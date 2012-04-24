@@ -50,8 +50,11 @@ void MyFeatureDetector::usingSTAR(){
 		imshow("STARDetector", drawMat);
 
 
-		if(!brightnessControllSTAR(tempData)){
-			cout<<"The Brightness Controll is failed!"<<endl;
+		int result = brightnessControllSTAR(tempData);
+		if(result > 0){
+			if(result != 31){
+				cout<<"The Brightness Controll is failed: "<<result<<endl;
+			}
 			break;
 		}
 	}
@@ -180,7 +183,7 @@ void MyFeatureDetector::setDetectedData(float *data){
 //}
 //
 
-bool MyFeatureDetector::brightnessControllSTAR(unsigned char *tempData){
+int MyFeatureDetector::brightnessControllSTAR(unsigned char *tempData){
 	int MINFEATURECOUNT = this->maxFeatureCount;
 	int MAXFEATURECOUNT = this->minFeatureCount;
 
@@ -212,7 +215,7 @@ bool MyFeatureDetector::brightnessControllSTAR(unsigned char *tempData){
 				cout<<"Algo fehld, break!"<<endl;
 				contrast = MINCONTRAST;
 				//break;
-				return false;
+				return 11;
 			}
 		} else if(energie > MAXSTANDARDENERGY){
 			//if the frame is too bright	
@@ -221,28 +224,29 @@ bool MyFeatureDetector::brightnessControllSTAR(unsigned char *tempData){
 				cout<<"Algo fehld, break!"<<endl;
 				contrast = MAXCONTRAST;
 				//break;
-				return false;
+				return 12;
 			}
 		} else {
 			//the energy is acceptable, but still can not find enough features. So change the parameter of STAR Detector
 			detecParam -= 5;
 			if(detecParam < MINRESPONSETHRESHOLD){
 				//break;
-				return false;
+				return 13;
 			}
 		}						
 	} else if(keypoints.size() > MAXFEATURECOUNT){
 		if(detecParam > MAXRESPONSETHRESHOLD){
 			//if the detecParam is too big
 			//break;
-			return false;
+			return 21;
 		} else {
 			//else increase the detecParam
 			detecParam += 4;
 		}
 	} else {
+		//The brightness controll is successful!
 		//break;
-		return false;
+		return 31;
 	}
-	return true;
+	return 0;
 }

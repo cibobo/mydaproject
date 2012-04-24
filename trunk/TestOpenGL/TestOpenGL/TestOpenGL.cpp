@@ -18,6 +18,10 @@
 
 //#define USINGICP
 
+//#define EVALUATION
+
+#define DEPTHFILTER
+
 
 //#define TEST
 
@@ -80,10 +84,13 @@ int MAXJUMPEDFEATURES = 5;
 int FRAMERATE = 30;
 
 // The input path
-const char *INPUTPATH = "SquareMarker2";
+const char *INPUTPATH = "EvaMarkerSize";
 
-char *OUTPUTPATH = "SquareMarker2";
+char *OUTPUTPATH = "EvaFullBox";
 bool ISDATASAVED = true;
+
+// Evaluation output path
+char *EVAOUTPUTPATH = "FirstTest";
 
 //int HISFRAMEINDEX = 3;
 
@@ -607,8 +614,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 
 			//parameter for STAR Detector
-			int MINFEATURECOUNT = 42;
-			int MAXFEATURECOUNT = 65;
+			int MINFEATURECOUNT = 24;//42;
+			int MAXFEATURECOUNT = 45;//65;
 			int MAXDETECTLOOPS = 30;
 
 			int MAXSIZE = 8;
@@ -650,7 +657,12 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			// init Kalman filter
 			initKalmanFilter();
 			initQKFilter();
-			
+
+#ifdef EVALUATION
+			// Evaluation
+			Evaluation evaluation = Evaluation();
+			evaluation.createCVSFile("DetectionRate");
+#endif
 			while (!bDone) 
 			{ 	
 				if(isPause){
@@ -692,11 +704,16 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				Mat hisMat = Mat(size, CV_8UC3, hisShowdata);
 
 				
-
+#ifdef DEPTHFILTER
 				// create the array to save the filted data
 				float filteData[204*204];
 				//bool isDiff = dFilter->Filte(currentBildData->disData, currentBildData->ampData, filteData);
 				bool isDiff = dFilter->Filte(currentBildData, filteData);
+#endif
+
+				
+				//memcpy(filteData, currentBildData->ampData, sizeof(currentBildData->ampData));
+				
 
 				/********************************************************
 				 *
@@ -769,7 +786,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 ***************************************************************/
 				
 				cout<<endl<<"================= Begin the Loop of the Brightness Controll =================="<<endl;
-				
+#ifdef DEPTHFILTER				
 				if(isDiff){
 					
 					myFeatureDetector.setDetectedData(filteData);
@@ -778,6 +795,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 					//saveNormalDataToPNG(INPUTPATH, frameIndex, myFeatureDetector.drawMat);
 				}
+#else 
+				myFeatureDetector.setDetectedData(currentBildData->ampData);
+				myFeatureDetector.usingSTAR();
+				features = myFeatureDetector.keypoints;
+#endif
 				
 //#ifndef KMEAN
 //				while(safeCount < MAXLOOPS){
@@ -1028,6 +1050,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 *************************************************/
 
 				vector<vector<PMDPoint>> caliResult;
+				//eps for my calibration
 				float CALIEPS3D = 0.17;
 				int minPts = 5;
 
@@ -1404,7 +1427,7 @@ if(obj->fixNodeCount<=3){
 					for(int i=0;i<oldResult.size();i++){
 						Point2f trans(204,0);
 						//line(testImg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
-						line(testImg, oldResult[i].index, newResult[i].index+trans, Scalar(255,255,0,0));
+						//line(testImg, oldResult[i].index, newResult[i].index+trans, Scalar(255,255,0,0));
 					}
 				//	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 				//}
@@ -1430,10 +1453,35 @@ if(obj->fixNodeCount<=3){
 				imshow("OpenCVSummedFeatures", graphImg);
 
 				//cout<<"==================== End the loop of historical data ==========================="<<endl;
+// für Quaternion Rotation
 #endif	
 				
 				isDataUsed = true;
 				//cout<<"The loop Count is: "<<isDataUsed<<endl;
+#ifdef EVALUATION
+				//if(frameIndex == 89 || 
+				//   frameIndex == 116 ||
+				//   frameIndex == 128 ||
+				//   frameIndex == 143 ||
+				//   frameIndex == 168 ||
+				//   frameIndex == 183 ||
+				//   frameIndex == 227 ||
+				//   frameIndex == 200){
+				//	   stringstream ss;
+				//	   ss<<frameIndex;
+				//	   string evaPath = ss.str();
+				//	   evaluation.saveCVBild(evaPath.data(), right);
+				//	   evaPath.append("_1");
+				//	   evaluation.saveCVBild(evaPath.data(), myFeatureDetector.drawMat);
+				//}
+
+				vector<float> evaData;
+				evaData.push_back(features.size());
+				evaData.push_back(10);
+				evaData.push_back(summerizedFeatures.size());
+				evaData.push_back(summerizedFeatures.size()/10.0);
+				evaluation.saveCVSData(evaData);
+#endif
 				
 				LeaveCriticalSection (&calcCrs);
 				//obj->createCompleteGraph(maxSet);
@@ -1444,6 +1492,13 @@ if(obj->fixNodeCount<=3){
 
 				char c = waitKey(100);
 				if(c == 27) break;
+				switch(c){
+#ifdef EVALUATION
+					case 's':
+						evaluation.saveCVBild("MarkerSize", right);
+						break;
+#endif
+				}
 #ifdef TEST
 				switch(c){
 					case 'p':

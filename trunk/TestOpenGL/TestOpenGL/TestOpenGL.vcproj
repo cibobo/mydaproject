@@ -195,6 +195,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Evaluation.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Graph.cpp"
 				>
 			</File>
@@ -270,6 +274,10 @@
 			</File>
 			<File
 				RelativePath=".\DistanceFilter.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Evaluation.hpp"
 				>
 			</File>
 			<File
