@@ -1,0 +1,108 @@
+% --------------------------------------------------------------------
+% LaTeX2e - Rahmen fuer Diplomarbeiten; 27.09.1995 - M. Haag
+% --------------------------------------------------------------------
+% Aenderungen: M.Arens, 05.10.2001, Anpassung des Unilogos an pdflatex
+% Aenderungen: J. Graf, 23.09.2010, Anpassung des Unilogos an pdflatex
+% --------------------------------------------------------------------
+
+
+% --------------------------------------------------------------------
+% Titelseite:
+% --------------------------------------------------------------------
+
+%\input{unilogo}
+
+\newcommand{\betreuerfont}{\large}
+\newcommand{\iconunifont}{\bf}
+\newcommand{\icontextfont}{\large}
+\newcommand{\headerfont}{\huge \bf}
+\newcommand{\authorfont}{\Large \bf}
+\newcommand{\diplfont}{\Large \bf}
+
+% --------------------------------------------------------------------
+% Kopf:
+% --------------------------------------------------------------------
+\vfill
+\vskip 2cm
+\begin{center}
+ \fbox{
+  \begin{minipage}{14.5cm}
+    \parbox{0cm}{\rule{0cm}{3.5cm}} % bestimmt Hoehe der fbox
+    \hfill
+    \parbox{4.5cm}{\includegraphics[width=4.5cm]{Abbildungen/kit_logo_de_farbe_positiv}}
+    \hfill
+    \begin{minipage}{8.5cm}
+        \icontextfont
+        \baselineskip17pt
+        \begin{center}
+          {\iconunifont Karlsruher Institut\\für Technologie (KIT)} \\[3pt]
+      { Institut für Prozessrechentechnik, } \\
+      { Automation und Robotik (IPR) } \\
+          der Fakultät für Informatik
+        \end{center}
+    \end{minipage}
+    \hfill
+  \end{minipage}
+ }
+\end{center}
+\vfill
+% --------------------------------------------------------------------
+% Titel:
+% --------------------------------------------------------------------
+
+\begin{center}
+{
+\headerfont
+\baselineskip29pt
+
+% TODO: Hier den Titel der Arbeit eintragen
+Markerbasierte Objektverfolgung für die Mensch-Roboter-Kooperation
+
+
+
+\vfill
+\baselineskip20pt
+\vskip 1 cm
+%
+
+\diplfont
+% TODO: Hier den Typ der Arbeit wählen
+%Praktikumsbericht\\
+%Studienarbeit\\
+Diplomarbeit\\
+%Interner Bericht\\
+%Seminararbeit\\
+%Bachelorarbeit\\
+%Masterarbeit\\
+\authorfont
+von\\
+
+% TODO: Hier der Name des Autors eintragen
+Beibei Cao \\
+~\\
+
+%\betreuerfont
+
+%
+}
+%\end{center}
+\vfill
+
+% --------------------------------------------------------------------
+% Betreuer:
+% --------------------------------------------------------------------
+
+%\begin{flushleft}
+\betreuerfont
+\baselineskip21pt
+%\centerline{Stand: \today, \uhrii}
+\centerline{Stand: \today}
+\vspace{1cm}
+% TODO: Hier den Titel und Namen des Betreuers eintragen
+Referenten:
+Prof. Dr.-Ing. Heinz Wörn \\
+%\hspace{1,5cm}
+Betreuer: Dipl.-Inform. Stephan Puls\\
+%\end{flushleft}
+\end{center}
+\vfill

@@ -1,0 +1,347 @@
+\chapter{Grundlagen}
+
+\section{Generierung der 3D-Daten}
+
+\subsection{TOF-Sensor}
+
+\subsubsection{TOF Kamera}
+\label{TOF Kamera}
+Die im MAROCO-System verwendete Kamera gehört zur Klasse der TOF-Sensoren, die außer den normalen Graufarbenbildern auch Tiefbilder liefern kann. Die Tiefmessung basiert auf dem sogenannten Laufzeitverfahren. Dazu wird die Szene durch ein Lichtpuls ausgeleuchtet und für jeden Bildpunkt wird die Zeit gemessen, die das Licht bis zum Objekt und wieder zurück braucht. Die Distanz ist direkt proportional zu der benötigen Zeit und kann durch die folgende Formel berechnet werden:
+
+\begin{equation}
+\label{tof1}
+d = \frac{t_d}{2c}
+\end{equation} 
+
+wobei $t_d$ die gemessene Zeit bezeichnet. Die Konstante $c$ steht für die Lichtgeschwindigkeit. 
+\\
+\\
+Im Vergleich zu anderen 3D Kamerasystemen hat die TOF Kamera viele Vorteilen \cite{TOFWiki}. Zuerst kann die TOF Kamera einfach die interessierenden Bereiche aus einem Bild extrahieren und nur die Pixel nah vor der Kamera betrachten. Zweitens, kann die TOF Kamera eine hohe Bildrate bis zu 80 bps erreichen. Diese Eigenschaft ermöglicht somit Echtzeitanwendungen. Außerdem benötigt die TOF Kamera weniger Platz als z.B. das Triangulationssystem und hat niedrigere Abhängigkeit von der Systemstruktur gegenüber dem Stereosystem.
+
+
+\subsubsection{PMD Sensor}
+Der PMD Sensor heißt CamCube ist eine wichtige Komponente der TOF Kamera. Er liefert eine hohe Auflösung bis zum 204x204 Pixel und maximale Bildrate bis zum 40 bps. Durch Formel \eqref{tof1} wird der maximale Distanzbereich zum 7 m festgelegt. Die andere wichtigen Parameter findet man in Abbildung~\ref{PMDParam} \cite{pmde}.
+\\
+\\
+%\graphicspath{}
+\begin{figure}[ftb]
+\centering
+\includegraphics[scale=0.6]{Abbildungen/PMDParam}
+\caption{Die grundlegende Parameter der PMD Kamera. \cite{pmde}}
+\label{PMDParam}
+\end{figure}
+
+Das Hintergrundlicht, z.B. das Sonnenlicht, könnte die Messung der Distanz stark stören. Die PMD Kamera benutzt das aktive Sendersignal und einen Fremdlicht-Filter (SBI), um das Hintergrundsignal zu unterdrücken. Außerdem bietet die PMD Kamera die Möglichkeit, die Integrationszeit der Kamera für jede Messung individuell einzustellen. Die Integrationszeit bezieht sich auf die Zeitspanne, in der die Kamera zur Aufzeichnung eines Bildes dem reflektierten Licht ausgesetzt wird. Für ein schwach reflektierendes Objekt benötigt der Sensor längere Integrationszeit als ein stark reflektierendes Objekt, um genug Information anzusammeln. Andererseits wird aber ausreichendes Licht von hellen Objekten auf den Sensor reflektiert, wenn die Integrationszeit zu lang definiert wird. In Abbildung~\ref{PMDIntTime} wird ein Beispiel der Tiefbilder mit verschiedenen Integrationszeiten gezeigt \cite{pmdd}. 
+
+\begin{figure}[ftb]
+\centering
+\includegraphics[scale=0.6]{Abbildungen/PMDIntTime}
+\caption{Integrationszeit von 140 $\mu s$, 1400 $\mu s$ bzw. 14000 $\mu s$. Bitte beachten Sie die niedrige Signalstärke an der linken Seite und die Sättigung an der rechten Seite wegen der unangemessenen Integrationszeit. \cite{pmdd}}
+\label{PMDIntTime}
+\end{figure}
+
+\subsubsection{Unterschied zwischen TOF Kamera und Kinect}
+Kinect ist eine Hardware zur Steuerung der Videospielkonsole Xbox360, die ein sogenanntes hands-free Kontrollieren liefert, wodurch die Spieler mit einigen bestimmten Gesten oder einer kurzen Bewegung ihres Körpers das Spiel spielen können \cite{KIN}. Um dieses Ziel zu erreichen, sammelt Kinect außer der normalen Bildeingabe aber auch die Tiefdaten der Szene an. Wegen dieser Eigenschaft wird das Gerät im Bereich von Computer Vision benutzt. Mithilfe des SDK ist die Programmierung der Kinect unter normalen Betriebssystemen z.B. Windows, Linux bzw. MacOS möglich. 
+\\
+
+\begin{figure}[bft]
+\centering
+\includegraphics[scale=0.6]{Abbildungen/Kinect}
+\caption{Das Arbeitsprinzip des Kinects. \cite{KINH}}
+\label{Kinect}
+\end{figure}
+
+Der Unterschied zwischen TOF Kamera und Kinect können auf dem Arbeitsprinzip zurückgeführt werden. In TOF Kameras wird die Tiefdaten durch dem Laufzeitverfahren berechnet, was im \ref{TOF Kamera} erklärt wird. Das Abtastverfahren der Kinect heißt Light Coding. Eine große Menge von Streifen werden als Mustern auf die Szene bzw. die Objekte durch infrarotes Licht projiziert. Die ganz Szene mit diesen zusätzlichen Mustern wird von einer infraroten Kamera des Kinects aufgenommen. Durch die Verzerrung zwischen dem vordefinierten Muster im infraroten Licht und dem von der infraroten Kamera erkannten Muster kann das Tiefbild der Szene ausgerechnet werden. Die Abbildung~\ref{Kinect} zeigt dieses Arbeitsprinzip der Kinect. Die weitere Information findet man im technischen Dokument des Firma Cadet \cite{KINH}. Der Vergleich über die genauen technischen Daten von PMD Kamera und Kinect wird in Tabelle~\ref{PMD and Kinect} zusammengefasst. Obwohl Kinect eine bessere Auflösung und größeres Sichtfeld hat, ist die PMD Kamera wegen ihrer hohen Bildrate und großen Messbereich für das MAROCO-System geeignet. Außerdem mithilfe des SBI Systems ist die Arbeit der PMD Kamera unter schwieriger Umgebungsbedingung, z.B. außerhalb des Zimmers mit starker Störung von Sonneneinstrahlung, auch möglich.
+
+\begin{table}[ftb]
+\begin{center}
+\begin{tabular}{| l || c | c |}
+\hline
+Sensor & PMD CamCube & Kinect \\ \hline
+Auflösung & 204$\times$204 Pixel & 640$\times$480 Pixel\\ \hline
+Sichtfeld & $40^\circ \times 40^\circ$ & $57^\circ \times 43^\circ$ \\ \hline
+Max Bildrate & 40 fps & 30 fps \\ \hline
+Messbereich & 0.3 $\rightarrow$ 7.0 m & 1.2 $\rightarrow$ 3.5 m (mit Xbox Software) \\ \hline
+Lange der Tiefdaten & 8 bit (unsigned char) & 11 bit \\ \hline
+\end{tabular}
+\caption{Die technische Daten von PMD Kamera und Kinect}
+\label{PMD and Kinect}
+\end{center}
+\end{table}
+
+
+\subsection{Helligkeit und Sättigung}
+
+\section{Markenerkennung}
+
+\section{Markenverfolgung}
+
+\subsection{Kalman-Filter}
+
+\subsection{Singulärwertzerlegung}
+Sei M eine komplexe $m \times n$ Matrix mit Rang r. Dann bezeichnet die Singulärwertzerlegung das Produkt:
+
+\begin{equation}
+M = U \Sigma V^*
+\end{equation}
+
+wobei $U$ eine Unitäre Matrix mit Größe $m \times m$ und $V^*$ die Adjungierte einer Unitäre Matrix mit Größe $n \times n$ ist. $\Sigma$ bezieht sich auf eine $m \times n$ Diagonalmatrix:
+
+\[
+\Sigma = 
+\begin{pmatrix}
+\sigma_1 & & & \vline & & \vdots & \\
+& \ddots & & \vline & \cdots & 0 & \cdots \\
+& & \sigma_r & \vline & & \vdots & \\
+\hline
+& \vdots & & \vline & & \vdots & \\
+\cdots & 0 & \cdots & \vline & \cdots & 0 & \cdots \\
+& \vdots & & \vline & & \vdots & 
+\end{pmatrix}
+\]
+
+mit $\sigma_1 \geq \cdots \geq \sigma_r > 0$, wobei $\sigma_i , i=1,\ldots , r$ als die Singulärwerte von $\Sigma$ genannt werden.
+\\
+\\
+Mithilfe der Singulärwertzerlegung haben Scott und Longuet-Higgins einen Algorithmus zur Bestimmung der assoziierenden Merkmale entwickelt. Seien $I$ und $J$ zwei nachfolgende Bilder und haben jeweils $m$ und $n$ Merkmale, die als $I_i (i=1,\ldots ,m)$ und $J_j (j=1,\ldots ,n$) bezeichnet werden. Dann wird eine $m \times n$ Matrix $G$ mit den Elementen
+
+\[
+G_{ij} = exp(- \frac{r_{ij}^2}{2 \sigma^2})
+\]
+
+definiert, wobei $r_{ij}$ den Abstand zwischen Merkmale $I_i$ und $J_j$ beschreibt. $\sigma$ wird als einen Standard für Abstand definiert, wodurch das Vergrößern oder Verkleinern der Verschiebung des Objekts geschätzt werden kann. Der Wert von $G_{ij}$ nimmt durch die Erhöhung der Distanz von 1 bis 0 monoton ab. Der zweite Schritt des Algorithmus von Scott und Longuet-Higgins ist die Singulärwertzerlegung der Matrix $G$.
+
+\[
+G = TDU
+\]
+
+wobei $T$ und $U$ die Unitäre Matrix mit jeweils Größe $m \times m$ und $n \times n$ sind, und $D$ eine Diagonalmatrix ist. Sei $E$ eine neue Matrix mit gleicher Größe von $D$, in der aber jedes diagonale Element als 1 ersetzt wird. Nach Austausch der Matrix $D$ durch Matrix $E$ erhält man eine neue orthogonale Matrix:
+
+\[
+P = TEU
+\]
+
+Die Aufgabe des dritten Schritts ist das Element $P_{ij}$ zu finden, was gleichzeitig das Maximum der Reihe und Spalte ist. Wenn $P_{ij}$ diese Bedingung erfüllt, sagt man, dass es eine Eins zu Eins Korrespondenz zwischen den Merkmalen $I_i$ und $J_j$ gibt. Der ganze Algorithmus kann durch folgendem Pseudocode erklärt werden. 
+
+\begin{algorithm}                      % enter the algorithm environment
+\caption{Bestimmung der Korrespondenz der Merkmalen von zwei Bildern}          % give the algorithm a caption
+\label{alg1}                           % and a label for \ref{} commands later in the document
+\begin{algorithmic}                    % enter the algorithmic environment
+    \State $I,J,\sigma, Result$
+    \For{$i=1 \to m$, $j=1 \to n$}
+    	\State $r_{ij} \gets Dis(I_i, J_j)$
+    	\State $G_{ij} \gets exp(-\frac{r_{ij}^2}{\sigma^2})$
+    \EndFor
+    \State $T,U \gets$ Singulärwertzerlegung von G
+    \State $E \gets m \times n$ Diagonalmatrix mit $E_{ii} = 1$
+    \State $P \gets TEU$
+    \For{$i=1 \to m$}
+    	\State $MaxSpalteIndex[i] \gets$ Index der Spalte des maximalen Elements an Reihe $i$.
+    	%\State $MaxSpalteIndex_i \gets Max$ 
+    \EndFor
+    \For{$i=1 \to m$}
+    	\If {$P_{iMaxSpalteIndex[i]}$ ist Maximum der Spalte $MaxSpalteIndex[i]$}
+    		\State $Result \gets$ Punktpaar($I_i, J_{MaxSpalteIndex[i]}$) 
+    	\EndIf
+    \EndFor 
+\end{algorithmic}
+\end{algorithm}
+
+
+\section{Schätzung der Transformation}
+
+\subsection{Quaternion}
+%Das Quaternion
+Ein Quaternion besteht aus einem Vektor mit 4 Elementen, wobei ein Element ein Skalar bezeichnet und die anderen drei eine Richtung im 3D Raum beschreiben. Quaternionen können aber auch als eine Erweiterung der komplexen Zahlen betrachtet werden, deren Imaginärteil nach drei neuer Zahlen $i$, $j$ und $k$ entwickelt werden. Eine Normalform der Quaternion findet man im unten:
+
+\[
+q = q_0 + i q_x + j q_y + k q_z
+\]
+
+$i$, $j$ und $k$ erfüllen die sogenannte Hamilton-Regeln:
+
+\[
+i^2 = j^2 = k^2 = i j k = -1 
+\]
+\[
+ij = k, \quad jk = i, \quad ki = j 
+\]
+\[
+ji = -k, \quad kj = -i, \quad ik = -j
+\] 
+
+Das konjugierte Quaternion ist definiert als:
+
+\[
+\overline{q} = q_0 - i q_x - j q_y - k q_z
+\]
+
+Das Produkt eines Quaternion und dessen Konjugierte ist eine nicht negative reelle Zahl.
+
+\[
+q \cdot \overline{q} = q_0^2 + q_x^2 + q_y^2 + q_z^2 
+\]
+
+Mithilfe des konjugierten Quaternion kann man die Länge des Quaternion $|q|$ definieren:
+
+\[
+|q| = \sqrt{q \cdot \overline{q}}
+\]
+
+Ist die Länge eines Quaternion gleich 1, nennt man das Quaternion ein Einheitsquaternion. Für ein Einheitsquaternion gilt:
+
+\[
+q \cdot \overline{q} = 1 \iff \overline{q} = q^{-1}
+\]
+
+D.h. die Inverse und Konjugierte sind identisch. Für jedes Einheitsquaternion $q \neq \pm 1$ gibt es eine entsprechende Polardarstellung:
+
+\begin{equation}
+q = \cos \alpha + \mathit{v} \cdot \sin \alpha
+\label{polarQ}
+\end{equation}
+
+mit $\alpha = \arccos (q_0) \in (0,\pi)$ und $v = \frac{1}{\sin \alpha} (i q_x + j q_y + k q_z)$. 
+
+\subsection{Beschreibung der Drehungen im Dreidimensionalen Raum mit Quaternionen}
+Die Drehungen im dreidimensionalen Raum können durch die Einheitsquaternionen sehr gut beschriebt werden. Eine Abbildung der Rotation $\rho_q$ kann in folgender Form definiert werden:
+
+\[
+\rho_q : x \rightarrow q x \overline{q}
+\] 
+
+wobei $q$ ein Einheitsquaternion und $\overline{q}$ dessen Konjugierte ist. Mithilfe der Polardarstellung \eqref{polarQ} kann die Abbildung $\rho_q$ sich auf eine Drehung im $\mathbb{R}^3$ um die Achse $\mathit{v}$ mit Winkel $2\alpha \in (0, 2\pi)$ beziehen. Die entsprechende orthogonalen Matrix von $q$ ist
+
+\begin{equation}
+R =
+\begin{pmatrix}
+q_0^2 + q_x^2 - q_y^2 - q_z^2 & 2q_x q_y - 2q_0 q_z           & 2q_x q_z + 2q_0 q_y \\
+2q_x q_y + 2q_0 q_z           & q_0^2 - q_x^2 + q_y^2 - q_z^2 & 2q_y q_z - 2q_0 q_z \\
+2q_x q_z - 2q_0 q_y           & 2q_y q_z + 2q_0 q_z           & q_0^2 - q_x^2 - q_y^2 + q_z^2
+\end{pmatrix}
+\end{equation} 
+
+was zur Drehgruppe SO(3) gehört und eine Drehung in der Matrixform repräsentiert.
+
+\subsection{Orientierung mit Einheitsquaternion}
+Das Verfahren für die Orientierung der Objekte mithilfe der Quaternionen wurde erst von Horn im 1987 veröffentlicht \cite{H87}. Seien $D$ und $M$ zwei Punktmengen mit gleicher Größe $n$. Dann kann die Transformation zwischen den Punkten von zwei Menge formuliert werden als:
+
+\begin{equation}
+d_i = \mathbf{R} m_i + \mathbf{T} + e_i
+\end{equation}
+
+wobei $d_i$ und $m_i$ die i-ten Punkte der Punktmengen $D$ bzw. $M$ bezeichnen. $\mathbf{R}$ ist die Rotationsmatrix und $\mathbf{T}$ ist die Translationsmatrix. $e_i$ beschreibt den Fehler für die Transformation, und kann umformuliert werden als:
+
+\begin{equation}
+\label{QError}
+e_i = d_i - \mathbf{R} m_i + \mathbf{T}
+\end{equation}
+
+
+Das Ziel des Verfahrens ist, eine Rotations- bzw. Transformationsmatrix mit minimalem Fehler zu finden, dadurch wird die Summer des Quadrats von $e_i$ betrachtet.
+
+\begin{equation}
+\sum_{i=1}^n \| e_i \|^2 = \sum_{i=1}^n \| d_i - \mathbf{R} m_i + \mathbf{T} \|^2 
+\end{equation} 
+
+Seien $\overline{d}$ und $\overline{m}$ die Schwerpunkte jeweils der Punktmenge $D$ und $M$. Dann gilt
+
+\[
+\overline{d} = \frac{1}{n} \sum_{i=1}^n d_i 
+\quad \quad
+\overline{m} = \frac{1}{n} \sum_{i=1}^n m_i
+\]
+
+Der Abstand von jedem Punkt zum Schwerpunkt wird berechnet als:
+
+\[
+d_i' = d_i - \overline{d}
+\quad \quad
+m_i' = m_i - \overline{m}
+\]
+
+und die Summe der Abstände erfüllt natürlich
+
+\begin{equation}
+\label{QDis}
+\sum_{i=1}^n d_i' = 0
+\quad und \quad
+\sum_{i=1}^n m_i' = 0
+\end{equation}
+
+Dann kann der Fehler in Formel \eqref{QError} mit den Abständen zum Schwerpunkt $\overline{d}$ und $\overline{m}$ umgeschrieben werden:
+
+\begin{equation}
+e_i = d_i' - \mathbf{R} m_i' + \mathbf{T}'
+\end{equation}
+
+wobei $\mathbf{T}'$ als 
+
+\[
+\mathbf{T}' = \mathbf{T} - \overline{d} + \mathbf{R} \overline{m}
+\]
+
+definiert wird. Analog kann die Summe des Quadrats des Fehlers neu formuliert werden.
+
+\begin{align}
+\label{QError2}
+\sum_{i=1}^n \| e_i \|^2 &=
+\sum_{i=1}^n \| d_i' - \mathbf{R} m_i' + \mathbf{T}' \|^2 \nonumber \\
+&= \sum_{i=1}^n \| d_i' - \mathbf{R} m_i' \|^2 - 2\mathbf{T}' \cdot \sum_{i=1}^n (d_i' - \mathbf{R} m_i')
++ n \| \mathbf{T}' \|^2
+\end{align}
+
+Wegen \eqref{QDis} ist der zweite Term gleich 0. Der dritte Term kann nicht negativ sein und wird 0, wenn der gesamte Fehler minimiert wird. D.h.:
+
+\begin{align}
+\label{QTran}
+& \mathbf{T}' = \mathbf{T} - \overline{d} + \mathbf{R} \overline{m} = 0 \nonumber \\
+\Rightarrow & \mathbf{T} = \overline{d} + \mathbf{R} \overline{m}
+\end{align}
+
+Die Formel \eqref{QTran} berechnet direkt die Transformationsmatrix durch die Rotationsmatrix und die Schwerpunkte der beiden Punktmengen. Der erste Term von \eqref{QError2} kann zu
+
+\begin{equation}
+\sum_{i=1}^n \| d_i' - \mathbf{R} m_i' \|^2 = \sum_{i=1}^n (d_i'^t d_i' + m_i'^t m_i' - 2 d_i'^t \mathbf{R} m_i')
+\end{equation}
+
+weiter formuliert werden. Dann wird die Minimierung des Fehlers durch die Bestimmung des Maximum der Summe
+
+\begin{equation}
+\sum_{i=1}^n d_i'^t \mathbf{R} m_i'
+\end{equation}
+
+erreicht. Durch Ersetzen der Rotationsmatrix mit Quaternion wird das maximierte Problem umformuliert als:
+
+\[
+\sum_{i=1}^n (q m_i'' \overline{q}) \cdot d_i''
+\]
+
+wobei $m_i'' = (0, m_{i,x}', m_{i,y}', m_{i,z}')$ und $d_i'' = (0, d_{i,x}', d_{i,y}', d_{i,z}')$ die erweiterte Quaternion für Punkte $m_i'$ bzw. $d_i'$ sind.
+Dann gilt:
+
+\begin{align}
+& \sum_{i=1}^n (q m_i'' \overline{q}) \cdot d_i'' \nonumber \\
+= & \sum_{i=1}^n (q m_i'' \overline{q}) \cdot ( d_i'' q \overline{q}) \nonumber \\
+= & \sum_{i=1}^n (q m_i'') \cdot (d_i'' q)
+\end{align}
+
+Die beide Produkt in Klammer können in die Produkt einem Quaternion mit einer Matrix umschrieben werden.
+
+\[
+q m_i'' = 
+\begin{pmatrix}
+0 & -m_{i,x}' & -m_{i,y}' & -m_{i,z}' \\
+-m_{i,x}' & 0 & -m_{i,z}' & -m_{i,y}' \\
+-m_{i,y}' & -m_{i,z}' & 0 & -m_{i,x}' \\
+-m_{i,z}' & -m_{i,y}' & -m_{i,z}' & 0
+\end{pmatrix}
+ = \mathbf{M_i} q
+\]
+
+\section{Objekterkennung}
+
+\subsection{Teilgraph Isomorphismus}
+
+
+

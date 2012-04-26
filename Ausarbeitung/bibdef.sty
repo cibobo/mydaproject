@@ -1,0 +1,46 @@
+% modified \thebibliography definition
+% in order to get smaller fonts
+% and a bit different lay-out of bibliography
+\typeout{Aaai bib format modified  - GDH}
+
+\makeatletter
+ 
+% Literatur als Ueberschrift und nicht im Inhaltsverzeichnis
+%
+%\def\thebibliography#1{\section*{\refname\markboth{\refname}{\refname}}
+%  \small
+  %\global\def\@listi{\leftmargin\leftmargini
+               %\labelwidth\leftmargini \advance\labelwidth-\labelsep
+               %\topsep 1pt plus 2pt minus 1pt
+               %\parsep 0.25ex plus 1pt \itemsep 0.25ex plus 1pt}
+  %\list {[\arabic{enumi}]}{\settowidth\labelwidth{[#1]}\leftmargin\labelwidth
+    %\advance\leftmargin\labelsep\usecounter{enumi}}
+    %\def\newblock{\hskip .11em plus .33em minus -.07em}
+    %\sloppy
+    %\sfcode`\.=1000\relax
+	%}
+%\makeatother
+
+% Literaturverzeichnis als Ueberschrift und im Inhaltsverzeichnis
+% aufgefuehrt.
+%
+\def\thebibliography#1{\chapter*{\bibname\markboth{\bibname}{\bibname}}
+ \addcontentsline{toc}{chapter}{\protect{\bibname}}
+%  \small
+  \global\def\@listi{\leftmargin\leftmargini
+               \labelwidth\leftmargini \advance\labelwidth-\labelsep
+               \topsep 1pt plus 2pt minus 1pt
+               \parsep 0.25ex plus 1pt \itemsep 0.25ex plus 1pt}
+  \list {}{\settowidth\labelwidth{[#1]}\leftmargin\labelwidth
+    \advance\leftmargin\labelsep\usecounter{enumi}}
+    \def\newblock{\hskip .11em plus .33em minus -.07em}
+    \sloppy
+    \sfcode`\.=1000\relax
+	}
+
+%\def\@makechapterhead#1{ \vspace*{50pt} { \parindent 0pt \raggedright
+% \ifnum \c@secnumdepth >\m@ne \par
+% \vskip 20pt \fi \Huge \bf #1\par
+% \nobreak \vskip 40pt } }
+  
+\makeatother
