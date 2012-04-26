@@ -1,0 +1,20 @@
+\chapter{Einleitung}
+
+\section{Motivation}
+Roboter haben ihre Stärke in der Wiederholung von einfachen Handhabungstätigkeiten. Menschen dagegen sind mit ihren kognitiven Fähigkeiten einzigartig, etwa mit ihrem Verständnis der Aufgabe. Die Kombination von Mensch und Roboter kann Aufgaben stark rationalisieren, sofern jedem die optimalen Arbeitsteile zugewiesen sind. Die Anwendungsbereiche der Mensch-Roboter-Kooperation vergrößern sich heutig immer schneller auf dem Feld der Medizin sowie der Industrie. Damit Mensch und Roboter in einer geringen Entfernung sicher und effizient zusammenarbeiten können, ist die Erkennung bzw. die Verfolgung von Menschen und Objekten für ein Mensch-Roboter-Kooperation-System notwendig. Die Menschenerkennung garantiert die Sicherheit für den Menschen und liefert gleichzeitig Informationen über die Blickrichtung, um Aussagen über die Aufmerksamkeit des Menschen treffen zu können. Die Objekterkennung vereinfacht die Kommunikation zwischen Mensch und Roboter, dadurch können die Fremdobjekte ohne weitere Programmierung direkt vom Roboter erkannt werden. Außerdem vermeidet die Objektverfolgung auch die Kollision zwischen Roboter und anderen Anlagenteilen.
+
+
+\section{Aufgabenstellung}
+Das Rahmenwerk MAROCO wird am IPR entwickelt, damit Menschen und Roboter in einer gemeinsamen Umgebung sicher zusammenarbeiten können. Die Erfassung des Mensch und Handlungsanalyse in der Szene erlaubt es, die Gefahr von der Roboterbewegung für Menschen zu minimieren. Jedoch ist die Erkennung zurzeit auf das Menschmodell beschränkt. Alle anderen Objekte werden von dem System als Zylinder dargestellt. Das Ziel der Arbeit ist, die verschiedenen Objekte zu kalibrieren und die entsprechenden geometrischen Charakteristika in dem System zu speichern, dann die Objekte mit Hilfe der gespeicherten Informationen zu erkennen und zu verfolgen. Beide Schritte sollen in Echtzeit durchgeführt werden.
+\\
+\\
+%Eine spezielle auf Punktwolke basierte Methode werde für die Objektkalibrierung implementiert, die mithilfe der Pyramide die verschiedenen Objekte unterscheiden kann. Jedes Objekt wird als ein Graph mit Knoten und Kanten im System gespeichert. Im Teil der Objekterkennung bzw. Objektverfolgung wird ein Teilgraph-Tracker realisiert, was eine schnelle, stabile und präzise Spur liefern kann, obwohl einige Teile des Objekts verdeckt sind. Außerdem ist die Stereo Korrespondenz als die Voraussetzung aller Funktionen sehr wichtig. Ein auf Singulärwertzerlegung basiertes Matchingsverfahren wird für infrarot Bild implementiert. 
+
+
+Folgende Ziele sollen erreicht werden:
+\begin{itemize}
+\item Objektkalibrierung,
+\item Darstellung und Speichern des charakteristischen Modells der Objekte,
+\item Objekterkennung und Verfolgung,
+\item Einhaltung der Echtzeitbedingungen (Framerate $\geq$ 30fps).
+\end{itemize}
