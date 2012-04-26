@@ -170,7 +170,50 @@ ij = k, \quad jk = i, \quad ki = j
 ji = -k, \quad kj = -i, \quad ik = -j
 \] 
 
-Das konjugierte Quaternion ist definiert als:
+Ein andere Form mit getrennten Realteil und Imaginärteil wird im Folgenden definiert:
+
+\begin{equation}
+\label{QForm2}
+q = (q_0, \vec{q})
+\end{equation}
+
+wobei $q_0 \in \mathbb{R}$ ein Skalar und $\vec{q} \in \mathbb{R}^3$ ein Vektor ist. Sei $r$ ein andere Quaternion mit:
+
+\[
+r = r_0 + i r_x + j r_y + k r_z
+\]
+
+Analog zum Vektoren im $\mathbb{R}^4$ wird das Skalarprodukt zwischen zwei Quaternion definiert als:
+
+\[
+\langle q, r \rangle := q \cdot r := q_0 r_0 + q_x r_x + q_y r_y + q_z r_z
+\]
+
+Weiterhin kann die Quaternionmultiplikation mithilfe der Form \eqref{QForm2} berechnet als:
+
+\begin{align}
+qr & = (q_0 r_0 - \vec{q} \cdot \vec{r} , \quad q_0 \vec{r} + \vec{q} r_0 + \vec{q} \times \vec{r}) \\
+\label{QMulti}
+& = (q_0 r_0 - q_x r_x - q_y r_y - q_z r_z) \nonumber \\
+& + i ( q_0 r_x + q_x r_0 + q_y r_z - q_z r_y ) \nonumber \\
+& + j ( q_0 r_y - q_x r_x + q_y r_0 + q_z r_z ) \nonumber \\
+& + k ( q_0 r_z + q_x r_y - q_y r_x + q_z r_0 )
+\end{align} 
+
+Die rechte Multiplikation von $r$ in Formel \eqref{QMulti} kann aber auch zum einen links multiplizierten Matrix umschrieben werden.
+
+\begin{equation}
+qr = 
+\begin{pmatrix}
+r_0 & -r_x & -r_y & -r_z \\
+r_x & r_0 & r_z & -r_y \\
+r_y & -r_z & r_0 & r_x \\
+r_z & r_y & -r_x & r_0
+\end{pmatrix}
+ = \mathbf{R} q
+\end{equation}
+
+Das konjugierte Quaternion von $q$ ist definiert als:
 
 \[
 \overline{q} = q_0 - i q_x - j q_y - k q_z
@@ -321,12 +364,13 @@ wobei $m_i'' = (0, m_{i,x}', m_{i,y}', m_{i,z}')$ und $d_i'' = (0, d_{i,x}', d_{
 Dann gilt:
 
 \begin{align}
-& \sum_{i=1}^n (q m_i'' \overline{q}) \cdot d_i'' \nonumber \\
-= & \sum_{i=1}^n (q m_i'' \overline{q}) \cdot ( d_i'' q \overline{q}) \nonumber \\
-= & \sum_{i=1}^n (q m_i'') \cdot (d_i'' q)
+\label{qmdq}
+\sum_{i=1}^n (q m_i'' \overline{q}) \cdot d_i''
+& = \sum_{i=1}^n (q m_i'' \overline{q}) \cdot ( d_i'' q \overline{q}) \nonumber \\
+& = \sum_{i=1}^n (q m_i'') \cdot (d_i'' q)
 \end{align}
 
-Die beide Produkt in Klammer können in die Produkt einem Quaternion mit einer Matrix umschrieben werden.
+Die beide Multiplikationen in Klammer können als Formel \eqref{QMulti} zum Produkt von einem Quaternion und einer Matrix umschrieben werden.
 
 \[
 q m_i'' = 
@@ -334,10 +378,72 @@ q m_i'' =
 0 & -m_{i,x}' & -m_{i,y}' & -m_{i,z}' \\
 -m_{i,x}' & 0 & -m_{i,z}' & -m_{i,y}' \\
 -m_{i,y}' & -m_{i,z}' & 0 & -m_{i,x}' \\
--m_{i,z}' & -m_{i,y}' & -m_{i,z}' & 0
+-m_{i,z}' & -m_{i,y}' & -m_{i,x}' & 0
 \end{pmatrix}
- = \mathbf{M_i} q
+ = \mathbf{M}_i q
 \]
+
+und 
+
+\[
+d_i'' q = 
+\begin{pmatrix}
+0 & -d_{i,x}' & -d_{i,y}' & -d_{i,z}' \\
+d_{i,x}' & 0 & -d_{i,z}' & d_{i,y}' \\
+d_{i,y}' & d_{i,z}' & 0 & -d_{i,x}' \\
+d_{i,z}' & -d_{i,y}' & d_{i,x}' & 0
+\end{pmatrix}
+ = \mathbf{D}_i q
+\]
+
+Dann kann \eqref{qmdq} weiter ableitet werden:
+
+\begin{align}
+\label{qNq}
+ \sum_{i=1}^n ( \mathbf{M}_i q) \cdot ( \mathbf{D}_i q)
+ & = \sum_{i=1}^n q^t \mathbf{M}_i^t \mathbf{D}_i q \nonumber \\
+ & = q^t \Big( \sum_{i=1}^n \mathbf{M}_i^t \mathbf{D}_i \Big) q \nonumber \\
+ & = q^t \Big( \sum_{i=1}^n \mathbf{N}_i \Big) q \nonumber \\
+ & = q^t \mathbf{N} q
+\end{align}
+ 
+wobei $\mathbf{N}_i = \mathbf{M}_i^t \mathbf{D}_i$ ist, und $\mathbf{N}$ die Summe von $\mathbf{N}_i$ beschreibt. Sei $\mathbf{H}$ die Summe der Kreuzprodukten des Punktpaars von Punktmengen $D$ und $M$.
+
+\[
+\mathbf{H} = \sum_{i=1}^n m_i d_i^t
+\]
+
+Es ist deutlich, dass die Größe der Matrix $\mathbf{H}$ 3 $\times$ 3 ist, deshalb kann $\mathbf{H}$ auch als
+
+\[
+\mathbf{H} = 
+\begin{pmatrix}
+S_{xx} & S_{xy} &S_{xz} \\
+S_{yx} & S_{yy} &S_{yz} \\
+S_{zx} & S_{zy} &S_{zz} 
+\end{pmatrix}
+\]  
+  
+geschrieben werden, wobei
+
+\[
+S_{xx} = \sum_{i=1}^n m_{i,x}' d_{i,x}' \quad
+S_{xy} = \sum_{i=1}^n m_{i,x}' d_{i,y}' 
+\]
+
+usw. Dann kann die Matrix $\mathbf{N}$ im \eqref{qNq} durch die Elemente von $\mathbf{H}$ dargestellt werden als:
+
+\begin{equation}
+\mathbf{N} = 
+\begin{pmatrix}
+S_{xx} + S_{yy} + S_{zz} & S_{yz} - S_{zy} & S_{zx} - S_{xz} & S_{xy} - S_{yx} \\
+S_{yz} - S_{zy} & S_{xx} - S_{yy} - S_{zz} & S_{xy} + S_{yx} & S_{zx} + S_{xz} \\
+S_{zx} - S_{xz} & S_{xy} + S_{yx} & -S_{xx} + S_{yy} - S_{zz} & S_{yz} + S_{zy} \\
+S_{xy} - S_{yx} & S_{zx} + S_{xz} & S_{yz} + S_{zy} & -S_{xx} - S_{yy} + S_{zz} 
+\end{pmatrix}
+\end{equation}
+
+Nach dem Beweis von Horn \cite{H87} wird die Formel \eqref{qNq} Maximum, genau dann wenn $q$ der zu dem maximalen positiven Eigenwert der Matrix $\mathbf{N}$ entsprechende Eigenvektor ist. 
 
 \section{Objekterkennung}
 
