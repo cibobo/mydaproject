@@ -29,11 +29,11 @@
 \contentsline {subsection}{\numberline {3.3.2}Singul\"arwertzerlegung}{14}{subsection.3.3.2}
 \contentsline {section}{\numberline {3.4}Sch\"atzung der Transformation}{16}{section.3.4}
 \contentsline {subsection}{\numberline {3.4.1}Quaternion}{16}{subsection.3.4.1}
-\contentsline {subsection}{\numberline {3.4.2}Beschreibung der Drehungen im Dreidimensionalen Raum mit Quaternionen}{17}{subsection.3.4.2}
+\contentsline {subsection}{\numberline {3.4.2}Beschreibung der Drehungen im Dreidimensionalen Raum mit Quaternionen}{18}{subsection.3.4.2}
 \contentsline {subsection}{\numberline {3.4.3}Orientierung mit Einheitsquaternion}{18}{subsection.3.4.3}
-\contentsline {section}{\numberline {3.5}Objekterkennung}{20}{section.3.5}
-\contentsline {subsection}{\numberline {3.5.1}Teilgraph Isomorphismus}{20}{subsection.3.5.1}
-\contentsline {chapter}{\numberline {4}Implementierung}{21}{chapter.4}
-\contentsline {chapter}{\numberline {5}Experimentelle Auswertung}{22}{chapter.5}
-\contentsline {chapter}{\numberline {6}Schlusswort}{23}{chapter.6}
-\contentsline {chapter}{{Literaturverzeichnis}}{25}{appendix*.2}
+\contentsline {section}{\numberline {3.5}Objekterkennung}{22}{section.3.5}
+\contentsline {subsection}{\numberline {3.5.1}Teilgraph Isomorphismus}{22}{subsection.3.5.1}
+\contentsline {chapter}{\numberline {4}Implementierung}{23}{chapter.4}
+\contentsline {chapter}{\numberline {5}Experimentelle Auswertung}{24}{chapter.5}
+\contentsline {chapter}{\numberline {6}Schlusswort}{25}{chapter.6}
+\contentsline {chapter}{{Literaturverzeichnis}}{27}{appendix*.2}
