@@ -4,10 +4,12 @@
 #include <windows.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <fstream>
 
 #include <highgui.h>
 
 #include "BildData.hpp"
+#include "Object.hpp"
 
 bool isDirectoryExist(const char *directory);
 
@@ -20,6 +22,8 @@ void saveAllDataToFile(int frameCount, BildData *bildData);
 void saveNormalDataToFile(const char *type, int frameCount, float *data);
 
 void saveNormalDataToPNG(const char *subPath, int frameCount, Mat data);
+
+void saveObjectToVTKFile(const char *name, Object *obj); 
 
 void loadAllDataFromFile(int frameCount, BildData *bildData);
 

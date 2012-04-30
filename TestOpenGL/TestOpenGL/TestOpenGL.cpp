@@ -84,9 +84,9 @@ int MAXJUMPEDFEATURES = 5;
 int FRAMERATE = 30;
 
 // The input path
-const char *INPUTPATH = "EvaMarkerSize";
+const char *INPUTPATH = "Eva3DRotation";
 
-char *OUTPUTPATH = "EvaFullBox";
+char *OUTPUTPATH = "Eva3DRotation";
 bool ISDATASAVED = true;
 
 // Evaluation output path
@@ -308,7 +308,7 @@ void inputThreadProc(void *param){
 	LeaveCriticalSection (&cvInitCrs);
 	LeaveCriticalSection (&glInitCrs);
 
-	for(int i=20;i<999;i++){
+	for(int i=360;i<999;i++){
 		cout<<endl<<"============================= "<<i<<" ==========================="<<endl;
 		frameIndex = i;
 		EnterCriticalSection(&pauseCrs);
@@ -597,6 +597,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			using namespace cv; 
 			using namespace std;
 
+			//Object *testObj = new Object();
+			//testObj->loadFromVTKFile("Test2");
+
 			//namedWindow("OpenCVGrayScale", CV_WINDOW_AUTOSIZE);
 			namedWindow("OpenCVCorrespondenz", CV_WINDOW_AUTOSIZE);
 			//namedWindow("OpenCVFeatures", CV_WINDOW_AUTOSIZE);
@@ -613,9 +616,13 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 
 
-			//parameter for STAR Detector
-			int MINFEATURECOUNT = 24;//42;
-			int MAXFEATURECOUNT = 45;//65;
+			//Parameter for STAR Detector
+			//for Markers 
+			//int MINFEATURECOUNT = 24;
+			//int MAXFEATURECOUNT = 45;
+			//for Objects
+			int MINFEATURECOUNT = 42;
+			int MAXFEATURECOUNT = 65;
 			int MAXDETECTLOOPS = 30;
 
 			int MAXSIZE = 8;
@@ -1130,6 +1137,7 @@ if(obj->fixNodeCount<=3){
 					} else {
 						associaterate = 0.022;
 					}
+					//associaterate = 0.02;
 					//calibrationWithDistance(oldResult, newResult);
 
 
@@ -1427,7 +1435,7 @@ if(obj->fixNodeCount<=3){
 					for(int i=0;i<oldResult.size();i++){
 						Point2f trans(204,0);
 						//line(testImg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
-						//line(testImg, oldResult[i].index, newResult[i].index+trans, Scalar(255,255,0,0));
+						line(testImg, oldResult[i].index, newResult[i].index+trans, Scalar(255,255,0,0));
 					}
 				//	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 				//}
@@ -1459,21 +1467,21 @@ if(obj->fixNodeCount<=3){
 				isDataUsed = true;
 				//cout<<"The loop Count is: "<<isDataUsed<<endl;
 #ifdef EVALUATION
-				//if(frameIndex == 89 || 
-				//   frameIndex == 116 ||
-				//   frameIndex == 128 ||
-				//   frameIndex == 143 ||
-				//   frameIndex == 168 ||
-				//   frameIndex == 183 ||
-				//   frameIndex == 227 ||
-				//   frameIndex == 200){
-				//	   stringstream ss;
-				//	   ss<<frameIndex;
-				//	   string evaPath = ss.str();
-				//	   evaluation.saveCVBild(evaPath.data(), right);
-				//	   evaPath.append("_1");
-				//	   evaluation.saveCVBild(evaPath.data(), myFeatureDetector.drawMat);
-				//}
+				if(frameIndex == 145 || 
+				   frameIndex == 175 ||
+				   frameIndex == 214 ||
+				   frameIndex == 238 ||
+				   frameIndex == 253 ||
+				   frameIndex == 275 ||
+				   //frameIndex == 227 ||
+				   frameIndex == 307){
+					   stringstream ss;
+					   ss<<frameIndex;
+					   string evaPath = ss.str();
+					   evaluation.saveCVBild(evaPath.data(), right);
+					   evaPath.append("_1");
+					   evaluation.saveCVBild(evaPath.data(), myFeatureDetector.drawMat);
+				}
 
 				vector<float> evaData;
 				evaData.push_back(features.size());
@@ -1498,6 +1506,9 @@ if(obj->fixNodeCount<=3){
 						evaluation.saveCVBild("MarkerSize", right);
 						break;
 #endif
+					case 'c':
+						obj->saveToVTKFile("Box3");
+						break;
 				}
 #ifdef TEST
 				switch(c){

@@ -200,6 +200,34 @@ void saveNormalDataToPNG(const char *subPath, int frameCount, Mat data){
 	cout<<"Save image successful at "<<fullPath.data()<<endl;
 }
 
+void saveObjectToVTKFile(const char *name, Object *obj){
+	string savePath = string("VTKData/");
+	savePath.append(name);
+	savePath.append(".vtk");
+	ofstream fout(savePath.data(), ios::out);
+
+	// write the head of the vtk
+	fout<<"# vtk DataFile Version 1.0"<<endl;
+	fout<<"VTK Data for Object "<<name<<endl;
+	fout<<"ASCII"<<endl<<endl;
+
+	// write the points data head
+	fout<<"DATASET POLYDATA"<<endl;
+	int pointSize = obj->nodeList.size();
+	fout<<"POINTS "<<pointSize<<" float"<<endl;
+
+	// write the points
+	for(int i=0;i<pointSize;i++){
+		if(obj->nodeList[i]->isFixed){
+			fout<<obj->nodeList[i]->x<<" ";
+			fout<<obj->nodeList[i]->y<<" ";
+			fout<<obj->nodeList[i]->z<<endl;
+		}
+	}
+
+	fout.close();
+}
+
 
 void loadAllDataFromFile(int frameCount, BildData *bildData){
 	//string path("data/2/distance/");
