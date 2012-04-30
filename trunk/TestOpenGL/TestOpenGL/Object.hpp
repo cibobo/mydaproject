@@ -2,6 +2,7 @@
 #define OBJECT_HPP
 
 #include "Graph.hpp"
+#include <fstream>
 
 using namespace std;
 using namespace cv;
@@ -17,10 +18,15 @@ public:
 	void updateKalmanFilter();
 	void getMiddelPoint(Point3f &mid);
 
+	void saveToVTKFile(const char *name);
+	void loadFromVTKFile(const char *name);
+
 	Mat sumR;
 	Mat sumT;
 	Mat curR;
 	Mat curT;
+
+	const char *defaultDataPath;
 
 	// KalmanFilter for Translationsmatrix
 	KalmanFilter tFilter;
