@@ -235,6 +235,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Recognition.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -314,6 +318,10 @@
 			</File>
 			<File
 				RelativePath=".\PMDPoint.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Recognition.hpp"
 				>
 			</File>
 			<File

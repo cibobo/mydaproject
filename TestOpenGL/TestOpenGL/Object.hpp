@@ -11,6 +11,7 @@ class Object : public Graph{
 
 public:
 	Object();
+	Object(const char* name);
 	~Object();
 
 	void update(vector<Point3f> points, Mat R, Mat T);

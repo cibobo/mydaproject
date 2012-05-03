@@ -5,7 +5,16 @@
 #include "TestOpenGL.h"
 
 
+/*
+ * Defination for Programm Model
+ */
+#define RECOGNITION
+
 #define OFFLINE
+
+/*
+ * Defination for the Algorithmen
+ */
 //#define SVDTRACK
 #define UQTRACK
 
@@ -18,9 +27,12 @@
 
 //#define USINGICP
 
-//#define EVALUATION
-
 #define DEPTHFILTER
+
+/*
+ * Defination for the Evaluation
+ */
+//#define EVALUATION
 
 
 //#define TEST
@@ -84,9 +96,9 @@ int MAXJUMPEDFEATURES = 5;
 int FRAMERATE = 30;
 
 // The input path
-const char *INPUTPATH = "Eva3DRotation";
+const char *INPUTPATH = "TestRecognition";
 
-char *OUTPUTPATH = "Eva3DRotation";
+char *OUTPUTPATH = "TestRecognition";
 bool ISDATASAVED = true;
 
 // Evaluation output path
@@ -308,7 +320,7 @@ void inputThreadProc(void *param){
 	LeaveCriticalSection (&cvInitCrs);
 	LeaveCriticalSection (&glInitCrs);
 
-	for(int i=360;i<999;i++){
+	for(int i=20;i<999;i++){
 		cout<<endl<<"============================= "<<i<<" ==========================="<<endl;
 		frameIndex = i;
 		EnterCriticalSection(&pauseCrs);
@@ -621,8 +633,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			//int MINFEATURECOUNT = 24;
 			//int MAXFEATURECOUNT = 45;
 			//for Objects
-			int MINFEATURECOUNT = 42;
-			int MAXFEATURECOUNT = 65;
+			int MINFEATURECOUNT = 68;//42;
+			int MAXFEATURECOUNT = 96;//65;
 			int MAXDETECTLOOPS = 30;
 
 			int MAXSIZE = 8;
@@ -664,6 +676,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			// init Kalman filter
 			initKalmanFilter();
 			initQKFilter();
+
+			Recognition *recognition = new Recognition();
 
 #ifdef EVALUATION
 			// Evaluation
@@ -995,10 +1009,21 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				 *
 				 *************************************************/
 				// to save the sets and the elements of set
-				vector<vector<KeyPoint>> groupFeatures;
+				//vector<vector<KeyPoint>> groupFeatures;
 				float eps = 5;
 				// first calibration for the original features, which deal with the 2D point
-				calibration2D(groupFeatures, features, eps);
+				//calibration2D(groupFeatures, features, eps);
+
+				// Using DBSCAN to calirate the points
+				vector<vector<Point3f>> groupFeatures;
+				if(features.size()>0){
+					vector<Point3f> featuresCali3D;
+					for(int i=0;i<features.size();i++){
+						Point3f tempPoint(features[i].pt.x, features[i].pt.y, 0);
+						featuresCali3D.push_back(tempPoint);
+					}
+					DBSCAN(groupFeatures, featuresCali3D, 5, 2);
+				}
 				cout<<"After Summerize get "<<groupFeatures.size()<<" features!"<<endl;
 
 				vector<PMDPoint> summerizedFeatures; 
@@ -1012,8 +1037,10 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					int groupSize = groupFeatures[i].size();
 					for(int j=0;j<groupSize;j++){
 						//TODO: Why is the x and y exchanged
-						int indexI = int(groupFeatures[i][j].pt.y);
-						int indexJ = int(groupFeatures[i][j].pt.x);
+						//int indexI = int(groupFeatures[i][j].pt.y);
+						//int indexJ = int(groupFeatures[i][j].pt.x);
+						int indexI = int(groupFeatures[i][j].y);
+						int indexJ = int(groupFeatures[i][j].x);
 
 						avrX2D += indexJ;
 						avrY2D += indexI;
@@ -1047,6 +1074,10 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 					allFeatures.push_back(newPMDPoint);
 				}
 
+#ifdef RECOGNITION
+				recognition->objectRecognition(summerizedFeatures);
+#else
+
 				/*************************************************
 				 *
 				 * Second Calibration to seprate different objects
@@ -1059,7 +1090,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				vector<vector<PMDPoint>> caliResult;
 				//eps for my calibration
 				float CALIEPS3D = 0.17;
-				int minPts = 5;
+				int minPts = 2;
 
 				
 
@@ -1070,6 +1101,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//	DBSCANPMDPoint(caliResult, summerizedFeatures, center, CALIEPS3D, minPts);
 				//} else {
 					calibrationPMDPoint(caliResult, summerizedFeatures, CALIEPS3D);
+				//}
+
+//TODO: fix the problem of DBSCAN
+				//if(summerizedFeatures.size()>0){
+				//	DBSCANPMDPoint(caliResult, summerizedFeatures, 0.3, minPts);
 				//}
 				// Save the features into the first place of data buffer
 				currentBildData->features.clear();
@@ -1463,7 +1499,9 @@ if(obj->fixNodeCount<=3){
 				//cout<<"==================== End the loop of historical data ==========================="<<endl;
 // für Quaternion Rotation
 #endif	
-				
+	
+// für Recognition
+#endif
 				isDataUsed = true;
 				//cout<<"The loop Count is: "<<isDataUsed<<endl;
 #ifdef EVALUATION
