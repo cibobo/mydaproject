@@ -13,6 +13,18 @@ Object::Object(){
 	defaultDataPath = "VTKData/";
 }
 
+Object::Object(const char *name){
+	sumR = Mat::eye(3,3,CV_32FC1);
+	sumT = Mat::zeros(3,1,CV_32FC1);
+
+	tFilter = KalmanFilter(6,3,0);
+	qFilter = KalmanFilter(3,3,0);
+
+	initKalmanFilter();
+
+	defaultDataPath = "VTKData/";
+	loadFromVTKFile(name);
+}
 
 Object::~Object(){
 }

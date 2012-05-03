@@ -18,6 +18,7 @@
 #include "OpenGLDraw.hpp"
 #include "PMDCamIO.hpp"
 #include "PMDPoint.hpp"
+#include "Recognition.hpp"
 #include "TestOpenGL.h"
 
 
