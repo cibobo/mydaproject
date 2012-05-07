@@ -22,4 +22,6 @@ void display(OpenGLWinUI *pOpenGLWinUI, vector<Point2f> features);
 
 void display(OpenGLWinUI *pOpenGLWinUI, Object *graph);
 
+void display(OpenGLWinUI *pOpenGLWinUI, vector<Object*> objects);
+
 void displayCoord(OpenGLWinUI *pOpenGLWinUI, Mat R);

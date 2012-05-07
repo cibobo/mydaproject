@@ -8,6 +8,7 @@
 Edge::Edge(Node *firstNode, Node *secondNode){
 	this->orgNode = firstNode;
 	this->dstNode = secondNode;
+	this->cost = firstNode->distanceTo(secondNode);
 }
 
 Edge::Edge(Node *firstNode, Node *secondNode, float cost){
@@ -53,6 +54,10 @@ void Node::setPosition(cv::Point3f pos){
 Point3f Node::getPoint(){
 	Point3f point = Point3f(this->x, this->y, this->z);
 	return point;
+}
+
+float Node::distanceTo(Node *other){
+	return sqrt((this->x-other->x)*(this->x-other->x) + (this->y-other->y)*(this->y-other->y) + (this->z-other->z)*(this->z-other->z)); 
 }
 
 
@@ -176,6 +181,7 @@ bool Graph::deleteNode(int index){
 //}
 
 void Graph::createCompleteGraph(vector<Point3f> points){
+	this->nodeList.clear();
 	this->addNodes(points);
 	for(int i=0;i<this->nodeList.size();i++){
 		for(int j=i+1;j<this->nodeList.size();j++){
@@ -356,4 +362,73 @@ Point3f Graph::getMiddelPoint(){
 	Point3f midPoint = Point3f(midPointM.at<float>(0,0), midPointM.at<float>(1,0), midPointM.at<float>(2,0));
 	return midPoint;
 }
+
+void Graph::showWithOpenCV(const char *name){
+	//string windowName = "Object:";
+	//windowName.append(name);
+	//namedWindow(windowName.data(), CV_WINDOW_AUTOSIZE);
+
+	//Mat drawMat = Mat::zeros(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
+
+	//for(int i=0;i<this->nodeList.size();;i++){
+	//	circle(drawMat, nodeList[i], 2, Scalar(0,0,255,0), -1);
+	//}
+}
+
+bool Graph::isEqual(Graph *other){
+	if(this->nodeList.size()<3){
+		cout<<"The current graph has not enough points"<<endl;
+		return false;
+	}
+	if(other->nodeList.size()<3){
+		cout<<"The compared graph has not enough points"<<endl;
+		return false;
+	}
+
+	float e = 0.0001;
+	// save the coorespondenz node pairs, where the first place save the node from other, and second for this
+	map<Node*, Node*> pairs;
+
+	// Loop for all node in Other Graph
+	for(int i=0;i<other->nodeList.size();i++){
+		// choose one point from Other graph
+		Node *p = other->nodeList[i];
+		// Loop for all nodes in this Graph
+		for(int k=0;k<this->nodeList.size();k++){
+			Node *v = this->nodeList[k];
+			
+			// Insert the pair (p,v)
+			pairs.insert(pair<Node*, Node*>(p,v));
+			// Loop for all neighbor node of p
+			for(int j=0;j<p->edgeList.size();j++){
+				for(int l=0;l<v->edgeList.size();l++){
+					// Get the neighbor nodes
+					Node *pi = p->edgeList[j].dstNode;
+					Node *vi = v->edgeList[l].dstNode;
+
+					float p_pi = p->edgeList[j].cost;
+					float v_vi = v->edgeList[l].cost;
+
+					// if the edge has the same lenth
+					if(fabs(p_pi - v_vi)< e){
+						// add the node pair to the Map
+						pairs.insert(pair<Node*, Node*>(pi, vi));
+					}
+
+					// if more than 4 pairs have been found, return true;
+					if(pairs.size()>3){
+						return true;
+					}
+				}
+			}
+		}
+	}
+	cout<<"All nodes have been reached but no coorespondenz found!"<<endl;
+	return false;
+}
+
+
+
+	
+
 	

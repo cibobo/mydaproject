@@ -42,6 +42,7 @@ public:
 	//void setPosition(Point2f pos);
 	void setPosition(Point3f pos);
 	Point3f getPoint();
+	float distanceTo(Node *other);
 };
 
 class Graph{
@@ -75,6 +76,9 @@ public:
 	vector<Point3f> getPoints();
 	//bool updateGraph(vector<Point3f> points);
 	bool updateGraph(vector<Point3f> points, Mat R, Mat T);
+
+	void showWithOpenCV(const char *name);
+	bool isEqual(Graph *other);
 
 	Node *findNode(int index);
 

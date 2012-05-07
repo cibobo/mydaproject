@@ -617,6 +617,79 @@ void display(OpenGLWinUI *pOpenGLWinUI, Object *graph){
 	glPopMatrix();   
 }
 
+void display(OpenGLWinUI *pOpenGLWinUI, vector<Object*> objects){
+	int height = pOpenGLWinUI->height;
+	int width = pOpenGLWinUI->width;
+
+	// Clear the Color Buffer and Depth Buffer
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glLoadIdentity();
+	int objCount = objects.size();
+	if(objCount != 0){
+		width = width/objCount;
+	}
+
+	GLfloat mat_ambient[] = {0.0215, 0.1745, 0.0215, 1.0};
+	GLfloat mat_diffuse[] = {0.07568, 0.61424, 0.07568, 1.0};
+	GLfloat mat_specular[] = {0.633, 0.727811, 0.633, 1.0};
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+    glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+    glMaterialf(GL_FRONT, GL_SHININESS, 50.0);
+
+	//drawCoordi();
+
+	for(int i=0;i<objCount;i++){
+		glViewport(i*width, 0, width, width);
+
+		gluLookAt(pOpenGLWinUI->rotLx, pOpenGLWinUI->rotLy, pOpenGLWinUI->rotLz, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f);
+		glPushMatrix();   // It is important to push the Matrix before 
+
+		// calling glRotatef and glTranslatef
+		glRotatef(pOpenGLWinUI->rotX, 1.0f, 0.0f, 0.0f);            // Rotate on x
+		glRotatef(pOpenGLWinUI->rotY, 0.0f, 1.0f, 0.0f);            // Rotate on y
+		glRotatef(pOpenGLWinUI->rotZ, 0.0f, 0.0f, 1.0f);            // Rotate on z
+
+		glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
+		glTranslatef(-1, 0, 0);
+
+		drawCoordi();
+		
+
+		mat_diffuse[0] = COLORLIST[i][0];
+		mat_diffuse[1] = COLORLIST[i][1];
+		mat_diffuse[2] = COLORLIST[i][2];
+		mat_diffuse[3] = COLORLIST[i][3];
+
+		Object *curObject = objects[i];
+		for(int j=0;j<curObject->nodeList.size();j++){
+			float ballSize = 0.02;
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+
+			//if(graph->nodeList[i]->isFixed){
+			glTranslatef(curObject->nodeList[j]->x,curObject->nodeList[j]->y,-curObject->nodeList[j]->z);
+			glutSolidSphere(ballSize, 20, 16);
+			glTranslatef(-curObject->nodeList[j]->x,-curObject->nodeList[j]->y,curObject->nodeList[j]->z);
+
+			for(int k=0;k<curObject->nodeList[j]->edgeList.size();k++){
+				//mat_diffuse[0] = mat_diffuse[1] = mat_diffuse[2] = mat_diffuse[3] = 1.0;
+				glBegin(GL_LINES);
+					glVertex3f(curObject->nodeList[j]->edgeList[k].orgNode->x, curObject->nodeList[j]->edgeList[k].orgNode->y, -curObject->nodeList[j]->edgeList[k].orgNode->z); 
+					glVertex3f(curObject->nodeList[j]->edgeList[k].dstNode->x, curObject->nodeList[j]->edgeList[k].dstNode->y, -curObject->nodeList[j]->edgeList[k].dstNode->z); 
+				glEnd();
+			}
+
+		}
+		glDisable(GL_LINE_STIPPLE);   // Disable the line stipple
+		glFlush();
+		glPopMatrix();   
+	}
+}
+
+
+
 
 
 void displayCoord(OpenGLWinUI *pOpenGLWinUI, Mat R){
