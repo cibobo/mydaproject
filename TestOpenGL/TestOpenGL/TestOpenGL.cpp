@@ -96,7 +96,7 @@ int MAXJUMPEDFEATURES = 5;
 int FRAMERATE = 30;
 
 // The input path
-const char *INPUTPATH = "TestRecognition";
+const char *INPUTPATH = "Eva2DTranslation";
 
 char *OUTPUTPATH = "TestRecognition";
 bool ISDATASAVED = true;
@@ -111,6 +111,7 @@ DistanceFilter *dFilter;
 int frameIndex;
 
 Object *obj;
+Recognition *recognition;
 
 Mat RR = Mat::eye(3,3,CV_32FC1);
 Mat R = Mat::eye(3,3,CV_32FC1);
@@ -493,7 +494,11 @@ void objWindowThreadPorc(void *param ){
 			}
 		} else {
 			EnterCriticalSection (&calcCrs);
+#ifdef RECOGNITION
+			display(pObjGLWinUI, recognition->objectList);
+#else
 			display(pObjGLWinUI, obj);
+#endif
 			SwapBuffers(pObjViewContext->hDC);
 			glEnable(GL_LIGHTING);
 			LeaveCriticalSection(&calcCrs);
@@ -663,6 +668,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			//obj = new Graph();
 			obj = new Object();
 
+			recognition = new Recognition();
+
 
 			// Parameters for the frame choice
 			float memAngle = 360;
@@ -677,7 +684,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 			initKalmanFilter();
 			initQKFilter();
 
-			Recognition *recognition = new Recognition();
+			
 
 #ifdef EVALUATION
 			// Evaluation

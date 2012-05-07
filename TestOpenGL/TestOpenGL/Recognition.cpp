@@ -33,7 +33,7 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 		
 	namedWindow("Recognition", CV_WINDOW_AUTOSIZE);
 
-	drawMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC1);
+	drawMat = Mat::zeros(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
 	
 	for(int i=0;i<caliResult.size();i++){
 		for(int j=0;j<caliResult[i].size();j++){

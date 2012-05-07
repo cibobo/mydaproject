@@ -163,7 +163,8 @@ void Object::loadFromVTKFile(const char *name){
 	int pointSize;
 	ss>>pointSize;
 
-	this->nodeList.clear();
+	//this->nodeList.clear();
+	vector<Point3f> nodes;
 	for(int i=0;i<pointSize;i++){
 		char cPoint[256];
 		fin.getline(cPoint, 256);
@@ -186,7 +187,14 @@ void Object::loadFromVTKFile(const char *name){
 		float z;
 		zSS>>z;
 		
-		Node *temp = new Node(Point3f(x,y,z));
-		this->nodeList.push_back(temp);
+		//Node *temp = new Node(Point3f(x,y,z));
+		//this->nodeList.push_back(temp);
+		Point3f temp(x,y,z);
+		nodes.push_back(temp);
 	}
+	this->createCompleteGraph(nodes);
 }
+
+
+
+
