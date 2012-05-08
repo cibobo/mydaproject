@@ -1,3 +1,6 @@
+#ifndef EVALUATION_HPP
+#define EVALUATION_HPP
+
 #include <stdlib.h>
 #include <cv.h>
 #include <highgui.h>
@@ -20,8 +23,11 @@ public:
 	
 	void saveCVBild(const char *fileName, Mat data);
 	void saveCVSData(vector<float> data);
+	void saveCVSData(const char* fileName, vector<float> data);
 
 	char *defaultRootPath;
 	string defaultSavePath;
-	ofstream *dataFile;
+	map<const char*,ofstream*> dataFiles;
 };
+
+#endif

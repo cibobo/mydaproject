@@ -96,7 +96,7 @@ int MAXJUMPEDFEATURES = 5;
 int FRAMERATE = 30;
 
 // The input path
-const char *INPUTPATH = "Eva2DTranslation";
+const char *INPUTPATH = "Eva3DRotation";
 
 char *OUTPUTPATH = "TestRecognition";
 bool ISDATASAVED = true;
@@ -635,11 +635,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 			//Parameter for STAR Detector
 			//for Markers 
-			//int MINFEATURECOUNT = 24;
-			//int MAXFEATURECOUNT = 45;
+			int MINFEATURECOUNT = 42;
+			int MAXFEATURECOUNT = 65;
 			//for Objects
-			int MINFEATURECOUNT = 68;//42;
-			int MAXFEATURECOUNT = 96;//65;
+			//int MINFEATURECOUNT = 68;//42;
+			//int MAXFEATURECOUNT = 96;//65;
 			int MAXDETECTLOOPS = 30;
 
 			int MAXSIZE = 8;
@@ -688,9 +688,11 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 #ifdef EVALUATION
 			// Evaluation
-			Evaluation evaluation = Evaluation();
-			evaluation.createCVSFile("DetectionRate");
+			Evaluation evaluation = Evaluation(INPUTPATH);
+			evaluation.createCVSFile("Korrespondenz");
+			vector<float> evaData;
 #endif
+
 			while (!bDone) 
 			{ 	
 				if(isPause){
@@ -1082,7 +1084,9 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				}
 
 #ifdef RECOGNITION
-				recognition->objectRecognition(summerizedFeatures);
+				if(summerizedFeatures.size()>0){
+					recognition->objectRecognition(summerizedFeatures);
+				}
 #else
 
 				/*************************************************
@@ -1118,14 +1122,14 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				currentBildData->features.clear();
 				findMaxPMDPointSet(caliResult, currentBildData->features);
 
-				
+#ifdef USINGICP				
 				vector<vector<PMDPoint>> caliComResult;
 				calibrationPMDPoint(caliComResult, allFeatures, CALIEPS3D);
 
 				// Save the features into the first place of data buffer
 				currentBildData->comFeatures.clear();
 				findMaxPMDPointSet(caliComResult, currentBildData->comFeatures);
-
+#endif
 				/***************************************************
 				 *
 				 * Compare the historical features and the current features, in order to find the transformation of the object
@@ -1155,6 +1159,7 @@ if(obj->fixNodeCount<=3){
 #endif
 				cout<<"======= "<<isDataUsed<<" ======= "<<hisFeatures.size()<<" ======= "<<curFeatures.size()<<endl<<endl;
 
+				
 				if(hisFeatures.size()>0 && curFeatures.size()>0){
 					float avrDis, disPE, sumP;
 					bool isAssSuccess = featureAssociatePMD(hisFeatures, curFeatures, associaterate, oldResult, newResult, avrDis, disPE, sumP);
@@ -1175,12 +1180,12 @@ if(obj->fixNodeCount<=3){
 					//if(assCount == 5) cout<<"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFeld!"<<endl;
 	
 
-					if(avrDis < 0.02){			
-						associaterate = avrDis;
-					} else {
-						associaterate = 0.022;
-					}
-					//associaterate = 0.02;
+					//if(avrDis < 0.02){			
+					//	associaterate = avrDis;
+					//} else {
+					//	associaterate = 0.022;
+					//}
+					associaterate = 0.022;
 					//calibrationWithDistance(oldResult, newResult);
 
 
@@ -1391,6 +1396,14 @@ if(obj->fixNodeCount<=3){
 					calcEulerAngleFromR(obj->R, euler1, euler2);
 					cout<<"The total rotated angle 1: "<<euler1[0]*180/3.14<<" , "<<euler1[1]*180/3.14<<" , "<<euler1[2]*180/3.14<<" , "<<endl;
 					cout<<"The total rotated angle 2: "<<euler2[0]*180/3.14<<" , "<<euler2[1]*180/3.14<<" , "<<euler2[2]*180/3.14<<" , "<<endl;
+
+					evaData.push_back(hisFeatures.size());
+					evaData.push_back(curFeatures.size());
+					evaData.push_back(oldResult.size());
+
+					evaData.push_back(avrDis);
+					evaData.push_back(disPE);
+					evaData.push_back(sumP);
 				}
 #ifdef USINGICP
 } else {
@@ -1512,28 +1525,25 @@ if(obj->fixNodeCount<=3){
 				isDataUsed = true;
 				//cout<<"The loop Count is: "<<isDataUsed<<endl;
 #ifdef EVALUATION
-				if(frameIndex == 145 || 
-				   frameIndex == 175 ||
-				   frameIndex == 214 ||
-				   frameIndex == 238 ||
-				   frameIndex == 253 ||
-				   frameIndex == 275 ||
-				   //frameIndex == 227 ||
-				   frameIndex == 307){
-					   stringstream ss;
-					   ss<<frameIndex;
-					   string evaPath = ss.str();
-					   evaluation.saveCVBild(evaPath.data(), right);
-					   evaPath.append("_1");
-					   evaluation.saveCVBild(evaPath.data(), myFeatureDetector.drawMat);
-				}
+				//if(frameIndex == 145 || 
+				//   frameIndex == 175 ||
+				//   frameIndex == 214 ||
+				//   frameIndex == 238 ||
+				//   frameIndex == 253 ||
+				//   frameIndex == 275 ||
+				//   //frameIndex == 227 ||
+				//   frameIndex == 307){
+				//	   stringstream ss;
+				//	   ss<<frameIndex;
+				//	   string evaPath = ss.str();
+				//	   evaluation.saveCVBild(evaPath.data(), right);
+				//	   evaPath.append("_1");
+				//	   evaluation.saveCVBild(evaPath.data(), myFeatureDetector.drawMat);
+				//}
 
-				vector<float> evaData;
-				evaData.push_back(features.size());
-				evaData.push_back(10);
-				evaData.push_back(summerizedFeatures.size());
-				evaData.push_back(summerizedFeatures.size()/10.0);
-				evaluation.saveCVSData(evaData);
+
+				evaluation.saveCVSData("Korrespondenz", evaData);
+				evaData.clear();
 #endif
 				
 				LeaveCriticalSection (&calcCrs);

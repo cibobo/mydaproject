@@ -62,7 +62,11 @@ bool featureAssociate(vector<Point3f> oldFeature, vector<Point3f> newFeature, fl
 					   vector<Point3f> &findFeatureOld, vector<Point3f> &findFeatureNew,
 					   vector<int> &findIndexOld, vector<int> &findIndexNew,
 					   float &avrDis, float &disPE);
-
+/**
+ * @param avrDis the average distance of all correspondence points
+ * @param disPE  the average difference between the matrix P and identity matrix E
+ * @param sumP   the sum of the digonal elements of matrix P
+ */
 bool featureAssociatePMD(vector<PMDPoint> oldFeature, vector<PMDPoint> newFeature, float sigma, 
 					   vector<PMDPoint> &findFeatureOld, vector<PMDPoint> &findFeatureNew,
 					   float &avrDis, float &disPE, float &sumP);
