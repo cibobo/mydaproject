@@ -376,6 +376,12 @@ void Graph::showWithOpenCV(const char *name){
 }
 
 bool Graph::isEqual(Graph *other){
+	float e = 0.0006;
+	float rate = 0.5;
+	return this->isEqual(other, e, rate);
+}
+
+bool Graph::isEqual(Graph *other, float e, float rate){
 	if(this->nodeList.size()<3){
 		cout<<"The current graph has not enough points"<<endl;
 		return false;
@@ -385,9 +391,17 @@ bool Graph::isEqual(Graph *other){
 		return false;
 	}
 
-	float e = 0.0001;
+	//Evaluation *eva = new Evaluation();
+	//eva->createCVSFile("ExistObject");
+	//eva->createCVSFile("DetectObject");
+	//vector<float> data;
+
+	
 	// save the coorespondenz node pairs, where the first place save the node from other, and second for this
 	map<Node*, Node*> pairs;
+
+	int minNodeSize = this->nodeList.size()<other->nodeList.size()?this->nodeList.size():other->nodeList.size();
+	int minParisCount = (minNodeSize * rate)>=3?(minNodeSize * rate):3;
 
 	// Loop for all node in Other Graph
 	for(int i=0;i<other->nodeList.size();i++){
@@ -401,26 +415,60 @@ bool Graph::isEqual(Graph *other){
 			pairs.insert(pair<Node*, Node*>(p,v));
 			// Loop for all neighbor node of p
 			for(int j=0;j<p->edgeList.size();j++){
-				for(int l=0;l<v->edgeList.size();l++){
-					// Get the neighbor nodes
-					Node *pi = p->edgeList[j].dstNode;
-					Node *vi = v->edgeList[l].dstNode;
+				// Get the neighbor nodes of p
+				Node *pi = p->edgeList[j].dstNode;
+				float p_pi = p->edgeList[j].cost;
+					
+				//if(k==0){
+				//data.push_back(i);
+				//data.push_back(j);
+				//data.push_back(p_pi);
+				//eva->saveCVSData("ExistObject", data);
+				//data.clear();
+				//}
 
-					float p_pi = p->edgeList[j].cost;
+				for(int l=0;l<v->edgeList.size();l++){
+					// Get the neighbor nodes of v
+					Node *vi = v->edgeList[l].dstNode;
 					float v_vi = v->edgeList[l].cost;
+
+					//if(j==0){
+					//data.push_back(k);
+					//data.push_back(l);
+					//data.push_back(v_vi);
+					//eva->saveCVSData("DetectObject",data);
+					//data.clear();
+					//}
 
 					// if the edge has the same lenth
 					if(fabs(p_pi - v_vi)< e){
 						// add the node pair to the Map
 						pairs.insert(pair<Node*, Node*>(pi, vi));
-					}
-
-					// if more than 4 pairs have been found, return true;
-					if(pairs.size()>3){
-						return true;
+						break;
 					}
 				}
+
+				//data.push_back(0);
+				//eva->saveCVSData("DetectObject",data);
+				//data.clear();
+
+				// if more than 4 pairs have been found, return true;
+				if(pairs.size()>minParisCount){
+					// Mark correspondenz points
+					map<Node*, Node*>::iterator it;
+					for(it=pairs.begin();it!=pairs.end();it++){
+						Node *node = (*it).first;
+						node->timmer = -1;
+					}
+					return true;
+				}
 			}
+			//data.push_back(0);
+			//eva->saveCVSData("ExistObject",data);
+			//data.clear();
+
+			// if there is no coorespondenz pair between p and v, than clear the Map
+			pairs.clear();
 		}
 	}
 	cout<<"All nodes have been reached but no coorespondenz found!"<<endl;

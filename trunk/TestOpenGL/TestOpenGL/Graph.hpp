@@ -4,6 +4,8 @@
 
 #include <cv.h>
 //#include "ImageProcess.hpp"
+#include "Evaluation.hpp"
+
 
 using namespace std;
 using namespace cv;
@@ -79,6 +81,7 @@ public:
 
 	void showWithOpenCV(const char *name);
 	bool isEqual(Graph *other);
+	bool isEqual(Graph *other, float e, float rate);
 
 	Node *findNode(int index);
 
