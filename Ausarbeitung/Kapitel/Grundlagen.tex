@@ -447,6 +447,98 @@ Nach dem Beweis von Horn \cite{H87} wird die Formel \eqref{qNq} Maximum, genau d
 
 \section{Objekterkennung}
 
+\subsection{DBSCAN}
+DBSCAN, kurz von dem englischen Name Density-Based Spatial CLustering of Applications with Noise, ist ein auf Dichte basierter Data-Mining-Algorithmus. Die Hauptidee des Algorithmus hängt stark von dem Begriff ,,Dichteverbundenheit'' ab, was durch folgenden Definitionen erklärt wird.
+\\
+\\
+Seien $D$ eine Punktmenge im Raum $\mathbb{R}^n$ und $Dist(p,q)$ eine darauf definierte Distanzfunktion. $\epsilon$ und MinPts sind zwei Eingaben des Algorithmus.
+
+\begin{definition}
+\textsf{$\epsilon$-Umgebung} $N_{\epsilon}(p)$ ist eine Menge der Punkte um $p$, die erfüllt
+\[
+N_{\epsilon}(p) = \{ q \in D | Dist(p,q) \geq \epsilon \}
+\]
+\end{definition}
+
+\begin{definition}
+Ein Punkt $p$ ist \textsf{direkt Dichte-erreichbar} zum Punkt $q$, g.d.w:
+\begin{align*}
+1) \quad & p \in N_{\epsilon}(q)  \nonumber \\
+2) \quad & | N_{\epsilon}(q) | \geq MinPts \nonumber
+\end{align*}
+\end{definition}
+
+\begin{definition}
+Ein Punkt $p$ ist \textsf{Dichte-erreichbar} zum Punkt $q$, g.d.w es eine Kette von Punkten $p_1, \ldots , p_n$ mit $p_1 = p$ und $p_n = q$ gibt, wobei $p_{i+1}$ \textsf{direkt Dichte-erreichbar} zum $p_i$ für alle $i \in [1,n]$ ist.
+\end{definition}
+
+\begin{definition}
+Zwei Punkte $p$ und $q$ heißt \textsf{Dichte-verbunden}, g.d.w es ein Punkt $o$ gibt, wobei $p$ und $q$ jeweils zum $o$ \textsf{Dichte-erreichbar} sind.
+\end{definition}
+
+Mithilfe dieser Definitionen der Beziehung zwischen dem Punkten kann man jetzt eine einzige Definition des Clusters ausgeben.
+
+\begin{definition}
+Sei $C$ eine nicht leere Teilmenge von $D$. Dann heißt $C$ ein Cluster, wenn die folgenden zwei Bedingungen erfüllt werden:
+\begin{align*}
+1) \quad & \text{für $\forall p, q \in D$, wenn $p \in C$ und $q$ ist \textsf{Dichte-erreichbar} zum $p$, dann gilt } q \in C \nonumber \\
+2) \quad & \text{für $\forall p, q \in C$, $p$ ist \textsf{Dichte-verbunden} zum $q$} \nonumber
+\end{align*}
+\end{definition}
+
+Dann können alle Punkte von $D$ in drei verschiedene Type zusammengefasst werden.
+
+\begin{itemize}
+\item Kernpunkt: Der Punkt, die Größe dessen $\epsilon$-Umgebung größer als MinPts ist.
+\item Grenzpunkt: Der Punkt, dessen $\epsilon$-Umgebung nicht genug groß ($<$MinPts), aber zu anderen Punkten Dichte-erreichbar ist.
+\item Geräusch: Der Punkt, der zu keinem Cluster gehört.  
+\end{itemize}
+
+\begin{figure}[ftb]
+\centering
+\includegraphics[scale=0.3]{Abbildungen/DBSCAN}
+\caption{Ein Beispiel für die drei Typen der Punkte in DBSCAN-Algorithmus. Der rote Punkt A ist ein Kernpunkt. Die gelbe Punkte B und C sind die Grenzpunkte, die von roten Punkten Dichte-erreichbar sind. Wegen keine Dichte-Verbindung zwischen blau Punkt N und andere Punkte, wird N als Geräusch erkannt. \cite{DWiki}}
+\label{DBSCAN}
+\end{figure}
+
+Abbildung~\ref{DBSCAN} zeigt ein Beispiel für alle diesen drei Typen des Punkts, wobei die Kernpunkte mit Rot, Grenzpunkte mit Gelb und Geräusch mit Blau beschrieben werden. Die Kreise zeigen die $\epsilon$-Umgebungen für die Punkte an ihrem Ursprüngen.
+\\
+\\
+Das Algorithmus durchläuft für jeden Punkt von Punktmenge $D$ und die Lösung hängt von der Reihenfolge der Punkte nicht ab. Ein Kernpunkt soll zuerst gefunden werden, und dann die andere Punkte in ihrer $\epsilon$-Umgebung betrachtet werden. Zwei $\epsilon$-Umgebung werden verknüpft, wenn sie mindesten einen identische Punkt haben. Der genaue Ablauf des DBSCAN-Algorithmus findet man unten.
+
+\begin{algorithm}                      % enter the algorithm environment
+\caption{DBSCAN}          % give the algorithm a caption
+\label{algDBSCAN}                      % and a label for \ref{} commands later in the document
+\begin{algorithmic}                    % enter the algorithmic environment
+	\State $D, \epsilon, MinPts$
+	\State Setzen $C$ zum ersten Cluster
+	\For {jede $P_i \in D$}
+		\If {$P_i$ ist nicht besucht}
+			\State Markieren $P_i$ als besucht
+			\State $N = \{ P_j \in D | Dist(P_i, P_j)<\epsilon \}$
+			\If {Anzahl der Elemente von $N$ $<$ MinPts}
+				\State Markieren $P_i$ als Geräusch
+			\Else
+				\State Fügen $P_i$ in aktuellem Cluster $C$ ein
+				\For {jede $P_j \in N$}
+					\If {$P_j$ ist noch nicht besucht}
+						\State Markieren $P_j$ als besucht
+						\State $N' = \{ P_k \in D | Dist(P_j, P_k)<\epsilon \}$
+						\If {Anzahl der Elemente von $N'$ $\geq$ MinPts}
+							\State $N = N \cup N'$
+						\EndIf 
+					\EndIf
+					\If {$P_j$ gehört zu keinem Cluster}
+						\State Fügen $P_j$ in aktuellem Cluster $C$ ein
+					\EndIf
+				\EndFor
+				\State Setzen $C$ zum nächsten Cluster
+			\EndIf
+		\EndIf
+	\EndFor
+\end{algorithmic}
+\end{algorithm}
+
 \subsection{Teilgraph Isomorphismus}
 
 
