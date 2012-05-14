@@ -17,7 +17,7 @@ public:
 	void update(vector<Point3f> points, Mat R, Mat T);
 	void initKalmanFilter();
 	void updateKalmanFilter();
-	void getMiddelPoint(Point3f &mid);
+	//void getMiddelPoint(Point3f &mid);
 
 	void saveToVTKFile(const char *name);
 	void loadFromVTKFile(const char *name);

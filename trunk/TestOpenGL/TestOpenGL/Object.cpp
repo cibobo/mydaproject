@@ -80,18 +80,18 @@ void Object::updateKalmanFilter(){
 	}
 }
 
-void Object::getMiddelPoint(Point3f &mid){
-	mid = Point3f(0,0,0);
-	for(int i=0;i<this->fixedNodeList.size();i++){
-		mid += fixedNodeList[i]->getPoint();
-	}
-
-	if(this->fixNodeCount > 0){
-		mid.x = mid.x/this->fixedNodeList.size();
-		mid.y = mid.y/this->fixedNodeList.size();
-		mid.z = mid.z/this->fixedNodeList.size();
-	}
-}
+//void Object::getMiddelPoint(Point3f &mid){
+//	mid = Point3f(0,0,0);
+//	for(int i=0;i<this->fixedNodeList.size();i++){
+//		mid += fixedNodeList[i]->getPoint();
+//	}
+//
+//	if(this->fixNodeCount > 0){
+//		mid.x = mid.x/this->fixedNodeList.size();
+//		mid.y = mid.y/this->fixedNodeList.size();
+//		mid.z = mid.z/this->fixedNodeList.size();
+//	}
+//}
 
 void Object::saveToVTKFile(const char *name){
 	string savePath = string(defaultDataPath);

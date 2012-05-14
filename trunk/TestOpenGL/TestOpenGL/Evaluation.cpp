@@ -35,11 +35,11 @@ void Evaluation::createPathWithTime(){
 	createPath(subPath.data());
 }
 
-void Evaluation::createCVSFile(const char *fileName){
+void Evaluation::createCSVFile(const char *fileName){
 	string path = string(this->defaultSavePath);
 	path.append("/");
 	path.append(fileName);
-	path.append(".cvs");
+	path.append(".csv");
 	ofstream *f = new ofstream(path.data(), ios::app);
 	this->dataFiles.insert(pair<const char*, ofstream*>(fileName, f));
 }
@@ -53,7 +53,7 @@ void Evaluation::saveCVBild(const char *fileName, Mat data){
 	cv::imwrite(path, data);
 }
 
-void Evaluation::saveCVSData(vector<float> data){
+void Evaluation::saveCSVData(vector<float> data){
 	// default for the first file
 	//ofstream *f = (*(this->dataFiles.begin())).second;
 	//for(int i=0;i<data.size();i++){
@@ -61,10 +61,10 @@ void Evaluation::saveCVSData(vector<float> data){
 	//}
 	//*(f)<<endl;
 	const char *fileName = (*(this->dataFiles.begin())).first;
-	this->saveCVSData(fileName, data);
+	this->saveCSVData(fileName, data);
 }
 
-void Evaluation::saveCVSData(const char* fileName, vector<float> data){
+void Evaluation::saveCSVData(const char* fileName, vector<float> data){
 	ofstream *f = this->dataFiles[fileName];
 	for(int i=0;i<data.size();i++){
 		*(f)<<data[i]<<" ";

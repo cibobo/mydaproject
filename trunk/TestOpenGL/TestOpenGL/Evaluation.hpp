@@ -19,11 +19,11 @@ public:
 
 	void createPath(const char *subPath);
 	void createPathWithTime();
-	void createCVSFile(const char *fileName);
+	void createCSVFile(const char *fileName);
 	
 	void saveCVBild(const char *fileName, Mat data);
-	void saveCVSData(vector<float> data);
-	void saveCVSData(const char* fileName, vector<float> data);
+	void saveCSVData(vector<float> data);
+	void saveCSVData(const char* fileName, vector<float> data);
 
 	char *defaultRootPath;
 	string defaultSavePath;

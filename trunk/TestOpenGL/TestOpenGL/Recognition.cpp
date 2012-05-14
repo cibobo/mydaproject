@@ -2,17 +2,20 @@
 #include "Recognition.hpp"
 
 Recognition::Recognition(){
-	//Object *obj1 = new Object("Box1");
+	Object *obj1 = new Object("Box1");
+	this->objectList.push_back(obj1);
+
+	Object *obj2 = new Object("Box2");
+	this->objectList.push_back(obj2);
+
+	Object *obj3 = new Object("Box3");
+	this->objectList.push_back(obj3);
+
+	//Object *obj1 = new Object("Box4");
 	//this->objectList.push_back(obj1);
 
-	//Object *obj2 = new Object("Box2");
-	//this->objectList.push_back(obj2);
-
-	//Object *obj3 = new Object("Box3");
-	//this->objectList.push_back(obj3);
-
-	Object *obj1 = new Object("Box4");
-	this->objectList.push_back(obj1);
+	Object *obj4 = new Object("Box5");
+	this->objectList.push_back(obj4);
 
 	graph = new Graph();
 
@@ -29,9 +32,17 @@ Recognition::~Recognition(){
 void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 	vector<vector<PMDPoint>> caliResult;
 	float CALIEPS3D = 0.17;
-	int minPts = 2;
+	int minPts = 1;
 
-	DBSCANPMDPoint(caliResult, inputPoints, CALIEPS3D, minPts);
+	Point3f center;
+	for(int i=0;i<inputPoints.size();i++){
+		center += inputPoints[i].coord;
+	}
+	center.x = center.x/inputPoints.size();
+	center.y = center.y/inputPoints.size();
+	center.z = center.z/inputPoints.size();
+
+	DBSCANPMDPoint(caliResult, inputPoints, center, CALIEPS3D, minPts);
 
 		
 	namedWindow("Recognition", CV_WINDOW_AUTOSIZE);
@@ -50,8 +61,16 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 	
 
 	//Object *newObj = new Object("Box2");
-	//bool result = newObj->isEqual(this->objectList[0]);
+	//bool result = newObj->isEqual(this->objectList[3]);
 	//cout<<"The compare result is: "<<result<<endl;
+	//cout<<"The edge lenth of Box 2 and 5 are:"<<endl;
+	//for(int i=0;i<this->objectList[1]->nodeList.size();i++){
+	//	for(int j=i+1;j<this->objectList[1]->nodeList.size();j++){
+	//		cout<<this->objectList[1]->nodeList[i]->distanceTo(this->objectList[1]->nodeList[j])<<"    ";
+	//		cout<<this->objectList[3]->nodeList[i]->distanceTo(this->objectList[3]->nodeList[j])<<endl;
+	//	}
+	//	cout<<endl;
+	//}
 
 	bool compResult = false;
 	if(caliResult.size()>0 && caliResult[0].size()>0){
@@ -74,6 +93,8 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 					case 1: color = Scalar(0,255,255,0);
 							break;
 					case 2: color = Scalar(255,255,0,0);
+							break;
+					case 3: color = Scalar(255,0,255,0);
 							break;
 				}
 				circle(drawMat, Point2f(i*10+5, 5), 5, color, -1);

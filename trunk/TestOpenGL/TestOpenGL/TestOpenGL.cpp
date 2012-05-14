@@ -33,6 +33,13 @@
  * Defination for the Evaluation
  */
 //#define EVALUATION
+#ifdef EVALUATION
+
+//#define EVALUATION_TRANSLATION
+
+#define EVALUATION_DETECTION
+
+#endif
 
 
 //#define TEST
@@ -689,7 +696,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 #ifdef EVALUATION
 			// Evaluation
 			Evaluation evaluation = Evaluation(INPUTPATH);
-			evaluation.createCVSFile("Korrespondenz");
+			evaluation.createCSVFile("StatisticData");
 			vector<float> evaData;
 #endif
 
@@ -1031,7 +1038,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 						Point3f tempPoint(features[i].pt.x, features[i].pt.y, 0);
 						featuresCali3D.push_back(tempPoint);
 					}
-					DBSCAN(groupFeatures, featuresCali3D, 5, 2);
+					DBSCAN(groupFeatures, featuresCali3D, eps, 2);
 				}
 				cout<<"After Summerize get "<<groupFeatures.size()<<" features!"<<endl;
 
@@ -1180,12 +1187,12 @@ if(obj->fixNodeCount<=3){
 					//if(assCount == 5) cout<<"FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFeld!"<<endl;
 	
 
-					//if(avrDis < 0.02){			
-					//	associaterate = avrDis;
-					//} else {
-					//	associaterate = 0.022;
-					//}
-					associaterate = 0.022;
+					if(avrDis < 0.02){			
+						associaterate = avrDis;
+					} else {
+						associaterate = 0.022;
+					}
+					//associaterate = 0.022;
 					//calibrationWithDistance(oldResult, newResult);
 
 
@@ -1396,7 +1403,19 @@ if(obj->fixNodeCount<=3){
 					calcEulerAngleFromR(obj->R, euler1, euler2);
 					cout<<"The total rotated angle 1: "<<euler1[0]*180/3.14<<" , "<<euler1[1]*180/3.14<<" , "<<euler1[2]*180/3.14<<" , "<<endl;
 					cout<<"The total rotated angle 2: "<<euler2[0]*180/3.14<<" , "<<euler2[1]*180/3.14<<" , "<<euler2[2]*180/3.14<<" , "<<endl;
+#ifdef EVALUATION
+					Point3f midPoint = obj->getMiddelPoint();
+					evaData.push_back(midPoint.x);
+					evaData.push_back(midPoint.y);
+					evaData.push_back(midPoint.z);
 
+#ifdef EVALUATION_DETECTION
+					evaData.push_back(features.size());
+					evaData.push_back(10);
+					evaData.push_back(curFeatures.size());
+					evaData.push_back(curFeatures.size()/10.0);
+#endif
+#ifdef EVALUATION_TRANSLATION
 					evaData.push_back(hisFeatures.size());
 					evaData.push_back(curFeatures.size());
 					evaData.push_back(oldResult.size());
@@ -1404,6 +1423,11 @@ if(obj->fixNodeCount<=3){
 					evaData.push_back(avrDis);
 					evaData.push_back(disPE);
 					evaData.push_back(sumP);
+#endif
+					
+					evaluation.saveCSVData("StatisticData", evaData);
+					evaData.clear();
+#endif
 				}
 #ifdef USINGICP
 } else {
@@ -1542,8 +1566,6 @@ if(obj->fixNodeCount<=3){
 				//}
 
 
-				evaluation.saveCVSData("Korrespondenz", evaData);
-				evaData.clear();
 #endif
 				
 				LeaveCriticalSection (&calcCrs);
@@ -1562,7 +1584,7 @@ if(obj->fixNodeCount<=3){
 						break;
 #endif
 					case 'c':
-						obj->saveToVTKFile("Box3");
+						obj->saveToVTKFile("Box5");
 						break;
 				}
 #ifdef TEST

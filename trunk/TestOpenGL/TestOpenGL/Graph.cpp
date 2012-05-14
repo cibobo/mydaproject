@@ -376,8 +376,11 @@ void Graph::showWithOpenCV(const char *name){
 }
 
 bool Graph::isEqual(Graph *other){
-	float e = 0.0006;
-	float rate = 0.5;
+	// With abstruct epsilon
+	//float e = 0.0008;
+	// With relative epsilon
+	float e = 0.013;
+	float rate = 0.95;
 	return this->isEqual(other, e, rate);
 }
 
@@ -441,7 +444,9 @@ bool Graph::isEqual(Graph *other, float e, float rate){
 					//}
 
 					// if the edge has the same lenth
-					if(fabs(p_pi - v_vi)< e){
+					//if(fabs(p_pi - v_vi)< e){
+					// with relative epsilon
+					if(fabs(p_pi - v_vi)< e*p_pi){
 						// add the node pair to the Map
 						pairs.insert(pair<Node*, Node*>(pi, vi));
 						break;
