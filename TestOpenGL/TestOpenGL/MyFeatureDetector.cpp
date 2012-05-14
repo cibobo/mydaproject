@@ -57,6 +57,7 @@ void MyFeatureDetector::usingSTAR(){
 			}
 			break;
 		}
+		//break;
 	}
 }
 

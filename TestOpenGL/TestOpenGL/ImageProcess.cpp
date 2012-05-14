@@ -570,10 +570,10 @@ void calibrationWithDistance(vector<PMDPoint> &oldResult, vector<PMDPoint> &newR
  *
  *************************************************/
 
-void getRegionQuery(vector<int> &N, vector<Point3f> D, Point3f P, float eps){
+void getRegionQuery(set<int> &N, vector<Point3f> D, Point3f P, float eps){
 	for(int i=0;i<D.size();i++){
 		if(D[i]!= P && getEuclideanDis(P,D[i])<eps*eps){
-			N.push_back(i);
+			N.insert(i);
 		}
 	}
 }
@@ -604,7 +604,7 @@ int getRegionQuery(Point3f p, set<int> &indices, float eps, int minPts, flann::I
 #else 
 	vector<int> tempIndices;
 	int maxSize = 32;
-	flann_index->radiusSearch(point, tempIndices, dists, eps*eps, maxSize, flann::SearchParams(64));
+	flann_index->radiusSearch(point, tempIndices, dists, eps, maxSize, flann::SearchParams(64));
 
 	indices.clear();
 	for(int i=0;i<tempIndices.size();i++){
@@ -665,8 +665,8 @@ void DBSCAN(vector<vector<Point3f>> &C, vector<Point3f> D, float eps, int minPts
 						isVisited[indexPP] = 1;
 						// get the neigbors of P'
 						set<int> NN;
-						//getRegionQuery(NN, D, D[indexPP], eps);
 						getRegionQuery(D[indexPP],NN,eps,minPts,&flann_index);
+						//getRegionQuery(NN, D, D[indexPP], eps);
 						if(NN.size() >= minPts){
 							// N joined with N'
 							int oldSize = N.size();
@@ -802,9 +802,14 @@ void DBSCANPMDPoint(vector<vector<PMDPoint>> &C, vector<PMDPoint> D, Point3f cen
 		int sizeN; 
 		if(i==0){
 			// In first loop, using the center as the beginning point
-			sizeN = getRegionQuery(center,N,eps,minPts,&flann_index);
+			//sizeN = getRegionQuery(center,N,eps,minPts,&flann_index);
+			// Using the old version of getRegionQuery
+			getRegionQuery(N,D3D,center,eps);
+			sizeN = N.size();
 		} else {
-			sizeN = getRegionQuery(D3D[i],N,eps,minPts,&flann_index);
+			//sizeN = getRegionQuery(D3D[i],N,eps,minPts,&flann_index);
+			getRegionQuery(N,D3D,D3D[i],eps);
+			sizeN = N.size();
 		}
 		if(sizeN >= minPts){
 			// begin the function of expandCluster
@@ -831,7 +836,9 @@ void DBSCANPMDPoint(vector<vector<PMDPoint>> &C, vector<PMDPoint> D, Point3f cen
 					//point2.push_back(D3D[indexPP].z);
 					//flann_index.radiusSearch(point2, NN, dists, eps, flann_maxSize, flann_par);
 					//if(NN.size() >= minPts){
-					int sizeNN = getRegionQuery(D3D[indexPP], NN, eps, minPts, &flann_index);
+					//int sizeNN = getRegionQuery(D3D[indexPP], NN, eps, minPts, &flann_index);
+					getRegionQuery(NN,D3D,D3D[indexPP],eps);
+					int sizeNN = NN.size();
 					if(sizeNN >= minPts){
 						// N joined with N'
 						int oldSize = N.size();
