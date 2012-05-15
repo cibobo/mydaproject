@@ -1,6 +1,55 @@
 #include "stdafx.h"
 #include "Recognition.hpp"
 
+
+/****************************
+ * Definition of Static Date
+ ****************************/
+StatisticDate::StatisticDate(){
+	appearances = 0;
+	lifetime = 0;
+	continueFrames = 0;
+	maxContinueFrames = 0;
+	timmerDiff = 0;
+}
+
+//StatisticDate::StatisticDate(int index){
+//	objectIndex = index;
+//	appearances = 0;
+//	lifetime = 0;
+//}
+
+int StatisticDate::appear(int timmer){
+	appearances++;
+	lifetime++;
+	
+	// get the max number of continually frames
+	if(continueFrames > maxContinueFrames){
+		maxContinueFrames = continueFrames;
+	}
+	// if the first time or the result doen't appear continually
+	if(timmer-appearances > timmerDiff){
+		timmerDiff = timmer-appearances;
+
+		continueFrames = 0;
+	} else {
+		continueFrames++;
+		//maxContinueFrames++;
+	}
+
+	return appearances;
+}
+
+float StatisticDate::getAppearanceRate(int timmer){
+	// das Gewicht von dem vorkommende Bilder ist gleich wie das Gewicht von dem Maximale Anzahl der kontinueliche bildern
+	float frameCount = appearances * 0.5 + maxContinueFrames*10 * 0.5;
+	return (frameCount/timmer)>1 ? 1 : frameCount/timmer;
+}
+
+
+/*****************************
+ * Definition of Recoginition
+ *****************************/
 Recognition::Recognition(){
 	Object *obj1 = new Object("Box1");
 	this->objectList.push_back(obj1);
@@ -18,7 +67,8 @@ Recognition::Recognition(){
 	this->objectList.push_back(obj4);
 
 	graph = new Graph();
-
+	
+	timmer = 0;
 }
 
 Recognition::~Recognition(){
@@ -30,6 +80,8 @@ Recognition::~Recognition(){
  *
  **************************************************************/
 void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
+	timmer++;
+
 	vector<vector<PMDPoint>> caliResult;
 	float CALIEPS3D = 0.17;
 	int minPts = 1;
@@ -81,33 +133,39 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 		decPMDPointVector(caliResult[0], point3D, point2D);
 
 		newGraph->createCompleteGraph(point3D);
+		// create the new map for the static date
+		createStatisticMap();
 		for(int i=0;i<this->objectList.size();i++){
 			compResult = newGraph->isEqual(objectList[i]);
 			if(compResult){
 				cout<<"Find the Object! "<<i<<endl;
+				int appear = this->Statistic[0].find(i)->second.appear(timmer);
+				//cout<<"The appearence rate is: "<<float(appear)/timmer<<endl;
+
 				// show the result
-				Scalar color;
-				switch(i){
-					case 0: color = Scalar(0,0,255,0);
-							break;
-					case 1: color = Scalar(0,255,255,0);
-							break;
-					case 2: color = Scalar(255,255,0,0);
-							break;
-					case 3: color = Scalar(255,0,255,0);
-							break;
-				}
+				Scalar color = scalarColorList[i];
 				circle(drawMat, Point2f(i*10+5, 5), 5, color, -1);
 				//break;
 			}
 		}
-		//compResult = newGraph->isEqual(objectList[0]);
-		//if(compResult){
-		//	cout<<"Find the Object!"<<endl;
-		//}
+
+		// show the appearence rate
+		cout<<"The appearance rate are:"<<endl;
+		for(int i=0;i<Statistic[0].size();i++){
+			cout<<Statistic[0].find(i)->second.getAppearanceRate(timmer)<<"   ";
+			//cout<<Statistic[0].find(i)->second.maxContinueFrames<<"   ";
+		}
+		cout<<endl;
 	}
 	imshow("Recognition", drawMat);
 }
 
+void Recognition::createStatisticMap(){
+	map<int, StatisticDate> statisticDate;
+	for(int i=0;i<this->objectList.size();i++){
+		statisticDate.insert(pair<int, StatisticDate>(i, StatisticDate()));
+	}
+	this->Statistic.push_back(statisticDate);
+}
 
 
