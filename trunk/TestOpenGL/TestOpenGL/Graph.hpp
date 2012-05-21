@@ -28,7 +28,8 @@ public:
 class Node : public Point3f{
 //class Node : public Point2f{
 public:
-	vector<Edge> edgeList;
+	//vector<Edge> edgeList;
+	map<Node*, float> neighbors;
 	int index;
 	int timmer;
 	bool isFixed;
@@ -41,10 +42,13 @@ public:
 	Node(Point3f point);
 	~Node();
 
-	//void setPosition(Point2f pos);
+	void addNeighbor(Node *node);
+	bool deleteNeighbor(Node *node);
+
 	void setPosition(Point3f pos);
 	Point3f getPoint();
 	float distanceTo(Node *other);
+	float distanceTo(Point3f point);
 };
 
 class Graph{
@@ -64,13 +68,17 @@ public:
 
 	void addNode(Point3f &node);
 	void addNodes(vector<Point3f> points);
+
 	void addEdge(Node * begin, Node* end);
 	void addUndirectedEdge(Node *first, Node *second);
 
 	bool deleteEdge(Node *begin, Node *end);
 	bool deleteUndirectedEdge(Node *first, Node *second);
+
 	bool deleteNode(Node *node);
 	bool deleteNode(int index);
+
+	void unionNode(Node *rsc, Node *dst);
 
 	//void createMaxGraph(vector<vector<Point2f>> pointSets);
 	void createCompleteGraph(vector<Point3f> points);
