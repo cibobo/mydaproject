@@ -4,7 +4,7 @@
 
 #include <cv.h>
 //#include "ImageProcess.hpp"
-#include "Evaluation.hpp"
+//#include "Evaluation.hpp"
 
 
 using namespace std;
@@ -79,6 +79,7 @@ public:
 	bool deleteNode(int index);
 
 	void unionNode(Node *rsc, Node *dst);
+	void unionGraph(Graph *graph);
 
 	//void createMaxGraph(vector<vector<Point2f>> pointSets);
 	void createCompleteGraph(vector<Point3f> points);
@@ -92,6 +93,8 @@ public:
 	bool isEqual(Graph *other, float e, float rate);
 
 	Node *findNode(int index);
+	//find the index of the node in nodelist. If it doesn't exist, return -1, otherweise return the index
+	int findIndex(Node *node);
 
 	Point3f getMiddelPoint();
 };

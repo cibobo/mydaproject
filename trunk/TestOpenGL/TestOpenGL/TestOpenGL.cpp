@@ -1584,7 +1584,7 @@ if(obj->fixNodeCount<=3){
 						break;
 #endif
 					case 'c':
-						obj->saveToVTKFile("Box5");
+						obj->saveToVTKFile("Box_test");
 						break;
 				}
 #ifdef TEST

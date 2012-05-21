@@ -18,6 +18,8 @@ public:
 	void initKalmanFilter();
 	void updateKalmanFilter();
 	//void getMiddelPoint(Point3f &mid);
+	void clearUnfixedNodes();
+	void joinSimilarNodes(float e);
 
 	void saveToVTKFile(const char *name);
 	void loadFromVTKFile(const char *name);
