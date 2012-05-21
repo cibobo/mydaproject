@@ -39,6 +39,7 @@ void calibrationPMDPoint(vector<vector<PMDPoint>> &result, vector<PMDPoint> poin
 
 void calibrationWithDistance(vector<PMDPoint> &oldResult, vector<PMDPoint> &newResult, float eps);
 
+// get the square of the euclidean distance
 float getEuclideanDis(Point3f p1, Point3f p2);
 
 void DBSCAN(vector<vector<Point3f>> &C, vector<Point3f> D, float eps, int minPts);

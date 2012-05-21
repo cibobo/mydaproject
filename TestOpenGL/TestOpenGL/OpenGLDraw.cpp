@@ -666,12 +666,13 @@ void display(OpenGLWinUI *pOpenGLWinUI, vector<Object*> objects){
 			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 
 			if(curObject->nodeList[j]->timmer == -1){
-				mat_diffuse[0] = 1-mat_diffuse[0];
-				mat_diffuse[1] = 1-mat_diffuse[1];
-				mat_diffuse[2] = 1-mat_diffuse[2];
+				//ballSize = 0.03;
+				mat_diffuse[0] = 1;//-mat_diffuse[0];
+				mat_diffuse[1] = 1;//-mat_diffuse[1];
+				mat_diffuse[2] = 1;//-mat_diffuse[2];
 				mat_diffuse[3] = 1.0;
-				curObject->nodeList[j]->timmer = 0;
 			} else {
+				//ballSize = 0.02;
 				mat_diffuse[0] = COLORLIST[i][0];
 				mat_diffuse[1] = COLORLIST[i][1];
 				mat_diffuse[2] = COLORLIST[i][2];
@@ -681,11 +682,19 @@ void display(OpenGLWinUI *pOpenGLWinUI, vector<Object*> objects){
 			glutSolidSphere(ballSize, 20, 16);
 			glTranslatef(-curObject->nodeList[j]->x,-curObject->nodeList[j]->y,curObject->nodeList[j]->z);
 
-			for(int k=0;k<curObject->nodeList[j]->edgeList.size();k++){
+			//for(int k=0;k<curObject->nodeList[j]->edgeList.size();k++){
+			//	//mat_diffuse[0] = mat_diffuse[1] = mat_diffuse[2] = mat_diffuse[3] = 1.0;
+			//	glBegin(GL_LINES);
+			//		glVertex3f(curObject->nodeList[j]->edgeList[k].orgNode->x, curObject->nodeList[j]->edgeList[k].orgNode->y, -curObject->nodeList[j]->edgeList[k].orgNode->z); 
+			//		glVertex3f(curObject->nodeList[j]->edgeList[k].dstNode->x, curObject->nodeList[j]->edgeList[k].dstNode->y, -curObject->nodeList[j]->edgeList[k].dstNode->z); 
+			//	glEnd();
+			//}
+			map<Node*, float>::iterator k = curObject->nodeList[j]->neighbors.begin();
+			for(;k!=curObject->nodeList[j]->neighbors.end();k++){
 				//mat_diffuse[0] = mat_diffuse[1] = mat_diffuse[2] = mat_diffuse[3] = 1.0;
 				glBegin(GL_LINES);
-					glVertex3f(curObject->nodeList[j]->edgeList[k].orgNode->x, curObject->nodeList[j]->edgeList[k].orgNode->y, -curObject->nodeList[j]->edgeList[k].orgNode->z); 
-					glVertex3f(curObject->nodeList[j]->edgeList[k].dstNode->x, curObject->nodeList[j]->edgeList[k].dstNode->y, -curObject->nodeList[j]->edgeList[k].dstNode->z); 
+					glVertex3f(curObject->nodeList[j]->x, curObject->nodeList[j]->y, -curObject->nodeList[j]->z); 
+					glVertex3f(k->first->x, k->first->y, -k->first->z); 
 				glEnd();
 			}
 

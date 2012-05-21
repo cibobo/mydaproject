@@ -45,6 +45,25 @@ Node::~Node(){
 	//this->adjNodeList.clear();
 }
 
+void Node::addNeighbor(Node *node){
+	float distance = this->distanceTo(node);
+	this->neighbors.insert(pair<Node*, float>(node, distance));
+}
+
+bool Node::deleteNeighbor(Node *node){
+	if(this->neighbors.size() <= 0){
+		return false;
+	}
+
+	map<Node*, float>::iterator it = this->neighbors.find(node);
+	if(it == this->neighbors.end()){
+		return false;
+	} else {
+		this->neighbors.erase(it);
+	}
+	return true;
+}
+
 void Node::setPosition(cv::Point3f pos){
 	this->x = pos.x;
 	this->y = pos.y;
@@ -57,9 +76,13 @@ Point3f Node::getPoint(){
 }
 
 float Node::distanceTo(Node *other){
-	return sqrt((this->x-other->x)*(this->x-other->x) + (this->y-other->y)*(this->y-other->y) + (this->z-other->z)*(this->z-other->z)); 
+	//return sqrt((this->x-other->x)*(this->x-other->x) + (this->y-other->y)*(this->y-other->y) + (this->z-other->z)*(this->z-other->z)); 
+	return this->distanceTo(other->getPoint());
 }
 
+float Node::distanceTo(cv::Point3f point){
+	return sqrt((this->x-point.x)*(this->x-point.x) + (this->y-point.y)*(this->y-point.y) + (this->z-point.z)*(this->z-point.z));
+}
 
 /*
  * Defination for Graph
@@ -111,34 +134,11 @@ void Graph::addNodes(vector<Point3f> points){
 	}
 }
 
-void Graph::addEdge(Node *begin, Node *end){
-	begin->edgeList.push_back(Edge(begin, end));
-}
-
-void Graph::addUndirectedEdge(Node *first, Node *second){
-	this->addEdge(first, second);
-	this->addEdge(second, first);
-}
-	
-bool Graph::deleteEdge(Node *begin, Node *end){
-	for(int i=0;i<begin->edgeList.size();i++){
-		if(begin->edgeList[i].dstNode == end){
-			begin->edgeList.erase(begin->edgeList.begin() + i);
-			return true;
-		}
-	}
-	// if the edge not found, return false
-	return false;
-}
-
-bool Graph::deleteUndirectedEdge(Node *first, Node *second){
-	return deleteEdge(first, second) && deleteEdge(second, first);
-}
-
 bool Graph::deleteNode(Node *node){
-	for(int i=0;i<node->edgeList.size();i++){
+	map<Node*, float>::iterator it;
+	for(it = node->neighbors.begin();it!=node->neighbors.end();it++){
 		// delete the edge, which direct to this node
-		if(!deleteEdge(node->edgeList[i].dstNode, node->edgeList[i].orgNode)){
+		if(!deleteEdge(it->first, node)){
 			return false;
 		}
 	}
@@ -154,9 +154,10 @@ bool Graph::deleteNode(Node *node){
 
 bool Graph::deleteNode(int index){
 	Node *node = nodeList[index];
-	for(int i=0;i<node->edgeList.size();i++){
+	map<Node*, float>::iterator it;
+	for(it = node->neighbors.begin();it!=node->neighbors.end();it++){
 		// delete the edge, which direct to this node
-		if(!deleteEdge(node->edgeList[i].dstNode, node->edgeList[i].orgNode)){
+		if(!deleteEdge(it->first, node)){
 			return false;
 		}
 	}
@@ -164,6 +165,78 @@ bool Graph::deleteNode(int index){
 	delete node;
 	return true;
 }
+
+void Graph::addEdge(Node *begin, Node *end){
+	begin->addNeighbor(end);
+}
+
+void Graph::addUndirectedEdge(Node *first, Node *second){
+	this->addEdge(first, second);
+	this->addEdge(second, first);
+}
+
+bool Graph::deleteEdge(Node *begin, Node *end){
+	return begin->deleteNeighbor(end);
+}
+
+//void Graph::addEdge(Node *begin, Node *end){
+//	begin->edgeList.push_back(Edge(begin, end));
+//}
+//
+
+//	
+//bool Graph::deleteEdge(Node *begin, Node *end){
+//	for(int i=0;i<begin->edgeList.size();i++){
+//		if(begin->edgeList[i].dstNode == end){
+//			begin->edgeList.erase(begin->edgeList.begin() + i);
+//			return true;
+//		}
+//	}
+//	// if the edge not found, return false
+//	return false;
+//}
+//
+bool Graph::deleteUndirectedEdge(Node *first, Node *second){
+	return deleteEdge(first, second) && deleteEdge(second, first);
+}
+
+void Graph::unionNode(Node *rsc, Node *dst){
+	map<Node*, float>::iterator it;
+	// add all neighbors of dst as the neighbors of rsc
+	for(it=dst->neighbors.begin();it!=dst->neighbors.end();it++){
+		rsc->addNeighbor(it->first);
+	}
+}
+
+//bool Graph::deleteNode(Node *node){
+//	for(int i=0;i<node->edgeList.size();i++){
+//		// delete the edge, which direct to this node
+//		if(!deleteEdge(node->edgeList[i].dstNode, node->edgeList[i].orgNode)){
+//			return false;
+//		}
+//	}
+//	for(int i=0;i<this->nodeList.size();i++){
+//		if(nodeList[i] == node){
+//			nodeList.erase(nodeList.begin() + i);
+//			delete node;
+//			break;
+//		}
+//	}
+//	return true;
+//}
+//
+//bool Graph::deleteNode(int index){
+//	Node *node = nodeList[index];
+//	for(int i=0;i<node->edgeList.size();i++){
+//		// delete the edge, which direct to this node
+//		if(!deleteEdge(node->edgeList[i].dstNode, node->edgeList[i].orgNode)){
+//			return false;
+//		}
+//	}
+//	nodeList.erase(nodeList.begin() + index);
+//	delete node;
+//	return true;
+//}
 
 
 //void Graph::createMaxGraph(vector<vector<Point2f>> pointSets){
@@ -190,10 +263,7 @@ void Graph::createCompleteGraph(vector<Point3f> points){
 	}
 }
 
-
-//bool Graph::updateGraph(vector<Point3f> points){
-//	// increase the lifetime
-//	this->lifeTime ++;
+//bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 //	// if there is no input points
 //	if(points.size()<=0){
 //		return false;
@@ -204,54 +274,67 @@ void Graph::createCompleteGraph(vector<Point3f> points){
 //			this->createCompleteGraph(points);
 //			return false;
 //		} else {
-//			vector<Point3f> oldPoints;
+//			//update the position of the old points
 //			for(int i=0;i<this->nodeList.size();i++){
-//				if(nodeList[i]->timmer < 0){
-//					//nodeList.erase(nodeList.begin()+i);
-//					this->deleteNode(nodeList[i]);
-//					i--;
-//				} else {
-//					nodeList[i]->timmer--;
-//					oldPoints.push_back(Point3f(*nodeList[i]));
-//				}
-//			}
-//			//SVD
-//			vector<int> oldIndex, newIndex;
-//			featureAssociate(oldPoints, points, 18, oldIndex, newIndex);
-//			
-//			// set a new array to mark the new point, which will be add into the node List
-//			bool *isNewAdd = new bool[points.size()];
-//			for(int i=0;i<points.size();i++){
-//				isNewAdd[i] = true;
+//				Mat oldPoint = Mat(this->nodeList[i]->getPoint());
+//				//cout<<"The oldPoint: "<<oldPoint<<endl;
+//				Mat newPoint = R*oldPoint + T;
+//				//cout<<"The newPoint: "<<newPoint<<endl;
+//				this->nodeList[i]->setPosition(Point3f(newPoint.at<float>(0,0),
+//													   newPoint.at<float>(1,0),
+//													   //2));
+//													   newPoint.at<float>(2,0)));
 //			}
 //
-//			for(int i=0;i<oldIndex.size();i++){
-//				// reset the timmer for the coorespondence points
-//				this->nodeList[oldIndex[i]]->timmer += 2;
-//				this->nodeList[oldIndex[i]]->setPosition(points[newIndex[i]]);
-//				// if the point can find a coorespondence with the old point, set the value in the Mark-Array to false
-//				isNewAdd[newIndex[i]] = false;
-//			}
-//			
-//			// mark the beginning position for the new added nodes
-//			int newNodeBeginIndex = nodeList.size();
-//			for(int i=0;i<points.size();i++){
-//				if(isNewAdd[i]){
-//					// add new nodes
-//					this->addNode(points[i]);
-//					Node *curNode = nodeList[nodeList.size()-1];
-//					// connect the new added node with the old node in graph, which has coorespondence with last frame
-//					for(int j=0;j<oldIndex.size();j++){
-//						this->addUndirectedEdge(curNode, nodeList[oldIndex[j]]);
-//					}
-//					// connect the new node with the earlier new added node in this time
-//					// form the beginning position of the new nodes to the end of the nodelist
-//					for(int j=newNodeBeginIndex;j<nodeList.size();j++){
-//						this->addUndirectedEdge(curNode, nodeList[j]);
+//			vector<Point3f> tempPoints = points;
+//			float e = 0.004;
+//			int timeThreshold = 35;
+//			for(int i=0;i<this->nodeList.size();i++){
+//				Node *currentNode = this->nodeList[i];
+//				int j;
+//				bool isFound = false;
+//				//find a coorespondence relationship to the new point			
+//				for(j=0;j<tempPoints.size();j++){
+//					//if they are very close
+//					if((fabs(currentNode->x - tempPoints[j].x) < e) && 
+//					   (fabs(currentNode->y - tempPoints[j].y) < e) && 
+//					   (fabs(currentNode->z - tempPoints[j].z) < e)){ //&& !currentNode->isFixed){
+//					//if(currentNode->distanceTo(tempPoints[j]) < e){
+//						   //increase the life time of the node in graph
+//						   currentNode->timmer +=2;
+//						   //if the life time of the node is bigger than the threshold
+//						   if(currentNode->timmer >= timeThreshold){
+//							   currentNode->isFixed = true;
+//							   this->fixedNodeList.push_back(currentNode);
+//							   this->fixNodeCount++;
+//						   }
+//						   //delete the point from tempPoints
+//						   tempPoints.erase(tempPoints.begin()+j);
+//						   isFound = true;
+//						   break;
 //					}
 //				}
+//				//if there is no close poind found for the i-th node  
+//				if(!isFound){
+//					//if the node is not a fixed node and the life time is smaller than 0
+//					if((!currentNode->isFixed) && (--currentNode->timmer < 0)){
+//						this->deleteNode(i);
+//					}
+//					//if(--currentNode->timmer < 0){
+//					//	if(currentNode->isFixed){
+//					//		currentNode->isFixed = false;
+//					//		currentNode->timmer = timeThreshold;
+//					//	} else {
+//					//		this->deleteNode(i);
+//					//	}
+//					//}
+//				} 	
 //			}
-//			delete []isNewAdd;
+//
+//			//add the rest new node into the nodelist
+//			this->addNodes(tempPoints);	
+//
+//
 //		}
 //	}
 //	return true;
@@ -268,6 +351,10 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 			this->createCompleteGraph(points);
 			return false;
 		} else {
+			// create temp Graph to save the new detected points and their edges
+			Graph *tempGraph = new Graph();
+			tempGraph->createCompleteGraph(points);
+
 			//update the position of the old points
 			for(int i=0;i<this->nodeList.size();i++){
 				Mat oldPoint = Mat(this->nodeList[i]->getPoint());
@@ -280,7 +367,6 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 													   newPoint.at<float>(2,0)));
 			}
 
-			vector<Point3f> tempPoints = points;
 			float e = 0.004;
 			int timeThreshold = 35;
 			for(int i=0;i<this->nodeList.size();i++){
@@ -288,11 +374,12 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 				int j;
 				bool isFound = false;
 				//find a coorespondence relationship to the new point			
-				for(j=0;j<tempPoints.size();j++){
+				for(j=0;j<tempGraph->nodeList.size();j++){
 					//if they are very close
-					if((fabs(currentNode->x - tempPoints[j].x) < e) && 
-					   (fabs(currentNode->y - tempPoints[j].y) < e) && 
-					   (fabs(currentNode->z - tempPoints[j].z) < e)){ //&& !currentNode->isFixed){
+					if((fabs(currentNode->x - tempGraph->nodeList[j]->x) < e) && 
+					   (fabs(currentNode->y - tempGraph->nodeList[j]->y) < e) && 
+					   (fabs(currentNode->z - tempGraph->nodeList[j]->z) < e)){ //&& !currentNode->isFixed){
+					//if(currentNode->distanceTo(tempPoints[j]) < e){
 						   //increase the life time of the node in graph
 						   currentNode->timmer +=2;
 						   //if the life time of the node is bigger than the threshold
@@ -301,8 +388,10 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 							   this->fixedNodeList.push_back(currentNode);
 							   this->fixNodeCount++;
 						   }
-						   //delete the point from tempPoints
-						   tempPoints.erase(tempPoints.begin()+j);
+						   // union the correspondenz points
+						   this->unionNode(currentNode, tempGraph->nodeList[j]);
+						   // delete the point from tempGraph
+						   tempGraph->deleteNode(j);
 						   isFound = true;
 						   break;
 					}
@@ -313,21 +402,11 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 					if((!currentNode->isFixed) && (--currentNode->timmer < 0)){
 						this->deleteNode(i);
 					}
-					//if(--currentNode->timmer < 0){
-					//	if(currentNode->isFixed){
-					//		currentNode->isFixed = false;
-					//		currentNode->timmer = timeThreshold;
-					//	} else {
-					//		this->deleteNode(i);
-					//	}
-					//}
 				} 	
 			}
 
 			//add the rest new node into the nodelist
-			this->addNodes(tempPoints);	
-
-
+			this->addNodes(tempGraph->getPoints());	
 		}
 	}
 	return true;
@@ -394,10 +473,10 @@ bool Graph::isEqual(Graph *other, float e, float rate){
 		return false;
 	}
 
-	//Evaluation *eva = new Evaluation();
-	//eva->createCVSFile("ExistObject");
-	//eva->createCVSFile("DetectObject");
-	//vector<float> data;
+	// reset the timmer for each node, inoder to show the correspondenz nodes
+	for(int i=0;i<other->nodeList.size();i++){
+		other->nodeList[i]->timmer = 0;
+	}
 
 	
 	// save the coorespondenz node pairs, where the first place save the node from other, and second for this
@@ -417,10 +496,15 @@ bool Graph::isEqual(Graph *other, float e, float rate){
 			// Insert the pair (p,v)
 			pairs.insert(pair<Node*, Node*>(p,v));
 			// Loop for all neighbor node of p
-			for(int j=0;j<p->edgeList.size();j++){
+			//for(int j=0;j<p->edgeList.size();j++){
 				// Get the neighbor nodes of p
-				Node *pi = p->edgeList[j].dstNode;
-				float p_pi = p->edgeList[j].cost;
+				//Node *pi = p->edgeList[j].dstNode;
+				//float p_pi = p->edgeList[j].cost;
+			map<Node*, float>::iterator j;
+			for(j=p->neighbors.begin();j!=p->neighbors.end();j++){
+				// Get the neighbor nodes of p
+				Node *pi = j->first;
+				float p_pi = j->second;
 					
 				//if(k==0){
 				//data.push_back(i);
@@ -430,10 +514,15 @@ bool Graph::isEqual(Graph *other, float e, float rate){
 				//data.clear();
 				//}
 
-				for(int l=0;l<v->edgeList.size();l++){
-					// Get the neighbor nodes of v
-					Node *vi = v->edgeList[l].dstNode;
-					float v_vi = v->edgeList[l].cost;
+				//for(int l=0;l<v->edgeList.size();l++){
+				//	// Get the neighbor nodes of v
+				//	Node *vi = v->edgeList[l].dstNode;
+				//	float v_vi = v->edgeList[l].cost;
+				map<Node*, float>::iterator l;
+				for(l=v->neighbors.begin();l!=v->neighbors.end();l++){
+					// Get the neighbor nodes of p
+					Node *vi = l->first;
+					float v_vi = l->second;
 
 					//if(j==0){
 					//data.push_back(k);

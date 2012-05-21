@@ -8,7 +8,7 @@
 /*
  * Defination for Programm Model
  */
-#define RECOGNITION
+//#define RECOGNITION
 
 #define OFFLINE
 
