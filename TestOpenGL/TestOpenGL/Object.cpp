@@ -93,6 +93,38 @@ void Object::updateKalmanFilter(){
 //	}
 //}
 
+void Object::clearUnfixedNodes(){
+	//vector<Node*>::iterator it;
+	//for(it=this->nodeList.begin();it!=this->nodeList.end();it++){
+	//	if(!(*it)->isFixed){
+	//		this->deleteNode(*it);
+	//	}
+	//}
+	for(int i=0;i<this->nodeList.size();i++){
+		if(!this->nodeList[i]->isFixed){
+			this->deleteNode(i);
+			// the index of the current node should be decreased
+			i--;
+		}
+	}
+}
+
+void Object::joinSimilarNodes(float e){
+	clearUnfixedNodes();
+	for(int i=0;i<this->nodeList.size();i++){
+		Node *curNode = nodeList[i];
+		map<Node*, float>::iterator edgeit;
+		for(edgeit=curNode->neighbors.begin();edgeit!=curNode->neighbors.end();edgeit++){
+			// if two node are too close, union them
+			if(edgeit->second<e){
+				unionNode(curNode, edgeit->first);
+				deleteNode(edgeit->first);
+			}
+		}
+	}
+}
+
+
 void Object::saveToVTKFile(const char *name){
 	string savePath = string(defaultDataPath);
 	savePath.append(name);
@@ -106,31 +138,60 @@ void Object::saveToVTKFile(const char *name){
 
 	// write the points data head
 	fout<<"DATASET POLYDATA"<<endl;
-	vector<Node*> fixedNodes;
-	for(int i=0;i<this->nodeList.size();i++){
-		if(this->nodeList[i]->isFixed){
-			fixedNodes.push_back(this->nodeList[i]);
-		}
-	}
-	int pointSize = fixedNodes.size();
+	//set<Node*> fixedNodes;
+	//for(int i=0;i<this->nodeList.size();i++){
+	//	if(this->nodeList[i]->isFixed){
+	//		fixedNodes.insert(this->nodeList[i]);
+	//	}
+	//}
+	// delete all unfixed nodes and join the similar nodes together
+	this->joinSimilarNodes(0.1);
+	int pointSize = this->nodeList.size();
 	fout<<"POINTS "<<pointSize<<" float"<<endl;
 
 	// write the points
+
+	// the parameters of edges
+	int edgeSize = 0;
+	stringstream edges;
+	// loop for all nodes
+	//for(it=fixedNodes.begin();it!=fixedNodes.end();it++){
+		//Node *curNode = *it;
+		//// calculate the index of current node
+		//int beginIndex = distance(fixedNodes.begin(), it);
+
 	for(int i=0;i<pointSize;i++){
-		fout<<fixedNodes[i]->x<<" ";
-		fout<<fixedNodes[i]->y<<" ";
-		fout<<fixedNodes[i]->z<<endl;
+		Node *curNode = this->nodeList[i];
+		int beginIndex = i;
+		fout<<curNode->x<<" ";
+		fout<<curNode->y<<" ";
+		fout<<curNode->z<<endl;
+
+		// write the edges
+		map<Node*, float>::iterator mapit;
+		// loop for all neighbors of current node
+		for(mapit=curNode->neighbors.begin();mapit!=curNode->neighbors.end();mapit++){
+			// try to find the current neighbor from the fixed node list
+			//set<Node*>::iterator endit = fixedNodes.find(mapit->first);
+			//// if found, write the edge into the stream
+			//if(endit!=fixedNodes.end()){
+			//	int endIndex = distance(fixedNodes.begin(),endit);
+			int endIndex = findIndex(mapit->first);
+			if(endIndex != -1){
+				edges<<"2 ";
+				edges<<beginIndex;
+				edges<<" ";
+				edges<<endIndex;
+				edges<<"\n";
+				edgeSize++;
+			}
+		}
 	}
 	fout<<endl;
 
-	// write the edges
-	int edgeSize = pointSize*(pointSize-1)/2;
+	// write the number of edges
 	fout<<"LINES "<<edgeSize<<" "<<edgeSize*3<<endl;
-	for(int i=0;i<pointSize;i++){
-		for(int j=i+1;j<pointSize;j++){
-			fout<<2<<" "<<i<<" "<<j<<endl;
-		}
-	}
+	fout<<edges.rdbuf();
 
 	fout.close();
 }
@@ -192,7 +253,47 @@ void Object::loadFromVTKFile(const char *name){
 		Point3f temp(x,y,z);
 		nodes.push_back(temp);
 	}
-	this->createCompleteGraph(nodes);
+	//this->createCompleteGraph(nodes);
+	this->addNodes(nodes);
+
+	//space 
+	fin.getline(temp, 256);
+
+	char edgeHead[256];
+	fin.getline(edgeHead, 256);
+	int edgeSize;
+	string edgeHeadStr(edgeHead);
+	edgeHeadStr.erase(edgeHeadStr.begin(), edgeHeadStr.begin()+6);
+	stringstream edgeHeadSS;
+	edgeHeadSS<<edgeHeadStr;
+	edgeHeadSS>>edgeSize;
+
+	for(int i=0;i<edgeSize;i++){
+		char cEdge[256];
+		fin.getline(cEdge, 256);
+		string edge(cEdge);
+
+		// remove the first 2 charactors
+		edge.erase(edge.begin(), edge.begin()+2);
+
+
+		// read the index of the beginning node
+		int firstSpace = edge.find(' ');
+		stringstream beginSS(edge.substr(0,firstSpace));
+		int beginIndex;
+		beginSS>>beginIndex;
+		edge.erase(edge.begin(), edge.begin()+firstSpace+1);
+
+		// read the index of the end node
+		stringstream endSS(edge);
+		int endIndex;
+		endSS>>endIndex;
+
+		Node *beginNode = this->nodeList[beginIndex];
+		Node *endNode = this->nodeList[endIndex];
+
+		this->addEdge(beginNode, endNode);
+	}
 }
 
 

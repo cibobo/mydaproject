@@ -135,21 +135,27 @@ void Graph::addNodes(vector<Point3f> points){
 }
 
 bool Graph::deleteNode(Node *node){
-	map<Node*, float>::iterator it;
-	for(it = node->neighbors.begin();it!=node->neighbors.end();it++){
-		// delete the edge, which direct to this node
-		if(!deleteEdge(it->first, node)){
-			return false;
-		}
+	//map<Node*, float>::iterator it;
+	//for(it = node->neighbors.begin();it!=node->neighbors.end();it++){
+	//	// delete the edge, which direct to this node
+	//	if(!deleteEdge(it->first, node)){
+	//		return false;
+	//	}
+	//}
+	//for(int i=0;i<this->nodeList.size();i++){
+	//	if(nodeList[i] == node){
+	//		nodeList.erase(nodeList.begin() + i);
+	//		delete node;
+	//		break;
+	//	}
+	//}
+	//return true;
+	int index = this->findIndex(node);
+	if(index == -1){
+		return false;
+	} else {
+		return this->deleteNode(index);
 	}
-	for(int i=0;i<this->nodeList.size();i++){
-		if(nodeList[i] == node){
-			nodeList.erase(nodeList.begin() + i);
-			delete node;
-			break;
-		}
-	}
-	return true;
 }
 
 bool Graph::deleteNode(int index){
@@ -204,7 +210,14 @@ void Graph::unionNode(Node *rsc, Node *dst){
 	map<Node*, float>::iterator it;
 	// add all neighbors of dst as the neighbors of rsc
 	for(it=dst->neighbors.begin();it!=dst->neighbors.end();it++){
-		rsc->addNeighbor(it->first);
+		this->addUndirectedEdge(rsc, it->first);
+	}
+	//this->deleteNode(dst);
+}
+
+void Graph::unionGraph(Graph *graph){
+	for(int i=0;i<graph->nodeList.size();i++){
+		this->nodeList.push_back(graph->nodeList[i]);
 	}
 }
 
@@ -368,7 +381,7 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 			}
 
 			float e = 0.004;
-			int timeThreshold = 35;
+			int timeThreshold = 40;
 			for(int i=0;i<this->nodeList.size();i++){
 				Node *currentNode = this->nodeList[i];
 				int j;
@@ -376,10 +389,10 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 				//find a coorespondence relationship to the new point			
 				for(j=0;j<tempGraph->nodeList.size();j++){
 					//if they are very close
-					if((fabs(currentNode->x - tempGraph->nodeList[j]->x) < e) && 
-					   (fabs(currentNode->y - tempGraph->nodeList[j]->y) < e) && 
-					   (fabs(currentNode->z - tempGraph->nodeList[j]->z) < e)){ //&& !currentNode->isFixed){
-					//if(currentNode->distanceTo(tempPoints[j]) < e){
+					//if((fabs(currentNode->x - tempGraph->nodeList[j]->x) < e) && 
+					//   (fabs(currentNode->y - tempGraph->nodeList[j]->y) < e) && 
+					//   (fabs(currentNode->z - tempGraph->nodeList[j]->z) < e)){ //&& !currentNode->isFixed){
+					if(currentNode->distanceTo(tempGraph->nodeList[j]) < e){
 						   //increase the life time of the node in graph
 						   currentNode->timmer +=2;
 						   //if the life time of the node is bigger than the threshold
@@ -406,7 +419,8 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 			}
 
 			//add the rest new node into the nodelist
-			this->addNodes(tempGraph->getPoints());	
+			//this->addNodes(tempGraph->getPoints());	
+			this->unionGraph(tempGraph);
 		}
 	}
 	return true;
@@ -419,6 +433,15 @@ Node *Graph::findNode(int index){
 		}
 	}
 	return NULL;
+}
+
+int Graph::findIndex(Node *node){
+	for(int i=0;i<this->nodeList.size();i++){
+		if(this->nodeList[i] == node){
+			return i;
+		}
+	}
+	return -1;
 }
 
 int Graph::getSize(){

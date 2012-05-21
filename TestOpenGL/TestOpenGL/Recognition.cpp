@@ -51,20 +51,22 @@ float StatisticDate::getAppearanceRate(int timmer){
  * Definition of Recoginition
  *****************************/
 Recognition::Recognition(){
-	Object *obj1 = new Object("Box1");
-	this->objectList.push_back(obj1);
+	//Object *obj1 = new Object("Box1");
+	//this->objectList.push_back(obj1);
 
-	Object *obj2 = new Object("Box2");
-	this->objectList.push_back(obj2);
+	//Object *obj2 = new Object("Box2");
+	//this->objectList.push_back(obj2);
 
-	Object *obj3 = new Object("Box3_1");
-	this->objectList.push_back(obj3);
+	//Object *obj3 = new Object("Box3_1");
+	//this->objectList.push_back(obj3);
 
-	//Object *obj4 = new Object("Box4");
+	//Object *obj4 = new Object("Box5");
 	//this->objectList.push_back(obj4);
 
-	Object *obj4 = new Object("Box5");
+	Object *obj4 = new Object("Box7");
 	this->objectList.push_back(obj4);
+
+
 
 	graph = new Graph();
 	
