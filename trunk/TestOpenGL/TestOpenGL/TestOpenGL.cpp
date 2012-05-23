@@ -8,7 +8,7 @@
 /*
  * Defination for Programm Model
  */
-//#define RECOGNITION
+#define RECOGNITION
 
 #define OFFLINE
 
@@ -103,10 +103,10 @@ int MAXJUMPEDFEATURES = 5;
 int FRAMERATE = 30;
 
 // The input path
-const char *INPUTPATH = "Eva3DRotation";
+const char *INPUTPATH = "Eva3DRotation3";
 
-char *OUTPUTPATH = "TestRecognition";
-bool ISDATASAVED = true;
+char *OUTPUTPATH = "Eva3DRotation3";
+bool ISDATASAVED = false;
 
 // Evaluation output path
 char *EVAOUTPUTPATH = "FirstTest";

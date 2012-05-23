@@ -210,7 +210,10 @@ void Graph::unionNode(Node *rsc, Node *dst){
 	map<Node*, float>::iterator it;
 	// add all neighbors of dst as the neighbors of rsc
 	for(it=dst->neighbors.begin();it!=dst->neighbors.end();it++){
-		this->addUndirectedEdge(rsc, it->first);
+		// without the node rsc itself
+		if(it->first != rsc){
+			this->addUndirectedEdge(rsc, it->first);
+		}
 	}
 	//this->deleteNode(dst);
 }
@@ -381,7 +384,7 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 			}
 
 			float e = 0.004;
-			int timeThreshold = 40;
+			int timeThreshold = 28;
 			for(int i=0;i<this->nodeList.size();i++){
 				Node *currentNode = this->nodeList[i];
 				int j;
@@ -481,10 +484,91 @@ bool Graph::isEqual(Graph *other){
 	// With abstruct epsilon
 	//float e = 0.0008;
 	// With relative epsilon
-	float e = 0.013;
-	float rate = 0.95;
+	float e = 0.017;
+	float rate = 0.85;
 	return this->isEqual(other, e, rate);
 }
+
+//bool Graph::isEqual(Graph *other, float e, float rate){
+//	if(this->nodeList.size()<3){
+//		cout<<"The current graph has not enough points"<<endl;
+//		return false;
+//	}
+//	if(other->nodeList.size()<3){
+//		cout<<"The compared graph has not enough points"<<endl;
+//		return false;
+//	}
+//
+//	// reset the timmer for each node, inoder to show the correspondenz nodes
+//	for(int i=0;i<other->nodeList.size();i++){
+//		other->nodeList[i]->timmer = 0;
+//	}
+//
+//	
+//	// save the coorespondenz node pairs, where the first place save the node from other, and second for this
+//	map<Node*, Node*> pairs;
+//
+//	int minNodeSize = this->nodeList.size()<other->nodeList.size()?this->nodeList.size():other->nodeList.size();
+//	int minParisCount = (minNodeSize * rate)>=3?(minNodeSize * rate):3;
+//
+//	// Loop for all node in Other Graph
+//	for(int i=0;i<other->nodeList.size();i++){
+//		// choose one point from Other graph
+//		Node *p = other->nodeList[i];
+//		// Loop for all nodes in this Graph
+//		for(int k=0;k<this->nodeList.size();k++){
+//			Node *v = this->nodeList[k];
+//			
+//			// Insert the pair (p,v)
+//			pairs.insert(pair<Node*, Node*>(p,v));
+//			// Loop for all neighbor node of p
+//			//for(int j=0;j<p->edgeList.size();j++){
+//				// Get the neighbor nodes of p
+//				//Node *pi = p->edgeList[j].dstNode;
+//				//float p_pi = p->edgeList[j].cost;
+//			map<Node*, float>::iterator j;
+//			for(j=p->neighbors.begin();j!=p->neighbors.end();j++){
+//				// Get the neighbor nodes of p
+//				Node *pi = j->first;
+//				float p_pi = j->second;
+//
+//				//for(int l=0;l<v->edgeList.size();l++){
+//				//	// Get the neighbor nodes of v
+//				//	Node *vi = v->edgeList[l].dstNode;
+//				//	float v_vi = v->edgeList[l].cost;
+//				map<Node*, float>::iterator l;
+//				for(l=v->neighbors.begin();l!=v->neighbors.end();l++){
+//					// Get the neighbor nodes of p
+//					Node *vi = l->first;
+//					float v_vi = l->second;
+//
+//					// if the edge has the same lenth
+//					//if(fabs(p_pi - v_vi)< e){
+//					// with relative epsilon
+//					if(fabs(p_pi - v_vi)< e*p_pi){
+//						// add the node pair to the Map
+//						pairs.insert(pair<Node*, Node*>(pi, vi));
+//						break;
+//					}
+//				}
+//				// if more than 4 pairs have been found, return true;
+//				if(pairs.size()>minParisCount){
+//					// Mark correspondenz points
+//					map<Node*, Node*>::iterator it;
+//					for(it=pairs.begin();it!=pairs.end();it++){
+//						Node *node = (*it).first;
+//						node->timmer = -1;
+//					}
+//					return true;
+//				}
+//			}
+//			// if there is no coorespondenz pair between p and v, than clear the Map
+//			pairs.clear();
+//		}
+//	}
+//	cout<<"All nodes have been reached but no coorespondenz found!"<<endl;
+//	return false;
+//}
 
 bool Graph::isEqual(Graph *other, float e, float rate){
 	if(this->nodeList.size()<3){
@@ -502,8 +586,9 @@ bool Graph::isEqual(Graph *other, float e, float rate){
 	}
 
 	
-	// save the coorespondenz node pairs, where the first place save the node from other, and second for this
-	map<Node*, Node*> pairs;
+	// save the best coorespondenz node pairs, where the first place save the node from other, and second for this
+	map<Node*, Node*> maxPairs;
+	Node *centerNode;
 
 	int minNodeSize = this->nodeList.size()<other->nodeList.size()?this->nodeList.size():other->nodeList.size();
 	int minParisCount = (minNodeSize * rate)>=3?(minNodeSize * rate):3;
@@ -516,80 +601,55 @@ bool Graph::isEqual(Graph *other, float e, float rate){
 		for(int k=0;k<this->nodeList.size();k++){
 			Node *v = this->nodeList[k];
 			
-			// Insert the pair (p,v)
-			pairs.insert(pair<Node*, Node*>(p,v));
+			// save the coorespondenz neighbors of p(i) and v(k)
+			map<Node*, Node*> pair_k;
+			pair_k.insert(pair<Node*, Node*>(p, v));
+
 			// Loop for all neighbor node of p
-			//for(int j=0;j<p->edgeList.size();j++){
-				// Get the neighbor nodes of p
-				//Node *pi = p->edgeList[j].dstNode;
-				//float p_pi = p->edgeList[j].cost;
 			map<Node*, float>::iterator j;
 			for(j=p->neighbors.begin();j!=p->neighbors.end();j++){
 				// Get the neighbor nodes of p
 				Node *pi = j->first;
 				float p_pi = j->second;
-					
-				//if(k==0){
-				//data.push_back(i);
-				//data.push_back(j);
-				//data.push_back(p_pi);
-				//eva->saveCVSData("ExistObject", data);
-				//data.clear();
-				//}
 
-				//for(int l=0;l<v->edgeList.size();l++){
-				//	// Get the neighbor nodes of v
-				//	Node *vi = v->edgeList[l].dstNode;
-				//	float v_vi = v->edgeList[l].cost;
 				map<Node*, float>::iterator l;
 				for(l=v->neighbors.begin();l!=v->neighbors.end();l++){
 					// Get the neighbor nodes of p
 					Node *vi = l->first;
 					float v_vi = l->second;
 
-					//if(j==0){
-					//data.push_back(k);
-					//data.push_back(l);
-					//data.push_back(v_vi);
-					//eva->saveCVSData("DetectObject",data);
-					//data.clear();
-					//}
-
 					// if the edge has the same lenth
 					//if(fabs(p_pi - v_vi)< e){
 					// with relative epsilon
 					if(fabs(p_pi - v_vi)< e*p_pi){
 						// add the node pair to the Map
-						pairs.insert(pair<Node*, Node*>(pi, vi));
+						pair_k.insert(pair<Node*, Node*>(pi, vi));
 						break;
 					}
 				}
-
-				//data.push_back(0);
-				//eva->saveCVSData("DetectObject",data);
-				//data.clear();
-
-				// if more than 4 pairs have been found, return true;
-				if(pairs.size()>minParisCount){
-					// Mark correspondenz points
-					map<Node*, Node*>::iterator it;
-					for(it=pairs.begin();it!=pairs.end();it++){
-						Node *node = (*it).first;
-						node->timmer = -1;
-					}
-					return true;
-				}
 			}
-			//data.push_back(0);
-			//eva->saveCVSData("ExistObject",data);
-			//data.clear();
-
-			// if there is no coorespondenz pair between p and v, than clear the Map
-			pairs.clear();
+			// if find a better correspondenz
+			if(pair_k.size()>maxPairs.size()){
+				maxPairs.clear();
+				maxPairs = pair_k;
+				centerNode = p;
+			}
 		}
 	}
-	cout<<"All nodes have been reached but no coorespondenz found!"<<endl;
-	return false;
+
+	// check, whether the number of coorespondenz pairs is enough
+	if(maxPairs.size()>=minParisCount){
+		// Mark correspondenz points
+		map<Node*, Node*>::iterator it = maxPairs.begin();
+		for(;it!=maxPairs.end();it++){
+			it->first->timmer = -1;
+		}
+		centerNode->timmer = -2;
+		return true;
+	} else {
+		cout<<"All nodes have been reached but no coorespondenz found!"<<endl;
+		return false;
+	}
 }
 
 
