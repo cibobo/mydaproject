@@ -113,12 +113,23 @@ void Object::joinSimilarNodes(float e){
 	clearUnfixedNodes();
 	for(int i=0;i<this->nodeList.size();i++){
 		Node *curNode = nodeList[i];
-		map<Node*, float>::iterator edgeit;
-		for(edgeit=curNode->neighbors.begin();edgeit!=curNode->neighbors.end();edgeit++){
-			// if two node are too close, union them
-			if(edgeit->second<e){
-				unionNode(curNode, edgeit->first);
-				deleteNode(edgeit->first);
+		//map<Node*, float>::iterator edgeit;
+		//for(edgeit=curNode->neighbors.begin();edgeit!=curNode->neighbors.end();edgeit++){
+		//	// if two node are too close, union them
+		//	if(edgeit->second<e){
+		//		Node *dNode = edgeit->first;
+		//		// reset the posion of the iterator
+		//		edgeit--;
+		//		// delete the node directly without union
+		//		deleteNode(dNode);
+		//	}
+		//}
+		for(int j=i+1;j<this->nodeList.size();j++){
+			float dist = curNode->distanceTo(nodeList[j]);
+			if(dist < e){
+				unionNode(curNode, nodeList[j]);
+				deleteNode(nodeList[j]);
+				j--;
 			}
 		}
 	}
@@ -145,7 +156,7 @@ void Object::saveToVTKFile(const char *name){
 	//	}
 	//}
 	// delete all unfixed nodes and join the similar nodes together
-	this->joinSimilarNodes(0.1);
+	this->joinSimilarNodes(0.045);
 	int pointSize = this->nodeList.size();
 	fout<<"POINTS "<<pointSize<<" float"<<endl;
 

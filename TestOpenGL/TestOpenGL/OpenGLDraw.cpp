@@ -480,10 +480,10 @@ void display(OpenGLWinUI *pOpenGLWinUI, Object *graph){
  
 	float factor = 2.04;
 	float rate = factor/204;
-	int size = graph->nodeList.size();
+	//int size = graph->nodeList.size();
 	float ballSize;
 	//glTranslatef(-factor/2, factor/2, 0);
-	for(int i=0;i<size;i++){
+	for(int i=0;i<graph->nodeList.size();i++){
 		
 		if(graph->nodeList[i]->isFixed){
 			ballSize = 0.02;
@@ -588,7 +588,7 @@ void display(OpenGLWinUI *pOpenGLWinUI, Object *graph){
 	drawCoordi();
 	int oldColor = -1;
 	float x = 0;
-	for(int i=0;i<size;i++){
+	for(int i=0;i<graph->nodeList.size();i++){
 
 		if(graph->nodeList[i]->isFixed){
 			ballSize = 0.02;
@@ -655,14 +655,15 @@ void display(OpenGLWinUI *pOpenGLWinUI, vector<Object*> objects){
 
 		drawCoordi();
 		
-		mat_diffuse[0] = COLORLIST[i][0];
-		mat_diffuse[1] = COLORLIST[i][1];
-		mat_diffuse[2] = COLORLIST[i][2];
-		mat_diffuse[3] = COLORLIST[i][3];
+		//mat_diffuse[0] = COLORLIST[i][0];
+		//mat_diffuse[1] = COLORLIST[i][1];
+		//mat_diffuse[2] = COLORLIST[i][2];
+		//mat_diffuse[3] = COLORLIST[i][3];
 
 		Object *curObject = objects[i];
+
 		for(int j=0;j<curObject->nodeList.size();j++){
-			float ballSize = 0.02;
+			float ballSize = 0.01;
 			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 
 			if(curObject->nodeList[j]->timmer == -1){
@@ -671,6 +672,12 @@ void display(OpenGLWinUI *pOpenGLWinUI, vector<Object*> objects){
 				mat_diffuse[1] = 1;//-mat_diffuse[1];
 				mat_diffuse[2] = 1;//-mat_diffuse[2];
 				mat_diffuse[3] = 1.0;
+			} else if(curObject->nodeList[j]->timmer == -2){
+				//ballSize = 0.03;
+				mat_diffuse[0] = 0;//-mat_diffuse[0];
+				mat_diffuse[1] = 1;//-mat_diffuse[1];
+				mat_diffuse[2] = 0;//-mat_diffuse[2];
+				mat_diffuse[3] = 1.0; 
 			} else {
 				//ballSize = 0.02;
 				mat_diffuse[0] = COLORLIST[i][0];
@@ -678,6 +685,10 @@ void display(OpenGLWinUI *pOpenGLWinUI, vector<Object*> objects){
 				mat_diffuse[2] = COLORLIST[i][2];
 				mat_diffuse[3] = COLORLIST[i][3];
 			}
+
+			// The material should be new set
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+
 			glTranslatef(curObject->nodeList[j]->x,curObject->nodeList[j]->y,-curObject->nodeList[j]->z);
 			glutSolidSphere(ballSize, 20, 16);
 			glTranslatef(-curObject->nodeList[j]->x,-curObject->nodeList[j]->y,curObject->nodeList[j]->z);
