@@ -1,0 +1,54 @@
+\chapter{Implementierung}
+
+\begin{figure}[ftb]
+\label{HauptAblauf}
+\centering
+\includegraphics[scale=0.55]{Abbildungen/HauptAblauf.png}
+\caption{Ablaufdiagramm}
+\end{figure}
+
+Unsere Implementierung kann in 4 Hauptmodule unterteilt werden:
+
+\begin{itemize}
+\item Markenanalyse
+\item Objekteinlernen
+\item Objekterkennung und Verfolgung
+\item Bilder Steuerung
+\end{itemize}
+
+Die allgemeine Ablaufprozess des Programms findet man in Abbildung~\ref{HauptAblauf}. Das ganz Programm ist eine Schleife. In jedem Schritt wird die Information von PMD Kamera angesammelt und als Eingabe eingegeben. Nach Bewertung der neuen Eingabe bzw. der Rückkopplung von letztem Ablauf wird die entsprechende Bilddaten von Modul Bilder Steuerung für die weiteren Schritten ausgewählt. Der Modul Markenanalyse analysiert die eingegebene Bilddaten und versucht die Marken zu finden und zu verfolgen. Die ausgefundene Marken werden von entweder dem Objekteinlernen oder der Objekterkennung und Verfolgen benutzt, welche am Anfang des Programms durch Benutzer entschieden wird. In der Einlernensphase wird zuerst die Transformation des Objekts bestimmt und dann das charakteristische Graph des Objekts durch die Marken dargestellt. Wenn man ein Objekt wieder erkennen möchte, werden die Marken von neuem Objekt zu den vorhandenen charakteristischen Graphen verglichen, die nach dem Objekteinlernen im Speicher gespeichert werden. Das Ergebnis wird in einem OpenGL Fenster ausgemalt und außerdem,  als die Rückkopplung für den nächsten Schritt zurück zum Anfang der Schleife geschickt. Alle diese Module werden in folgenden Unterabschnitten genau erklären und ein ausführliches Ablaufdiagramm wird in Abbildung~\ref{GenauAblauf} gezeigt.   
+
+\begin{figure}
+\label{GenauAblauf}
+\centering
+\includegraphics[scale=0.7]{Abbildungen/Ablaufsbild.png}
+\caption{Ausführliches Ablaufdiagramm}
+\end{figure}
+
+\section{Markenanalyse}
+
+\subsection{Markenerkennung}
+
+\subsubsection{Auswahl des Erkennungsalgorithmus}
+
+\subsubsection{Auswahl der Größe der Marken}
+
+\subsubsection{Kontrolle der Helligkeit}
+
+\subsection{Markenverfolgung}
+
+\section{Objekteinlernen}
+
+\subsection{Markenanordnung}
+
+\subsection{Kanteneinfügung}
+
+\subsection{Speichern des Strukturgraph}
+
+\section{Objekterkennung und Verfolgung}
+
+\subsection{Vergleichung der Objekte}
+
+\subsection{Bestimmung der Orientierung}
+
+\section{Bilder Steuerung}
