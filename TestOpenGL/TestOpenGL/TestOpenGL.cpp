@@ -103,13 +103,16 @@ int MAXJUMPEDFEATURES = 5;
 int FRAMERATE = 30;
 
 // The input path
-const char *INPUTPATH = "Eva3DRotation3";
+const char *INPUTPATH = "Eva3DRotation4";
 
-char *OUTPUTPATH = "Eva3DRotation3";
+char *OUTPUTPATH = "Eva3DRotation4";
 bool ISDATASAVED = false;
 
 // Evaluation output path
 char *EVAOUTPUTPATH = "FirstTest";
+
+// The vtk file name
+char *MODELNAME = "box_all3";
 
 //int HISFRAMEINDEX = 3;
 
@@ -1584,7 +1587,7 @@ if(obj->fixNodeCount<=3){
 						break;
 #endif
 					case 'c':
-						obj->saveToVTKFile("Box_test");
+						obj->saveToVTKFile(MODELNAME);
 						break;
 				}
 #ifdef TEST
