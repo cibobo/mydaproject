@@ -21,6 +21,8 @@ public:
 	void clearUnfixedNodes();
 	void joinSimilarNodes(float e);
 
+	void transformate(Mat R, Mat T);
+
 	void saveToVTKFile(const char *name);
 	void loadFromVTKFile(const char *name);
 

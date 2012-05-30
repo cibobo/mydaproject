@@ -135,6 +135,18 @@ void Object::joinSimilarNodes(float e){
 	}
 }
 
+void Object::transformate(Mat R, Mat T){
+	for(int i=0;i<this->nodeList.size();i++){
+		Mat oldPoint = Mat(this->nodeList[i]->getPoint());
+		//cout<<"The oldPoint: "<<oldPoint<<endl;
+		Mat newPoint = R*oldPoint + T;
+		//cout<<"The newPoint: "<<newPoint<<endl;
+		this->nodeList[i]->setPosition(Point3f(newPoint.at<float>(0,0),
+											   newPoint.at<float>(1,0),
+											   newPoint.at<float>(2,0)));
+	}
+}
+
 
 void Object::saveToVTKFile(const char *name){
 	string savePath = string(defaultDataPath);

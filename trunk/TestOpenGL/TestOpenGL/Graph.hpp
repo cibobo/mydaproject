@@ -10,6 +10,7 @@
 using namespace std;
 using namespace cv;
 
+
 class Node;
 
 class Edge{
@@ -49,10 +50,15 @@ public:
 	Point3f getPoint();
 	float distanceTo(Node *other);
 	float distanceTo(Point3f point);
+	bool hasNeighbor(Node *other);
 };
 
 class Graph{
 public:
+	// Type Definition
+	typedef map<Node*, Node*> NodePairs;
+	typedef map<Node*, float> Neighbors;
+
 	vector<Node*> nodeList;
 	vector<Node*> fixedNodeList;
 	int indexCount;
@@ -89,14 +95,19 @@ public:
 	bool updateGraph(vector<Point3f> points, Mat R, Mat T);
 
 	void showWithOpenCV(const char *name);
+	
+	// The nodePairs saving the pointer of associate Nodes, where the first place for the node in Graph 'other'
 	bool isEqual(Graph *other);
-	bool isEqual(Graph *other, float e, float rate);
+	bool isEqual1(Graph *other, float e, float rate);
+	bool Graph::isEqualAdvance(Graph *other, float e, float rate, NodePairs &nodePairs, Node *&center, float &error);
 
 	Node *findNode(int index);
 	//find the index of the node in nodelist. If it doesn't exist, return -1, otherweise return the index
 	int findIndex(Node *node);
 
 	Point3f getMiddelPoint();
+
+
 };
 
 #endif

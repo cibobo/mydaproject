@@ -45,12 +45,33 @@ float StatisticDate::getAppearanceRate(int timmer){
 	float frameCount = appearances * 0.5 + maxContinueFrames*10 * 0.5;
 	return (frameCount/timmer)>1 ? 1 : frameCount/timmer;
 }
+/*****************************
+ * Definition of RecognitionResult
+ ****************************/
+RecognitionResult::RecognitionResult(){
+	weight = 0;
+}
 
+RecognitionResult::RecognitionResult(RecognitionResult::NodePair nodePair, Node *center, float weight, int objIndex){
+	this->nodePair = nodePair;
+	this->center = center;
+	this->weight = weight;
+	this->objIndex = objIndex;
+}
 
+void RecognitionResult::mark(){
+	NodePair::iterator it = this->nodePair.begin();
+	for(;it!=this->nodePair.end();it++){
+		it->first->timmer = -1;
+	}
+	this->center->timmer = -2;
+}
 /*****************************
  * Definition of Recoginition
  *****************************/
 Recognition::Recognition(){
+	maxListLength = 5;
+
 	//Object *obj1 = new Object("Box1");
 	//this->objectList.push_back(obj1);
 
@@ -63,7 +84,7 @@ Recognition::Recognition(){
 	//Object *obj4 = new Object("Box4");
 	//this->objectList.push_back(obj4);
 
-	Object *obj4 = new Object("Box_all2");
+	Object *obj4 = new Object("Box_all3");
 	this->objectList.push_back(obj4);
 
 
@@ -138,7 +159,12 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 		// create the new map for the static date
 		createStatisticMap();
 		for(int i=0;i<this->objectList.size();i++){
-			compResult = newGraph->isEqual(objectList[i]);
+			float e = 0.013;
+			float rate = 0.0;
+			float error = 0;
+			map<Node*,Node*> resultPair;
+			Node* center;
+			compResult = newGraph->isEqualAdvance(objectList[i], e, rate, resultPair, center, error);
 			if(compResult){
 				cout<<"Find the Object! "<<i<<endl;
 				int appear = this->Statistic[0].find(i)->second.appear(timmer);
@@ -147,7 +173,16 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 				// show the result
 				Scalar color = scalarColorList[i];
 				circle(drawMat, Point2f(i*10+5, 5), 5, color, -1);
-				//break;
+				
+				// Update result list
+				updateResultList(i, resultPair, center);
+				
+			}
+			int maxIndex = this->findBestResult();
+			if(maxIndex != -1){
+				this->resultList[maxIndex].mark();
+				// transformate the object
+				updateObjectPosition(i, resultPair);
 			}
 		}
 
@@ -170,4 +205,71 @@ void Recognition::createStatisticMap(){
 	this->Statistic.push_back(statisticDate);
 }
 
+void Recognition::updateResultList(int index, NodePair resultPair, Node *center){
+	// The proportion of object and neighbors
+	float objProp = 0.01;
+	float neiProp = 0.05;
 
+	// The basic weight for the new result
+	float objWeight = 1;
+	float neiWeight = 0;
+
+	// Try to find the point in same object and the neighbors
+	vector<RecognitionResult>::iterator it = this->resultList.begin();
+	for(;it!=this->resultList.end();it++){
+		// If in same object
+		if(it->objIndex == index){
+			objWeight += it->weight * objProp;
+		}
+
+		// If is the same point
+		if(it->center == center){
+			neiWeight = it->weight;
+		}
+
+		// If find a neighbor
+		if(it->center->hasNeighbor(center)){
+			neiWeight += it->weight * neiProp;
+		}
+		
+	}
+	
+	// If the result list is full
+	if(this->resultList.size()>=this->maxListLength){
+		this->resultList.erase(this->resultList.begin());
+	}
+
+	// Add new Result into List
+	RecognitionResult newResult(resultPair, center, objWeight+neiWeight, index);
+	this->resultList.push_back(newResult);
+}
+
+void Recognition::updateObjectPosition(int index, NodePair resultPair){
+	Mat R = Mat::eye(3,3,CV_32FC1);
+	Mat T = Mat::zeros(3,1,CV_32FC1);
+	vector<Point3f> newPoints;
+	vector<Point3f> oldPoints;
+	NodePair::iterator it=resultPair.begin();
+	for(;it!=resultPair.end();it++){
+		// The old points are the points, which were saved in model
+		oldPoints.push_back(it->first->getPoint());
+		newPoints.push_back(it->second->getPoint());
+	}
+	UQFindRAndT(oldPoints, newPoints, R, T);
+	objectList[index]->transformate(R,T);
+}
+
+int Recognition::findBestResult(){
+	// Parameter to find the best result
+	float maxWeight = -1;
+	int maxIndex = -1;
+	for(int i=0;i<this->resultList.size();i++){
+		// find the best result
+		if(this->resultList[i].weight > maxWeight){
+			maxIndex = i;
+			maxWeight = this->resultList[i].weight;
+		}
+	}
+	cout<<"The Max Weight: "<<maxWeight<<endl;
+	return maxIndex;
+}
