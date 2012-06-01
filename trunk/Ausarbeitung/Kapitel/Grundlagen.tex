@@ -69,6 +69,15 @@ Lange der Tiefdaten & 8 bit (unsigned char) & 11 bit \\ \hline
 \end{center}
 \end{table}
 
+\subsection{Daten von PMD Kamera}
+Die PMD Kamera CamCube kann insgesamt 4 verschiedenen Vermessungsdaten ausgeben. Sie sind Amplitude, Intensität, Distanz und 3D Koordinaten. Die erste Zwei und letzte Zwei Typen der Daten können durch der Dimension in zwei Gruppen unterteilt werden. 
+
+\subsubsection{2D Daten}
+Die Intensität bezieht sich auf der Graustufen. Nach einer Abbildung können diese Graustufen in 0 bis 255 beschränkt werden, und das Ergebnis ist gleich als das Bild einer normalen Schwarz-Weiß Kamera. Die Amplitude zeigt die Stärke der Beleuchtung, die vom Objekt wegen des aktiven Sendersignal von PMD Kamera selbst gespiegelt wird. Dieser Wert kann die Qualität der Distanzinformation schätzen, d.h. das Objekt weit von Kamera liefert niedriger Amplitude als das Objekt in der Nähe von der Kamera, wenn sie mit identischem Material dargestellt werden. An der Gegenseite sind die Merkmalen mit höherem Rückstrahlvermögen durch Amplitudedaten einfacher betrachtet, was für die Erkennung der großen künstlichen Marken in unserer Arbeit sinnvoll ist.   
+
+\subsubsection{3D Daten}
+Die PMD Kamera liefert 3D Daten in zwei Formen: die reine Distanzinformation und die 3D Koordinaten. Die Distanzinformation ist die gemessene Distanz zwischen der Kamera und Objekt, was direkt durch der Formel \eqref{tof1} berechnet wird. Bezüglich diese Distanzinformation und die 2D Daten wie normale Kamera werden die 3D Koordinaten innerhalb der PMD Kamera berechnet und können durch die Schnittstelle zugegriffen werden.
+
 
 \subsection{Helligkeit und Sättigung}
 
@@ -76,12 +85,30 @@ Lange der Tiefdaten & 8 bit (unsigned char) & 11 bit \\ \hline
 Als was in Sektion \ref{mErkennung} geschrieben hat, sind viele Erkennungsalgorithmen in Open Source Library OpenCV realisiert. Der komplette Vergleich dazwischen bezüglich dem Fehlerquote, Zeitaufwand und anderen Eigenschaften wird viele gemacht, damit man dem geeigneten Algorithmus für seinen Bedürfnis auswählen kann. 
      
 \subsection{Auswahl des Erkennungsalgorithmus}
-Odessa hat in seinem Blog einen sehr gute Vergleich für alle Erkennungsalgorithmen von OpenCV durchgeführt \cite{O11}. Vier häufig benutzten Beispielbilder wurden betrachtet.
 
 \begin{figure}[bft]
 \centering
 \includegraphics[scale=0.22]{Abbildungen/SampleBild}
 \caption{Die vier Beispielbilder. Von link nach recht sind Barbara, Lena, Peppers und Mandril\cite{O11}}
+\end{figure}
+
+\begin{figure}[bft]
+\centering
+\includegraphics[scale=0.7]{Abbildungen/Number-of-detected-features}
+\caption{Anzahl der erkannten Merkmalen von alle vier Beispielbildern durch verschiedene Erkennungsalgorithmen}
+\label{Nodf}
+\end{figure}
+
+Odessa hat in seinem Blog einen sehr gute Vergleich für alle Erkennungsalgorithmen von OpenCV durchgeführt \cite{O11}. Vier häufig benutzten Beispielbilder wurden betrachtet.
+\\
+\\
+Was besonders interessiert in seiner Arbeit ist der Vergleich über die Anzahl der betrachteten Punkte bzw. der durchschnittliche Fehler. Wegen des verschiedenen Prinzip zwischen der auf Ecke basierten bzw. auf Klecks basierten Algorithmen, erkennt der Algorithmus FAST viele mehr Merkmalen als SURF und STAR. Der Unterschied sieht man deutlich in der Abbildung~\ref{Nodf}. Je mehr Punkte betrachtet, desto mehr Rauchen wird im System gebracht, weil viele normalen Pixeln auch als Merkmalen erkannt werden. Das ist offensichtliche ein negativer Einfluss für die weitere Analyse der Daten. Abbildung~\ref{Ate} zeigt den durchschnittlichen Fehler in Pixeln von den Punktpaaren, was durch gleichem Erkennungsalgorithmus von Bezugsbilder erkannt werden. Der Algorithmus STAR erzeugt deutlich weniger Fehler in der Erkennung, und das Ergebnis hängt auch leicht von der Eingabe ab. Wegen der niedrigeren Fehlerquote und besserer Konzentration an großen Merkmalen wie Klecks ist das STAR Algorithmus für die Erkennung der Objekte mit künstlichen Marken sehr geeignet.
+
+\begin{figure}[bft]
+\centering
+\includegraphics[scale=0.7]{Abbildungen/Average-tracking-error}
+\caption{Der durchschnittliche Fehler (in Pixeln) zwischen der gegenwertigen Punkte von zwei verfolgten Bildern}
+\label{Ate}
 \end{figure}
 
 \section{Markenverfolgung}
