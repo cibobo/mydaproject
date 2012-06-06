@@ -52,7 +52,7 @@ RecognitionResult::RecognitionResult(){
 	weight = 0;
 }
 
-RecognitionResult::RecognitionResult(RecognitionResult::NodePair nodePair, Node *center, float weight, int objIndex){
+RecognitionResult::RecognitionResult(RecognitionResult::NodePairs nodePair, Node *center, float weight, int objIndex){
 	this->nodePair = nodePair;
 	this->center = center;
 	this->weight = weight;
@@ -60,12 +60,24 @@ RecognitionResult::RecognitionResult(RecognitionResult::NodePair nodePair, Node 
 }
 
 void RecognitionResult::mark(){
-	NodePair::iterator it = this->nodePair.begin();
+	NodePairs::iterator it = this->nodePair.begin();
 	for(;it!=this->nodePair.end();it++){
-		it->first->timmer = -1;
+		it->first->color = 1;
 	}
-	this->center->timmer = -2;
+	this->center->color = 2;
 }
+void RecognitionResult::markColorful(){
+	NodePairs::iterator it = this->nodePair.begin();
+	int i=1;
+	for(;it!=this->nodePair.end();it++, i++){
+		if(i>9){
+			i=0;
+		}
+		it->first->color = i;
+		it->second->color = i;
+	}
+}
+
 /*****************************
  * Definition of Recoginition
  *****************************/
@@ -84,7 +96,7 @@ Recognition::Recognition(){
 	//Object *obj4 = new Object("Box4");
 	//this->objectList.push_back(obj4);
 
-	Object *obj4 = new Object("Box_all3");
+	Object *obj4 = new Object("Box_all3g");
 	this->objectList.push_back(obj4);
 
 
@@ -149,25 +161,32 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 
 	bool compResult = false;
 	if(caliResult.size()>0 && caliResult[0].size()>0){
-		Graph *newGraph = new Graph();
+		//graph = new Graph();
 
 		vector<Point3f> point3D;
 		vector<Point2f> point2D;
 		decPMDPointVector(caliResult[0], point3D, point2D);
 
-		newGraph->createCompleteGraph(point3D);
+		graph->createCompleteGraph(point3D);
+
+		// create new thread to show the graph
+		//if(_beginthread (drawGraphWithOpenGL, 0, NULL) == -1){
+		//	cout<<"Failed to create draw thread"<<endl;
+		//}
+
 		// create the new map for the static date
 		createStatisticMap();
 		for(int i=0;i<this->objectList.size();i++){
 			float e = 0.013;
 			float rate = 0.0;
 			float error = 0;
-			map<Node*,Node*> resultPair;
+			NodePairs resultPair;
 			Node* center;
-			compResult = newGraph->isEqualAdvance(objectList[i], e, rate, resultPair, center, error);
+			//compResult = graph->isEqualAdvance(objectList[i], e, rate, resultPair, center, error);
+			compResult = graph->isEqualAdvance(objectList[i], 0.05, 3, 4, resultPair);
 			if(compResult){
 				cout<<"Find the Object! "<<i<<endl;
-				int appear = this->Statistic[0].find(i)->second.appear(timmer);
+				//int appear = this->Statistic[0].find(i)->second.appear(timmer);
 				//cout<<"The appearence rate is: "<<float(appear)/timmer<<endl;
 
 				// show the result
@@ -175,24 +194,25 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 				circle(drawMat, Point2f(i*10+5, 5), 5, color, -1);
 				
 				// Update result list
-				updateResultList(i, resultPair, center);
+				//updateResultList(i, resultPair, center);
+				updateObjectPosition(i, resultPair);
 				
 			}
-			int maxIndex = this->findBestResult();
-			if(maxIndex != -1){
-				this->resultList[maxIndex].mark();
-				// transformate the object
-				updateObjectPosition(i, resultPair);
-			}
+			//int maxIndex = this->findBestResult();
+			//if(maxIndex != -1){
+			//	this->resultList[maxIndex].markColorful();
+			//	// transformate the object
+			//	updateObjectPosition(i, resultPair);
+			//}
 		}
 
 		// show the appearence rate
-		cout<<"The appearance rate are:"<<endl;
-		for(int i=0;i<Statistic[0].size();i++){
-			cout<<Statistic[0].find(i)->second.getAppearanceRate(timmer)<<"   ";
-			//cout<<Statistic[0].find(i)->second.maxContinueFrames<<"   ";
-		}
-		cout<<endl;
+		//cout<<"The appearance rate are:"<<endl;
+		//for(int i=0;i<Statistic[0].size();i++){
+		//	cout<<Statistic[0].find(i)->second.getAppearanceRate(timmer)<<"   ";
+		//	//cout<<Statistic[0].find(i)->second.maxContinueFrames<<"   ";
+		//}
+		//cout<<endl;
 	}
 	imshow("Recognition", drawMat);
 }
@@ -205,7 +225,7 @@ void Recognition::createStatisticMap(){
 	this->Statistic.push_back(statisticDate);
 }
 
-void Recognition::updateResultList(int index, NodePair resultPair, Node *center){
+void Recognition::updateResultList(int index, NodePairs resultPair, Node *center){
 	// The proportion of object and neighbors
 	float objProp = 0.01;
 	float neiProp = 0.05;
@@ -244,12 +264,12 @@ void Recognition::updateResultList(int index, NodePair resultPair, Node *center)
 	this->resultList.push_back(newResult);
 }
 
-void Recognition::updateObjectPosition(int index, NodePair resultPair){
+void Recognition::updateObjectPosition(int index, NodePairs resultPair){
 	Mat R = Mat::eye(3,3,CV_32FC1);
 	Mat T = Mat::zeros(3,1,CV_32FC1);
 	vector<Point3f> newPoints;
 	vector<Point3f> oldPoints;
-	NodePair::iterator it=resultPair.begin();
+	NodePairs::iterator it=resultPair.begin();
 	for(;it!=resultPair.end();it++){
 		// The old points are the points, which were saved in model
 		oldPoints.push_back(it->first->getPoint());
@@ -273,3 +293,51 @@ int Recognition::findBestResult(){
 	cout<<"The Max Weight: "<<maxWeight<<endl;
 	return maxIndex;
 }
+
+
+//void Recognition::drawGraphWithOpenGL(){
+//	static OpenGLWinUI *pObjGLWinUI = new OpenGLWinUI;
+//	OpenGLContext *pObjViewContext = new OpenGLContext;
+//
+//	TlsSetValue(1001, pObjGLWinUI);
+//
+//	if(!CreateOpenGLWindow("Recognition Graph Window", 0, 0, 750, 750, PFD_TYPE_RGBA, 0, pObjGLWinUI, pObjViewContext)){
+//		exit(0);
+//	}
+//
+//	cout<<"The Object Structur OpenGL Windows is running"<<endl;
+//
+//	MSG msg;
+//	bool bDone = false;
+//
+//	while(!bDone){
+//		if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
+//			if(msg.message==WM_QUIT){
+//				bDone = TRUE;
+//			} else if(msg.message==WM_RBUTTONDOWN){
+//				// klick right button of mouse to stop and rerun the input of frame
+//				//if(isPause){
+//				//	cout<<"frame running!"<<endl;
+//				//	LeaveCriticalSection(&pauseCrs);
+//				//	isPause = false;
+//				//} else {
+//				//	cout<<"frame pause!"<<endl;
+//				//	EnterCriticalSection(&pauseCrs);
+//				//	isPause = true;
+//				//}
+//			} else{
+//				TranslateMessage(&msg);
+//				DispatchMessage(&msg);
+//				//display(pOpenGLWinUI, disData, intData, ampData);
+//			}
+//		} else {
+//			//EnterCriticalSection (&calcCrs);
+//			display(pObjGLWinUI, graph);
+//			SwapBuffers(pObjViewContext->hDC);
+//			glEnable(GL_LIGHTING);
+//			//LeaveCriticalSection(&calcCrs);
+//		}
+//	}
+//	delete pObjViewContext;
+//	delete pObjGLWinUI;
+//}

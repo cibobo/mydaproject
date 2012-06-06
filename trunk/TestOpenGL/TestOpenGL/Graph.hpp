@@ -7,6 +7,7 @@
 //#include "Evaluation.hpp"
 
 
+
 using namespace std;
 using namespace cv;
 
@@ -29,8 +30,11 @@ public:
 class Node : public Point3f{
 //class Node : public Point2f{
 public:
+	typedef map<Node*, Node*> NodePairs;
+	typedef map<Node*, float> Neighbors;
+
 	//vector<Edge> edgeList;
-	map<Node*, float> neighbors;
+	Neighbors neighbors;
 	int index;
 	int timmer;
 	bool isFixed;
@@ -51,6 +55,7 @@ public:
 	float distanceTo(Node *other);
 	float distanceTo(Point3f point);
 	bool hasNeighbor(Node *other);
+	void findCorresNeighbors(Node *other, NodePairs &nodePairs, float e);
 };
 
 class Graph{
@@ -89,6 +94,7 @@ public:
 
 	//void createMaxGraph(vector<vector<Point2f>> pointSets);
 	void createCompleteGraph(vector<Point3f> points);
+
 	int getSize();
 	vector<Point3f> getPoints();
 	//bool updateGraph(vector<Point3f> points);
@@ -99,13 +105,20 @@ public:
 	// The nodePairs saving the pointer of associate Nodes, where the first place for the node in Graph 'other'
 	bool isEqual(Graph *other);
 	bool isEqual1(Graph *other, float e, float rate);
-	bool Graph::isEqualAdvance(Graph *other, float e, float rate, NodePairs &nodePairs, Node *&center, float &error);
+	bool isEqualAdvance(Graph *other, float e, float rate, NodePairs &nodePairs, Node *&center, float &error);
+
+	bool isEqualAdvance(Graph *other, float e, int minNodeSize, int minParisCount, NodePairs &nodePairs);
+	bool findTriangle(NodePairs nodePairs, NodePairs &triangle, float e);
+	bool checkNeighbors(NodePairs &nodePairs);
 
 	Node *findNode(int index);
 	//find the index of the node in nodelist. If it doesn't exist, return -1, otherweise return the index
 	int findIndex(Node *node);
 
 	Point3f getMiddelPoint();
+
+	//set the color for all node to null
+	void clearColor();
 
 
 };

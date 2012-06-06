@@ -1,10 +1,13 @@
 #include <cv.h>
 #include <highgui.h>
 #include <list>
+#include <process.h>
 
 #include "ImageProcess.hpp"
 #include "Object.hpp"
 #include "PMDPoint.hpp"
+#include "OpenGLDraw.hpp"
+//#include "OpenGLWin.hpp"
 
 using namespace cv;
 using namespace std;
@@ -37,15 +40,16 @@ public:
 
 class RecognitionResult {
 public:
-	typedef map<Node*, Node*> NodePair;
+	typedef map<Node*, Node*> NodePairs;
 	
 	RecognitionResult();
-	RecognitionResult(NodePair nodePair, Node *center, float weight,int objIndex);
+	RecognitionResult(NodePairs nodePair, Node *center, float weight,int objIndex);
 	~RecognitionResult(){};
 
 	void mark();
+	void markColorful();
 
-	NodePair nodePair;
+	NodePairs nodePair;
 	Node* center;
 	float weight;
 	int objIndex;
@@ -55,7 +59,7 @@ public:
 class Recognition {
 
 public:
-	typedef map<Node*, Node*> NodePair;
+	typedef map<Node*, Node*> NodePairs;
 
 	Recognition();
 	~Recognition();
@@ -64,8 +68,12 @@ public:
 	void createStatisticMap();
 
 	// update the result list and return the index of the best result
-	void updateResultList(int index, NodePair resultPair, Node *center);
-	void updateObjectPosition(int index, NodePair resultPair);
+	void updateResultList(int index, NodePairs resultPair, Node *center);
+	// second version
+	void updateResultList(int index, NodePairs resultPair);
+	void updateObjectPosition(int index, NodePairs resultPair);
+
+	//void drawGraphWithOpenGL();
 
 	int findBestResult();
 
