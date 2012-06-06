@@ -10,7 +10,7 @@
  */
 #define RECOGNITION
 
-#define OFFLINE
+//#define OFFLINE
 
 /*
  * Defination for the Algorithmen
@@ -153,9 +153,17 @@ void openGLThreadPorc( void *param )
 
 	TlsSetValue(ThreadIndex, pOpenGLWinUI);
 
+#ifdef RECOGNITION
+	int width = 600;
+	int height = 600;
+#else
+	int width = 900;
+	int height = 600;
+#endif
+
 	EnterCriticalSection (&glInitCrs);
 
-	if(!CreateOpenGLWindow("OpenGL Window", 0, 0, 900, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI, p3DDataViewContext)){
+	if(!CreateOpenGLWindow("OpenGL Window", 0, 0, width, height, PFD_TYPE_RGBA, 0, pOpenGLWinUI, p3DDataViewContext)){
 	//if((openGLhnd=CreateOpenGLWindow("OpenGL Window", 0, 0, 900, 600, PFD_TYPE_RGBA, 0, pOpenGLWinUI))==NULL){
 		exit(0);
 	}
@@ -198,7 +206,12 @@ void openGLThreadPorc( void *param )
 		} else {
 			//display(pOpenGLWinUI, bildDataBuffer[0]);
 			EnterCriticalSection (&calcCrs);
+#ifdef RECOGNITION
+			displayRecog(pOpenGLWinUI, recognition->graph);
+			glEnable(GL_LIGHTING);
+#else
 			display(pOpenGLWinUI, bildDataBuffer.back());
+#endif
 			SwapBuffers(p3DDataViewContext->hDC);
 			LeaveCriticalSection (&calcCrs);
 		}
