@@ -520,11 +520,22 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 		}
 		glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 
-		//if(graph->nodeList[i]->isFixed){
+		
 		glTranslatef(graph->nodeList[i]->x,graph->nodeList[i]->y,-graph->nodeList[i]->z);
 		glutSolidSphere(ballSize, 20, 16);
 		glTranslatef(-graph->nodeList[i]->x,-graph->nodeList[i]->y,graph->nodeList[i]->z);
-		//}
+
+if(graph->nodeList[i]->isFixed){
+		map<Node*, float>::iterator k = graph->nodeList[i]->neighbors.begin();
+		for(;k!=graph->nodeList[i]->neighbors.end();k++){
+			mat_diffuse[0] = mat_diffuse[1] = mat_diffuse[2] = mat_diffuse[3] = 1.0;
+			glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+			glBegin(GL_LINES);
+				glVertex3f(graph->nodeList[i]->x, graph->nodeList[i]->y, -graph->nodeList[i]->z); 
+				glVertex3f(k->first->x, k->first->y, -k->first->z); 
+			glEnd();
+		}
+}
 	}
 
 	/*

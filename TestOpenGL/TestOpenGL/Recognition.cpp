@@ -52,6 +52,12 @@ RecognitionResult::RecognitionResult(){
 	weight = 0;
 }
 
+RecognitionResult::RecognitionResult(RecognitionResult::NodePairs nodePair, float weight, int objIndex){
+	this->nodePair = nodePair;
+	this->weight = weight;
+	this->objIndex = objIndex;
+}
+
 RecognitionResult::RecognitionResult(RecognitionResult::NodePairs nodePair, Node *center, float weight, int objIndex){
 	this->nodePair = nodePair;
 	this->center = center;
@@ -96,7 +102,7 @@ Recognition::Recognition(){
 	//Object *obj4 = new Object("Box4");
 	//this->objectList.push_back(obj4);
 
-	Object *obj4 = new Object("Box_all3g");
+	Object *obj4 = new Object("Box_all4");
 	this->objectList.push_back(obj4);
 
 
@@ -183,7 +189,7 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 			NodePairs resultPair;
 			Node* center;
 			//compResult = graph->isEqualAdvance(objectList[i], e, rate, resultPair, center, error);
-			compResult = graph->isEqualAdvance(objectList[i], 0.05, 3, 4, resultPair);
+			compResult = graph->isEqualAdvance(objectList[i], 0.05, 0.8, 4, resultPair);
 			if(compResult){
 				cout<<"Find the Object! "<<i<<endl;
 				//int appear = this->Statistic[0].find(i)->second.appear(timmer);
@@ -194,16 +200,17 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 				circle(drawMat, Point2f(i*10+5, 5), 5, color, -1);
 				
 				// Update result list
-				//updateResultList(i, resultPair, center);
-				updateObjectPosition(i, resultPair);
+				updateResultList(i, resultPair);
+				//updateObjectPosition(i, resultPair);
 				
 			}
-			//int maxIndex = this->findBestResult();
-			//if(maxIndex != -1){
-			//	this->resultList[maxIndex].markColorful();
-			//	// transformate the object
-			//	updateObjectPosition(i, resultPair);
-			//}
+			int maxIndex = this->findBestResult();
+			cout<<"The max Index: "<<maxIndex<<endl;
+			if(maxIndex != -1){
+				this->resultList[maxIndex].markColorful();
+				// transformate the object
+				updateObjectPosition(i, resultPair);
+			}
 		}
 
 		// show the appearence rate
@@ -261,6 +268,52 @@ void Recognition::updateResultList(int index, NodePairs resultPair, Node *center
 
 	// Add new Result into List
 	RecognitionResult newResult(resultPair, center, objWeight+neiWeight, index);
+	this->resultList.push_back(newResult);
+}
+
+void Recognition::updateResultList(int index, NodePairs resultPair){
+	// The proportion of object and neighbors
+	float objProp = 0.01;
+	float neiProp = 0.01;
+
+	// The basic weight for the new result
+	float objWeight = 1;
+	float neiWeight = 0;
+
+	// Try to find the point in same object and the neighbors
+	vector<RecognitionResult>::iterator it = this->resultList.begin();
+	for(;it!=this->resultList.end();it++){
+		// If in same object
+		if(it->objIndex == index){
+			objWeight += it->weight * objProp;
+		}
+
+		// Compare the neighborhood
+		NodePairs::iterator resultPairIt = resultPair.begin();
+		for(;resultPairIt != resultPair.end();resultPairIt++){
+			NodePairs::iterator oldPairIt = it->nodePair.begin();
+			for(;oldPairIt!=it->nodePair.end();oldPairIt++){
+				// if identical point is found
+				if(resultPairIt->first == oldPairIt->first){
+					neiWeight += it->weight * neiProp * 2;
+					break;
+				}
+
+				// if neighborhood is found
+				if(resultPairIt->first->hasNeighbor(oldPairIt->first)){
+					neiWeight += it->weight * neiProp;
+				}
+			}
+		}
+	}
+	
+	// If the result list is full
+	if(this->resultList.size()>=this->maxListLength){
+		this->resultList.erase(this->resultList.begin());
+	}
+
+	// Add new Result into List
+	RecognitionResult newResult(resultPair, objWeight+neiWeight, index);
 	this->resultList.push_back(newResult);
 }
 

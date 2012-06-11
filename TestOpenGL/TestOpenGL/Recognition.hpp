@@ -43,6 +43,7 @@ public:
 	typedef map<Node*, Node*> NodePairs;
 	
 	RecognitionResult();
+	RecognitionResult(NodePairs nodePair, float weight,int objIndex);
 	RecognitionResult(NodePairs nodePair, Node *center, float weight,int objIndex);
 	~RecognitionResult(){};
 

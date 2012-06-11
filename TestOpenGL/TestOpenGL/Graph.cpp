@@ -524,7 +524,7 @@ void Graph::showWithOpenCV(const char *name){
 
 void Graph::clearColor(){
 	for(int i=0;i<this->nodeList.size();i++){
-		this->nodeList[i]->color = -1;
+		this->nodeList[i]->color = 0;
 	}
 }
 
@@ -540,7 +540,7 @@ bool Graph::isEqual(Graph *other){
 	return this->isEqualAdvance(other, e, rate, nodePairs, center, error);
 }
 
-bool Graph::isEqualAdvance(Graph *other, float e, int minNodeSize, int minParisCount, NodePairs &nodePairs){
+bool Graph::isEqualAdvance(Graph *other, float e, float prop, int minParisCount, NodePairs &nodePairs){
 	if(this->nodeList.size()<3){
 		cout<<"The current graph has not enough points"<<endl;
 		return false;
@@ -564,7 +564,7 @@ bool Graph::isEqualAdvance(Graph *other, float e, int minNodeSize, int minParisC
 		bool isFound = false;
 		// create the minimal acceptable number of numbers for point p
 		//int minNodeSize = (p->neighbors.size() * prop)>=4?(p->neighbors.size()*prop):4;
-		//int minNodeSize = (this->nodeList.size()*prop)>=4?(this->nodeList.size()*prop):4;
+		int minNodeSize = (this->nodeList.size()*prop)>=4?(this->nodeList.size()*prop):4;
 		//int minNodeSize = 4;
 
 		int bestNeighborCount = 0;
@@ -630,15 +630,15 @@ bool Graph::isEqualAdvance(Graph *other, float e, int minNodeSize, int minParisC
 	if(findTriangle(localNodePair, nodePairs, 0.008)){
 
 
-		NodePairs::iterator it = nodePairs.begin();
-		int i=1;
-		for(;it!=nodePairs.end();it++, i++){
-			if(i>9){
-				i=0;
-			}
-			it->first->color = i;
-			it->second->color = i;
-		}
+		//NodePairs::iterator it = nodePairs.begin();
+		//int i=1;
+		//for(;it!=nodePairs.end();it++, i++){
+		//	if(i>9){
+		//		i=0;
+		//	}
+		//	it->first->color = i;
+		//	it->second->color = i;
+		//}
 		return true;
 	}
 	cout<<"All nodes have been reached but no coorespondenz found!"<<endl;
