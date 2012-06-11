@@ -107,7 +107,8 @@ public:
 	bool isEqual1(Graph *other, float e, float rate);
 	bool isEqualAdvance(Graph *other, float e, float rate, NodePairs &nodePairs, Node *&center, float &error);
 
-	bool isEqualAdvance(Graph *other, float e, int minNodeSize, int minParisCount, NodePairs &nodePairs);
+	// Porp show the proportion of input points, which should be recognized as correspondent neighbors 
+	bool isEqualAdvance(Graph *other, float e, float prop, int minParisCount, NodePairs &nodePairs);
 	bool findTriangle(NodePairs nodePairs, NodePairs &triangle, float e);
 	bool checkNeighbors(NodePairs &nodePairs);
 

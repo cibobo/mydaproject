@@ -103,16 +103,16 @@ int MAXJUMPEDFEATURES = 5;
 int FRAMERATE = 30;
 
 // The input path
-const char *INPUTPATH = "Eva3DRotation4";
+const char *INPUTPATH = "Eva3DRotation5";
 
-char *OUTPUTPATH = "Eva3DRotation4";
+char *OUTPUTPATH = "Eva3DRotation5";
 bool ISDATASAVED = false;
 
 // Evaluation output path
 char *EVAOUTPUTPATH = "FirstTest";
 
 // The vtk file name
-char *MODELNAME = "box_all3";
+char *MODELNAME = "box_test";
 
 //int HISFRAMEINDEX = 3;
 
