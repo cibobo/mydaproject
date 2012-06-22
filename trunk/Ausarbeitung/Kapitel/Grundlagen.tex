@@ -69,51 +69,137 @@ Lange der Tiefdaten & 8 bit (unsigned char) & 11 bit \\ \hline
 \end{center}
 \end{table}
 
-\subsection{Daten von PMD Kamera}
-Die PMD Kamera CamCube kann insgesamt 4 verschiedenen Vermessungsdaten ausgeben. Sie sind Amplitude, Intensität, Distanz und 3D Koordinaten. Die erste Zwei und letzte Zwei Typen der Daten können durch der Dimension in zwei Gruppen unterteilt werden. 
+\subsection{Daten der PMD Kamera}
+Die PMD Kamera CamCube kann insgesamt 4 verschiedenen Vermessungsdaten ausgeben. Sie sind Amplitude, Intensität, Distanz und 3D Koordinaten. Die erste Zwei und letzte Zwei Typen der Daten können durch die Dimension in zwei Gruppen unterteilt werden. 
 
 \subsubsection{2D Daten}
-Die Intensität bezieht sich auf der Graustufen. Nach einer Abbildung können diese Graustufen in 0 bis 255 beschränkt werden, und das Ergebnis ist gleich als das Bild einer normalen Schwarz-Weiß Kamera. Die Amplitude zeigt die Stärke der Beleuchtung, die vom Objekt wegen des aktiven Sendersignal von PMD Kamera selbst gespiegelt wird. Dieser Wert kann die Qualität der Distanzinformation schätzen, d.h. das Objekt weit von Kamera liefert niedriger Amplitude als das Objekt in der Nähe von der Kamera, wenn sie mit identischem Material dargestellt werden. An der Gegenseite sind die Merkmalen mit höherem Rückstrahlvermögen durch Amplitudedaten einfacher betrachtet, was für die Erkennung der großen künstlichen Marken in unserer Arbeit sinnvoll ist.   
+Die Intensität bezieht sich auf Graustufen. Nach einer Abbildung können diese Graustufen auf das Intervall 0 bis 255 beschränkt werden und das Ergebnis ist das Bild einer normalen Schwarz-Weiß Kamera. Die Amplitude zeigt die Stärke der Beleuchtung, die vom Objekt wegen des aktiven Sendersignal von PMD Kamera selbst reflektiert wird. Dieser Wert kann die Qualität der Distanzinformation schätzen, d.h. das Objekt weit von Kamera liefert niedriger Amplitude als das Objekt in der Nähe von der Kamera, wenn sie mit identischem Material dargestellt werden. An der Gegenseite sind die Merkmalen mit höherem Rückstrahlvermögen durch Amplitudedaten einfacher betrachtet, was für die Erkennung der großen künstlichen Marken in unserer Arbeit sinnvoll ist.   
 
 \subsubsection{3D Daten}
-Die PMD Kamera liefert 3D Daten in zwei Formen: die reine Distanzinformation und die 3D Koordinaten. Die Distanzinformation ist die gemessene Distanz zwischen der Kamera und Objekt, was direkt durch der Formel \eqref{tof1} berechnet wird. Bezüglich diese Distanzinformation und die 2D Daten wie normale Kamera werden die 3D Koordinaten innerhalb der PMD Kamera berechnet und können durch die Schnittstelle zugegriffen werden.
+Die PMD Kamera liefert 3D Daten in zwei Formen: die reine Distanzinformation und die 3D Koordinaten. Die Distanzinformation ist die gemessene Distanz zwischen der Kamera und Objekt, was direkt durch die Formel \eqref{tof1} berechnet wird. Bezüglich dieser Distanzinformation und der 2D Daten der normalen Kamera werden die 3D Koordinaten innerhalb der PMD Kamera berechnet und können durch die Schnittstelle abgefragt werden. Die Abbildung~\ref{C3D} zeigt die Visualisierung einer Szene mit jeweils der 3D Koordinaten und Distanzinformation von PMD Kamera. Eine Transformation ist notwendig, wenn man direkt die Distanzinformation im kartesischen Koordinatensystem visualisieren möchte.
 
+\begin{figure}[bft]
+\centering
+\includegraphics[scale=0.45]{Abbildungen/Compare-3D-Dis}
+\caption{Die Visualisierung von 3D Koordinaten(link) und Distanzinformation(recht).}
+\label{C3D}
+\end{figure}
 
 \subsection{Helligkeit und Sättigung}
 
 \section{Markenerkennung}
-Als was in Sektion \ref{mErkennung} geschrieben hat, sind viele Erkennungsalgorithmen in Open Source Library OpenCV realisiert. Der komplette Vergleich dazwischen bezüglich dem Fehlerquote, Zeitaufwand und anderen Eigenschaften wird viele gemacht, damit man dem geeigneten Algorithmus für seinen Bedürfnis auswählen kann. 
+Wie im Abschnitt \ref{mErkennung} beschrieben hat, sind viele Erkennungsalgorithmen in der Open Source Library OpenCV realisiert. Wegen vieler Benutzung von OpenCV, wird der Vergleich dieser Algorithmen häufig gemacht. Im folgenden Abschnitt wird Ein davon zitiert, um den geeigneten Algorithmus für unsere Arbeit auszuwählen.
      
 \subsection{Auswahl des Erkennungsalgorithmus}
 
 \begin{figure}[bft]
 \centering
 \includegraphics[scale=0.22]{Abbildungen/SampleBild}
-\caption{Die vier Beispielbilder. Von link nach recht sind Barbara, Lena, Peppers und Mandril\cite{O11}}
+\caption{Die vier Beispielbilder. Von link nach recht sind Barbara, Lena, Peppers und Mandril. \cite{O11}}
+\label{4Samp}
 \end{figure}
 
 \begin{figure}[bft]
 \centering
 \includegraphics[scale=0.7]{Abbildungen/Number-of-detected-features}
-\caption{Anzahl der erkannten Merkmalen von alle vier Beispielbildern durch verschiedene Erkennungsalgorithmen}
+\caption{Anzahl der erkannten Merkmalen von alle vier Beispielbildern durch verschiedene Erkennungsalgorithmen. \cite{O11}}
 \label{Nodf}
 \end{figure}
 
-Odessa hat in seinem Blog einen sehr gute Vergleich für alle Erkennungsalgorithmen von OpenCV durchgeführt \cite{O11}. Vier häufig benutzten Beispielbilder wurden betrachtet.
+Odessa hat in seinem Blog einen sehr gute Vergleich für alle Erkennungsalgorithmen von OpenCV durchgeführt \cite{O11}. Vier häufig benutzten Beispielbilder wurden betrachtet (s. Abb.~\ref{4Samp}).
 \\
 \\
-Was besonders interessiert in seiner Arbeit ist der Vergleich über die Anzahl der betrachteten Punkte bzw. der durchschnittliche Fehler. Wegen des verschiedenen Prinzip zwischen der auf Ecke basierten bzw. auf Klecks basierten Algorithmen, erkennt der Algorithmus FAST viele mehr Merkmalen als SURF und STAR. Der Unterschied sieht man deutlich in der Abbildung~\ref{Nodf}. Je mehr Punkte betrachtet, desto mehr Rauchen wird im System gebracht, weil viele normalen Pixeln auch als Merkmalen erkannt werden. Das ist offensichtliche ein negativer Einfluss für die weitere Analyse der Daten. Abbildung~\ref{Ate} zeigt den durchschnittlichen Fehler in Pixeln von den Punktpaaren, was durch gleichem Erkennungsalgorithmus von Bezugsbilder erkannt werden. Der Algorithmus STAR erzeugt deutlich weniger Fehler in der Erkennung, und das Ergebnis hängt auch leicht von der Eingabe ab. Wegen der niedrigeren Fehlerquote und besserer Konzentration an großen Merkmalen wie Klecks ist das STAR Algorithmus für die Erkennung der Objekte mit künstlichen Marken sehr geeignet.
+Was besonders interessiert in seiner Arbeit ist der Vergleich über die Anzahl der betrachteten Punkte bzw. der durchschnittlichen Fehler. Wegen der verschiedenen Prinzipien erkennt der Algorithmus FAST viel mehr Merkmale als SURF und STAR. Den Unterschied sieht man deutlich in der Abbildung~\ref{Nodf}. Je mehr Punkte betrachtet werden, desto mehr Rauschen wird in das System gebracht, weil viele normale Pixel auch als Merkmale erkannt werden. Das ist offensichtlich ein negativer Einfluss für die weitere Analyse der Daten. Abbildung~\ref{Ate} zeigt den durchschnittlichen Fehler in Pixeln von den Punktpaaren, was durch gleichen Erkennungsalgorithmus von Bezugsbildern erkannt wird. Der Algorithmus STAR erzeugt deutlich weniger Fehler in der Erkennung, und das Ergebnis hängt auch leicht von der Eingabe ab. Wegen der niedrigeren Fehlerquote und besserer Konzentration an großen Merkmalen wie Klecks ist der STAR Algorithmus für die Erkennung der Objekte mit künstlichen Marken sehr geeignet.
 
 \begin{figure}[bft]
 \centering
 \includegraphics[scale=0.7]{Abbildungen/Average-tracking-error}
-\caption{Der durchschnittliche Fehler (in Pixeln) zwischen der gegenwertigen Punkte von zwei verfolgten Bildern}
+\caption{Der durchschnittliche Fehler (in Pixeln) zwischen der assoziierten Punkte von zwei verfolgten Bildern. \cite{O11}}
 \label{Ate}
 \end{figure}
 
 \section{Markenverfolgung}
 
 \subsection{Kalman-Filter}
+
+\subsubsection{Zustandsraummodellierung}
+Das Kalman-Filter ist basiert auf einem linearen dynamischen System auf diskretisiertem Zeitraum. Die Zustandsgleichung des Systems wird häufig durch eine Differenzengleichung beschrieben. In vielen Fällen werden die Zuständen nur durch einem voneinander getrennten Zeitpunkt bestimmt. Kalman hat den Sonderfall der lediglich linearen Abhängigkeit der Zustände untereinander betrachtet, und vereinfachte die Zustandsgleichung zur linearen Differenzengleichung:
+
+\begin{equation}
+X_k = F_{k-1} X_{k-1} + B_{k-1} u_{k-1} + w_{k-1} 
+\end{equation}
+
+Der Index $k$ bzw. $k-1$ beziehen sich auf dem Zeitpunkt $t_{k}$ und $t_{k-1}$, wobei $t_k = t_0 + k \Delta t$ und $t_0$ der Anfangszeitpunkt und $k$ eine natürliche Zahl von Interesse ist. Deshalb beschreibt der mehrdimensionale Vektor $X_k$ den Zustand des Systems am Zeitpunkt $t_k$. Die Matrix $F_{x-1}$ ist die Übergangsmatrix für die zeitlich aufeinanderfolgenden Zustände $X_k$ und $X_{k-1}$. Die Matrix $B_{k-1}$ und Kontrollvektor $u_{k-1}$ stellen den deterministischen Anteil der weiteren äußeren Einflüsse auf das System dar.  Die zufälligen, nicht erfassbaren Komponenten der äußeren Einflüssen werden durch der stochastischen Größe $w_{k-1}$ geschätzt, die einer Normalverteilung mit Mittelwert 0 und Kovarianz $Q_{k-1}$ folgt.
+
+\[
+w_{k-1} \sim N(0,Q_{k-1})
+\]
+
+Wegen dieser Zufallsvariable bilden die Menge aller Zustandsvektoren eine Markow-Kette, d.h. der Zustand zu einem Zeitpunkt $k$ hängt lediglich vom unmittelbaren zeitlichen Vorgänger an $k-1$ ab.
+\\
+\\
+Die Beobachtungen des Systems werden aus modellierbarer Verzerrung und unvorhersagbarem Messrauschen bestehlt.
+
+\begin{equation}
+Z_k = H_k X_k + v_k
+\end{equation} 
+
+$Z_k$ bezieht sich auf die Messung am Zeitpunkt $k$. Die Multiplikation von der Beobachtungsmatrix $H_k$ und Zustandsvektor $X_k$ beschreibt die linear Approximation der Verzerrung des Systems. Das Rauschen $v_k$ wird im Kalman-Filter als zeitlich unkorreliert und normalverteilt angenommen.
+
+\[
+v_k \sim N(0,R_k)
+\]
+
+\subsubsection{Das Kalman-Filter}
+
+Die Idee des Kalman-Filter ist, eine rekursive Formulierung aufzubauen, die aber nur die Schätzung vorheriges Zeitpunkts und aktuelle Messung benötigt, um die Schätzung des aktuellen Zeitpunkt zu bestimmen. Es gibt hauptsächlich zwei Phase im Kalman-Filter.
+
+\textbf{Prädiktion}
+\\
+In dem ersten Schritt dieser Phase wird eine vorangegangene Schätzung $X_{k|k-1}$ für aktuellen Zeitpunkt vorausgesagt.
+
+\begin{equation}
+\hat{X}_{k|k-1} = F_{k-1} \hat{X}_{k-1} + B_{k-1} u_{k-1}
+\end{equation}
+
+Die Indizierungsschreibweise $k|k-1$ bezieht sich auf der Bedingtheit zu den Zeitpunkten $k$ und $k-1$. Die Kovarianz gilt:
+
+\begin{equation}
+\hat{P}_{k|k-1} = F_{k-1} \hat{P}_{k-1} F_{k-1}^T + Q_{k-1}
+\end{equation}
+
+\textbf{Korrektur}
+\\
+Die Vorhersagen von letztem Schritt werden hier durch die neue Messung korrigiert.
+
+\begin{equation}
+\hat{X}_k = \hat{X}_{k|k-1} + \hat{K}_k \tilde{y}_k
+\end{equation}
+
+und 
+
+\begin{equation}
+\hat{P}_k = \hat{P}_{k|k-1} - \hat{K}_k S_k \hat{K}_k^T
+\end{equation}
+
+Die Hilfsgröße Innovation:
+
+\[
+\tilde{y}_k = Z_k - H_k \hat{X}_{k|k-1}
+\]
+
+beschreibt, wie genau die vorhergesagten Schätzungen mithilfe der Beobachtungsgleichung den aktuellen Messungen approximieren. $S_k$ bezieht sich auf der Residualkovarianz, was gilt:
+
+\[
+S_k = H_k \hat{P}_{k|k-1} H_k^T + R_k
+\]
+
+und $\hat{K}_k$ ist die zugehörige Kalman-Matrix.
+
+\[
+\hat{K}_k = \hat{P}_{k|k-1} H_k^T S_k^{-1}
+\]
+
 
 \subsection{Singulärwertzerlegung}
 Sei M eine komplexe $m \times n$ Matrix mit Rang r. Dann bezeichnet die Singulärwertzerlegung das Produkt:
@@ -577,6 +663,26 @@ Das Algorithmus durchläuft für jeden Punkt von Punktmenge $D$ und die Lösung hän
 \end{algorithm}
 
 \subsection{Teilgraph Isomorphismus}
-
+Die Objekterkennung bzw. Objektverfolgung werden vom Vergleich der Modellgraphen und Eingabegraphen realisiert. Ein für unsere Arbeit hilfreicher Algorithmus wurde von Rhijn und Mulder entwickelt \cite{AJ05}. Um das Problem von Graph Isomorphismus zu vereinfachen, werden nur ein Teilgraph $S_{min}$ von Modellgraphen betrachtet. $S_{min}$ soll ein vollständiges Graph sein und ein Modellgraph eindeutig bestimmen können. 
+\begin{algorithm}
+\caption{Teilgraph Isomorphismus}
+\begin{algorithmic}
+	\State Modellgraph:$G_m$, Eingabegraph:$G_d$, Menge von Kandidaten: $K$
+	\For {jede $p_i \in G_d$}
+		\For {jeder Nachbar $p_j$ von $p_i$}
+			\State Suchen alle Punktpaare $(v_k, v_l) \in G_m$, damit $dist(p_i, p_j) = dist(v_k, v_l)$ 
+			\If {Anzahl der im letzten Schritt gefundenen Punktpaare 
+				\\$>$ die Größe der $S_{min}$}
+				\State fügen den Punkt $<p_i, v_k>$ zum Kandidaten $K$ ein
+				\If {Drei Nachbarn von $p_i$ können gefunden werden, 
+					\\die mit $p_i$ ein Pyramid aufbauen können 
+					\\und die identische Kante zum $p_i$ können in $G_m$ gefunden werden}
+					\State Teilgraph Isomorphismus finden
+				\EndIf
+			\EndIf 
+		\EndFor
+	\EndFor
+\end{algorithmic}
+\end{algorithm}
 
 

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2012.5.22)  1 JUN 2012 14:34
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2012.5.22)  21 JUN 2012 23:06
 entering extended mode
 **Muster.tex
 (C:\Users\Beibei\Documents\DA\Ausarbeitung\Muster.tex
@@ -459,7 +459,7 @@ LaTeX Font Info:    Try loading font information for U+msb on input line 46.
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\amsfonts\umsb.fd"
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 )
-<Abbildungen/kit_logo_de_farbe_positiv.jpg, id=239, 199.7061pt x 91.3011pt>
+<Abbildungen/kit_logo_de_farbe_positiv.jpg, id=247, 199.7061pt x 91.3011pt>
 File: Abbildungen/kit_logo_de_farbe_positiv.jpg Graphic file (type jpg)
 
 <use Abbildungen/kit_logo_de_farbe_positiv.jpg>
@@ -576,7 +576,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 16--20
 
  []
 
-<Abbildungen/PMDParam.png, id=491, 695.59875pt x 468.24937pt>
+<Abbildungen/PMDParam.png, id=496, 695.59875pt x 468.24937pt>
 File: Abbildungen/PMDParam.png Graphic file (type png)
 
 <use Abbildungen/PMDParam.png>
@@ -593,7 +593,7 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
  [12
 
 ]
-<Abbildungen/PMDIntTime.png, id=503, 636.12656pt x 221.32687pt>
+<Abbildungen/PMDIntTime.png, id=508, 636.12656pt x 221.32687pt>
 File: Abbildungen/PMDIntTime.png Graphic file (type png)
 
 <use Abbildungen/PMDIntTime.png>
@@ -607,7 +607,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 44--46
 
  []
 
-<Abbildungen/Kinect.png, id=517, 418.56375pt x 268.00125pt>
+<Abbildungen/Kinect.png, id=522, 418.56375pt x 268.00125pt>
 File: Abbildungen/Kinect.png Graphic file (type png)
 
 <use Abbildungen/Kinect.png>
@@ -615,79 +615,94 @@ Package pdftex.def Info: Abbildungen/Kinect.png used on input line 49.
 (pdftex.def)             Requested size: 251.14018pt x 160.80197pt.
  [14 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/PMDIntTime.png> <C:
 /Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Kinect.png>] [15]
-<Abbildungen/SampleBild.png, id=538, 1576.38937pt x 380.92313pt>
+<Abbildungen/Compare-3D-Dis.png, id=543, 881.54344pt x 392.96812pt>
+File: Abbildungen/Compare-3D-Dis.png Graphic file (type png)
+
+<use Abbildungen/Compare-3D-Dis.png>
+Package pdftex.def Info: Abbildungen/Compare-3D-Dis.png used on input line 83.
+(pdftex.def)             Requested size: 396.69089pt x 176.83401pt.
+ [16 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Compare-3D-Dis.png>
+]
+<Abbildungen/SampleBild.png, id=551, 1576.38937pt x 380.92313pt>
 File: Abbildungen/SampleBild.png Graphic file (type png)
 
 <use Abbildungen/SampleBild.png>
-Package pdftex.def Info: Abbildungen/SampleBild.png used on input line 91.
+Package pdftex.def Info: Abbildungen/SampleBild.png used on input line 97.
 (pdftex.def)             Requested size: 346.80673pt x 83.80333pt.
 
-<Abbildungen/Number-of-detected-features.png, id=541, 599.23875pt x 350.05782pt
+<Abbildungen/Number-of-detected-features.png, id=554, 599.23875pt x 350.05782pt
 >
 File: Abbildungen/Number-of-detected-features.png Graphic file (type png)
  <use Abbildungen/Number-of-detected-features.png>
 Package pdftex.def Info: Abbildungen/Number-of-detected-features.png used on in
-put line 97.
+put line 104.
 (pdftex.def)             Requested size: 419.46426pt x 245.03879pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 102--106
+Underfull \hbox (badness 10000) in paragraph at lines 109--113
 
  []
 
-[16 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/SampleBild.png>]
-<Abbildungen/Average-tracking-error.png, id=551, 599.23875pt x 413.29407pt>
+[17 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/SampleBild.png> <C:/
+Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Number-of-detected-features.
+png>]
+<Abbildungen/Average-tracking-error.png, id=569, 599.23875pt x 413.29407pt>
 File: Abbildungen/Average-tracking-error.png Graphic file (type png)
 
 <use Abbildungen/Average-tracking-error.png>
 Package pdftex.def Info: Abbildungen/Average-tracking-error.png used on input l
-ine 109.
+ine 116.
 (pdftex.def)             Requested size: 419.46426pt x 289.30386pt.
 
 Underfull \vbox (badness 10000) has occurred while \output is active []
 
- [17 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Number-of-detected-
-features.png>]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
  [18 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Average-tracking-er
 ror.png>]
-Underfull \hbox (badness 10000) in paragraph at lines 140--144
+Underfull \hbox (badness 10000) in paragraph at lines 138--142
 
  []
 
+[19] [20]
+Underfull \hbox (badness 10000) in paragraph at lines 226--230
+
+ []
+
+[21]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 164.
-[19] [20] [21]
-Overfull \hbox (13.14516pt too wide) in paragraph at lines 286--286
+put line 250.
+ [22] [23]
+Overfull \hbox (13.14516pt too wide) in paragraph at lines 372--372
 []\OT1/cmr/bx/n/14.4 Beschreibung der Dre-hun-gen im Drei-di-men-sio-na-len Rau
 m
  []
 
-[22] [23] [24] [25]
-Underfull \hbox (badness 10000) in paragraph at lines 488--492
+[24] [25] [26] [27]
+Underfull \hbox (badness 10000) in paragraph at lines 574--578
 
  []
 
 
 LaTeX Font Warning: Font shape `OT1/cmss/m/it' in size <12> not available
-(Font)              Font shape `OT1/cmss/m/sl' tried instead on input line 494.
+(Font)              Font shape `OT1/cmss/m/sl' tried instead on input line 580.
 
 
-[26] <Abbildungen/DBSCAN.png, id=643, 1003.75pt x 723.70375pt>
+[28] <Abbildungen/DBSCAN.png, id=670, 1003.75pt x 723.70375pt>
 File: Abbildungen/DBSCAN.png Graphic file (type png)
 
 <use Abbildungen/DBSCAN.png>
-Package pdftex.def Info: Abbildungen/DBSCAN.png used on input line 536.
+Package pdftex.def Info: Abbildungen/DBSCAN.png used on input line 622.
 (pdftex.def)             Requested size: 301.12732pt x 217.1128pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 541--545
+Underfull \hbox (badness 10000) in paragraph at lines 627--631
 
  []
 
-[27 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/DBSCAN.png>])
-(C:\Users\Beibei\Documents\DA\Ausarbeitung\Kapitel/Implementierung.tex [28]
+[29 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/DBSCAN.png>]
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [30])
+(C:\Users\Beibei\Documents\DA\Ausarbeitung\Kapitel/Implementierung.tex [31]
 Kapitel 4.
-<Abbildungen/HauptAblauf.png, id=659, 822.4326pt x 285.10515pt>
+<Abbildungen/HauptAblauf.png, id=694, 822.4326pt x 285.10515pt>
 File: Abbildungen/HauptAblauf.png Graphic file (type png)
 
 <use Abbildungen/HauptAblauf.png>
@@ -698,10 +713,10 @@ Overfull \hbox (11.32162pt too wide) in paragraph at lines 6--7
  [][] 
  []
 
-[29
+[32
 
  <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/HauptAblauf.png>]
-<Abbildungen/Ablaufsbild.png, id=667, 535.5207pt x 753.0534pt>
+<Abbildungen/Ablaufsbild.png, id=702, 535.5207pt x 753.0534pt>
 File: Abbildungen/Ablaufsbild.png Graphic file (type png)
 
 <use Abbildungen/Ablaufsbild.png>
@@ -709,28 +724,27 @@ Package pdftex.def Info: Abbildungen/Ablaufsbild.png used on input line 24.
 (pdftex.def)             Requested size: 374.86194pt x 527.13379pt.
 )
 (C:\Users\Beibei\Documents\DA\Ausarbeitung\Kapitel/ExperimentelleAuswertung.tex
-[30] [31 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Ablaufsbild.png
+[33] [34 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Ablaufsbild.png
 >]
 Kapitel 5.
-) (C:\Users\Beibei\Documents\DA\Ausarbeitung\Kapitel/Schlusswort.tex [32
+) (C:\Users\Beibei\Documents\DA\Ausarbeitung\Kapitel/Schlusswort.tex [35
 
 ]
 Kapitel 6.
-) [33
-
-] [34
+) [36
 
 ] (C:\Users\Beibei\Documents\DA\Ausarbeitung\Kapitel/Literatur.tex
 (C:\Users\Beibei\Documents\DA\Ausarbeitung\Muster.brf)
 \tf@brf=\write5
- [35
+ [37
+
 
 ]
 Underfull \hbox (badness 10000) in paragraph at lines 107--107
 []\OT1/cmr/m/n/12 Kinect-How it works  http://www.cadet.at/wp-
  []
 
-[36]
+[38]
 Underfull \hbox (badness 10000) in paragraph at lines 148--148
 []\OT1/cmr/m/n/12 PMDs Cam-Cu-be Einf[]uhrung:
  []
@@ -752,41 +766,32 @@ Overfull \hbox (0.62991pt too wide) in paragraph at lines 152--152
 camcube[]
  []
 
-[37]
+[39]
 Overfull \hbox (12.31093pt too wide) in paragraph at lines 176--176
 []\OT1/cmr/m/n/12 TOF-Kamera Wi-ki-pe-dia: http://de.wikipedia.org/wiki/Time-
  []
 
 )
 Package atveryend Info: Empty hook `BeforeClearDocument' on input line 312.
- [38]
+ [40]
 Package atveryend Info: Empty hook `AfterLastShipout' on input line 312.
  (C:\Users\Beibei\Documents\DA\Ausarbeitung\Muster.aux)
 Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 312.
 Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 312.
 Package rerunfilecheck Info: File `Muster.out' has not changed.
-(rerunfilecheck)             Checksum: 47D240B900DC4B782192273E5457033D;4352.
-
-
-Package rerunfilecheck Warning: File `Muster.brf' has changed.
-(rerunfilecheck)                Rerun to get bibliographical references right.
-
-Package rerunfilecheck Info: Checksums for `Muster.brf':
-(rerunfilecheck)             Before: 85AB35932FF76A420B65F73555F4C0A3;3419
-(rerunfilecheck)             After:  D6D5014550A8B2348E6B43D63AE40F91;3419.
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
+(rerunfilecheck)             Checksum: 870B3ADFBDF6D5A5B6C8077756B4241C;4521.
+Package rerunfilecheck Info: File `Muster.brf' has not changed.
+(rerunfilecheck)             Checksum: 8AC5BAD4FC416803120C384538D7AB15;3548.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 312.
  ) 
 Here is how much of TeX's memory you used:
- 7973 strings out of 494049
- 112682 string characters out of 3146062
- 204820 words of memory out of 3000000
- 10895 multiletter control sequences out of 15000+200000
+ 7995 strings out of 494049
+ 113077 string characters out of 3146062
+ 203062 words of memory out of 3000000
+ 10904 multiletter control sequences out of 15000+200000
  15412 words of font info for 55 fonts, out of 3000000 for 9000
  715 hyphenation exceptions out of 8191
- 32i,13n,28p,2529b,409s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 32i,13n,28p,2490b,407s stack positions out of 5000i,500n,10000p,200000b,50000s
 <C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 <C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmex10.pfb><C
 :/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/
@@ -802,9 +807,9 @@ KTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files (x86)/MiKT
 eX 2.9/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Program Files (x86)/MiKTeX 
 2.9/fonts/type1/public/amsfonts/cm/cmti12.pfb><C:/Program Files (x86)/MiKTeX 2.
 9/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on Muster.pdf (44 pages, 3919405 bytes).
+Output written on Muster.pdf (46 pages, 3964445 bytes).
 PDF statistics:
- 865 PDF objects out of 1000 (max. 8388607)
- 190 named destinations out of 1000 (max. 500000)
- 523 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 898 PDF objects out of 1000 (max. 8388607)
+ 202 named destinations out of 1000 (max. 500000)
+ 544 words of extra memory for PDF output out of 10000 (max. 10000000)
 
