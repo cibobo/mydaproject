@@ -53,7 +53,7 @@ public:
 	NodePairs nodePair;
 	Node* center;
 	float weight;
-	int objIndex;
+	int modelIndex;
 };
 
 
@@ -70,18 +70,22 @@ public:
 
 	// update the result list and return the index of the best result
 	void updateResultList(int index, NodePairs resultPair, Node *center);
+
 	// second version
 	void updateResultList(int index, NodePairs resultPair);
+
+	void updateResultList(int objIndex, int modelIndex, NodePairs resultPair);
 	void updateObjectPosition(int index, NodePairs resultPair);
 
 	//void drawGraphWithOpenGL();
 
 	int findBestResult();
+	int findBestResult(int objIndex);
 
 	// to save the existed objects
-	vector<Object*> objectList;
+	vector<Object*> modelList;
 	// to save the input graph
-	Graph *graph;
+	vector<Graph*> graphList;
 	Mat drawMat; 
 	// Parameter for the evaluation of the result
 	int maxListLength;
@@ -90,4 +94,5 @@ public:
 	vector<map<int,StatisticDate>> Statistic;
 	// to save the recognition's results
 	vector<RecognitionResult> resultList;
+	map<int, map<int,RecognitionResult>> resultMap;
 };

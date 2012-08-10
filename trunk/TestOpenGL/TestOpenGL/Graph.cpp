@@ -521,6 +521,11 @@ void Graph::showWithOpenCV(const char *name){
 	//	circle(drawMat, nodeList[i], 2, Scalar(0,0,255,0), -1);
 	//}
 }
+void Graph::setColor(int colorIndex){
+	for(int i=0;i<this->nodeList.size();i++){
+		this->nodeList[i]->color = colorIndex;
+	}
+}
 
 void Graph::clearColor(){
 	for(int i=0;i<this->nodeList.size();i++){
@@ -551,8 +556,8 @@ bool Graph::isEqualAdvance(Graph *other, float e, float prop, int minParisCount,
 	}
 
 	// reset the timmer for each node, inoder to show the correspondenz nodes
-	this->clearColor();
-	other->clearColor();
+	//this->clearColor();
+	//other->clearColor();
 
 	NodePairs localNodePair;
 

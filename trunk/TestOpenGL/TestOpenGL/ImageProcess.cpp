@@ -722,7 +722,8 @@ void DBSCANPMDPoint(vector<vector<PMDPoint>> &C, vector<PMDPoint> D, float eps, 
 			isVisited[i] = 1;
 			// save the index of pints 
 			set<int> N;
-			getRegionQuery(D3D[i],N,eps,minPts,&flann_index);
+			//getRegionQuery(D3D[i],N,eps,minPts,&flann_index);
+			getRegionQuery(N,D3D,D3D[i],eps);
 			if(N.size() >= minPts){
 				// begin the function of expandCluster
 				// add P to cluster C
@@ -741,7 +742,8 @@ void DBSCANPMDPoint(vector<vector<PMDPoint>> &C, vector<PMDPoint> D, float eps, 
 						isVisited[indexPP] = 1;
 						// get the neigbors of P'
 						set<int> NN;
-						getRegionQuery(D3D[indexPP], NN, eps, minPts, &flann_index);
+						//getRegionQuery(D3D[indexPP], NN, eps, minPts, &flann_index);
+						getRegionQuery(NN,D3D,D3D[indexPP],eps);
 						if(NN.size() >= minPts){
 							// N joined with N'
 							int oldSize = N.size();
@@ -1217,7 +1219,7 @@ bool featureAssociatePMD(vector<PMDPoint> oldFeature, vector<PMDPoint> newFeatur
 			}
 		}
 		// if the loop of the column is complete, a frame coorespondence for two frames are found.
-		if(j==m && maxValue>0.71){
+		if(j==m && maxValue>0.76){
 			disPE += fabs(1-maxValue);
 			sumP += maxValue;
 			cout<<i<<" : "<<maxValue<<endl;

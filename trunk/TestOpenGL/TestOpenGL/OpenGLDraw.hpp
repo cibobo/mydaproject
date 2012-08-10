@@ -31,4 +31,6 @@ void displayCoord(OpenGLWinUI *pOpenGLWinUI, Mat R);
 
 void displayRecog(OpenGLWinUI *pOpenGLWinUI, Graph *graph);
 
+void displayRecog(OpenGLWinUI *pOpenGLWinUI, vector<Graph*> graphs);
+
 #endif

@@ -118,6 +118,7 @@ public:
 
 	Point3f getMiddelPoint();
 
+	void setColor(int colorIndex);
 	//set the color for all node to null
 	void clearColor();
 

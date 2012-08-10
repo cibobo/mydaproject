@@ -50,27 +50,28 @@ float StatisticDate::getAppearanceRate(int timmer){
  ****************************/
 RecognitionResult::RecognitionResult(){
 	weight = 0;
+	modelIndex = -1;
 }
 
-RecognitionResult::RecognitionResult(RecognitionResult::NodePairs nodePair, float weight, int objIndex){
+RecognitionResult::RecognitionResult(RecognitionResult::NodePairs nodePair, float weight, int modelIndex){
 	this->nodePair = nodePair;
 	this->weight = weight;
-	this->objIndex = objIndex;
+	this->modelIndex = modelIndex;
 }
 
-RecognitionResult::RecognitionResult(RecognitionResult::NodePairs nodePair, Node *center, float weight, int objIndex){
+RecognitionResult::RecognitionResult(RecognitionResult::NodePairs nodePair, Node *center, float weight, int modelIndex){
 	this->nodePair = nodePair;
 	this->center = center;
 	this->weight = weight;
-	this->objIndex = objIndex;
+	this->modelIndex = modelIndex;
 }
 
 void RecognitionResult::mark(){
 	NodePairs::iterator it = this->nodePair.begin();
 	for(;it!=this->nodePair.end();it++){
-		it->first->color = 1;
+		it->first->color = 9;
+		//it->second->color = 9;
 	}
-	this->center->color = 2;
 }
 void RecognitionResult::markColorful(){
 	NodePairs::iterator it = this->nodePair.begin();
@@ -102,12 +103,17 @@ Recognition::Recognition(){
 	//Object *obj4 = new Object("Box4");
 	//this->objectList.push_back(obj4);
 
-	Object *obj4 = new Object("Box_all4");
-	this->objectList.push_back(obj4);
+	Object *obj1 = new Object("Box_all4");
+	obj1->setColor(0);
+	this->modelList.push_back(obj1);
+
+	Object *obj2 = new Object("Box2_all2");
+	obj2->setColor(1);
+	this->modelList.push_back(obj2);
 
 
 
-	graph = new Graph();
+	//graph = new Graph();
 	
 	timmer = 0;
 }
@@ -125,7 +131,7 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 
 	vector<vector<PMDPoint>> caliResult;
 	float CALIEPS3D = 0.17;
-	int minPts = 1;
+	int minPts = 3;
 
 	Point3f center;
 	for(int i=0;i<inputPoints.size();i++){
@@ -151,82 +157,114 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 		}
 	}
 
-	
-
-	//Object *newObj = new Object("Box2");
-	//bool result = newObj->isEqual(this->objectList[3]);
-	//cout<<"The compare result is: "<<result<<endl;
-	//cout<<"The edge lenth of Box 2 and 5 are:"<<endl;
-	//for(int i=0;i<this->objectList[1]->nodeList.size();i++){
-	//	for(int j=i+1;j<this->objectList[1]->nodeList.size();j++){
-	//		cout<<this->objectList[1]->nodeList[i]->distanceTo(this->objectList[1]->nodeList[j])<<"    ";
-	//		cout<<this->objectList[3]->nodeList[i]->distanceTo(this->objectList[3]->nodeList[j])<<endl;
-	//	}
-	//	cout<<endl;
-	//}
-
 	bool compResult = false;
-	if(caliResult.size()>0 && caliResult[0].size()>0){
-		//graph = new Graph();
+	//if(caliResult.size()>0 && caliResult[0].size()>0){
+	// loop for all possible objekt
+	this->graphList.clear();
+	for(int j=0;j<caliResult.size();j++){
+		if(caliResult[j].size()>0){
+			RecognitionResult *resultArray = new RecognitionResult[modelList.size()];
+			
+			vector<Point3f> point3D;
+			vector<Point2f> point2D;
+			decPMDPointVector(caliResult[j], point3D, point2D);
 
-		vector<Point3f> point3D;
-		vector<Point2f> point2D;
-		decPMDPointVector(caliResult[0], point3D, point2D);
+			Graph *graph = new Graph();
+			graph->createCompleteGraph(point3D);
+			this->graphList.push_back(graph);
 
-		graph->createCompleteGraph(point3D);
-
-		// create new thread to show the graph
-		//if(_beginthread (drawGraphWithOpenGL, 0, NULL) == -1){
-		//	cout<<"Failed to create draw thread"<<endl;
-		//}
-
-		// create the new map for the static date
-		createStatisticMap();
-		for(int i=0;i<this->objectList.size();i++){
-			float e = 0.013;
-			float rate = 0.0;
-			float error = 0;
+			// create the new map for the static date
+			createStatisticMap();
 			NodePairs resultPair;
-			Node* center;
-			//compResult = graph->isEqualAdvance(objectList[i], e, rate, resultPair, center, error);
-			compResult = graph->isEqualAdvance(objectList[i], 0.05, 0.8, 4, resultPair);
-			if(compResult){
-				cout<<"Find the Object! "<<i<<endl;
-				//int appear = this->Statistic[0].find(i)->second.appear(timmer);
-				//cout<<"The appearence rate is: "<<float(appear)/timmer<<endl;
+			for(int i=0;i<this->modelList.size();i++){
+				// reset the color
+				modelList[i]->setColor(i);
 
-				// show the result
-				Scalar color = scalarColorList[i];
-				circle(drawMat, Point2f(i*10+5, 5), 5, color, -1);
+				float e = 0.013;
+				float rate = 0.0;
+				float error = 0;
 				
-				// Update result list
-				updateResultList(i, resultPair);
-				//updateObjectPosition(i, resultPair);
-				
+				Node* center;
+				//compResult = graph->isEqualAdvance(objectList[i], e, rate, resultPair, center, error);
+				compResult = graph->isEqualAdvance(modelList[i], 0.05, 0.5, 4, resultPair);
+				if(compResult){
+					cout<<"Find the Object! "<<i<<endl;
+					//int appear = this->Statistic[0].find(i)->second.appear(timmer);
+					//cout<<"The appearence rate is: "<<float(appear)/timmer<<endl;
+
+					// show the result
+					Scalar color = scalarColorList[i];
+					circle(drawMat, Point2f(i*10+5, 5), 5, color, -1);
+					
+					
+					if(caliResult.size() == 1){
+						// for just one Object
+						updateResultList(i, resultPair);
+					//updateObjectPosition(i, resultPair);
+					} else {
+						// more than 2 objects
+						resultArray[i].nodePair = resultPair;
+						resultArray[i].weight++;
+					}
+					
+				}
+
 			}
-			int maxIndex = this->findBestResult();
-			cout<<"The max Index: "<<maxIndex<<endl;
-			if(maxIndex != -1){
-				this->resultList[maxIndex].markColorful();
-				// transformate the object
-				updateObjectPosition(i, resultPair);
+
+
+			//int maxIndex = this->findBestResult(j);
+			//cout<<"The max Index: "<<maxIndex<<endl;
+			//if(maxIndex != -1){
+			//	this->graphList[j]->setColor(maxIndex);
+
+			//	//this->resultMap[j][maxIndex].markColorful();
+			//	this->resultMap[j][maxIndex].mark();
+			//	// transformate the object
+			//	updateObjectPosition(resultMap[j][maxIndex].modelIndex, resultMap[j][maxIndex].nodePair);
+			//	// set the color of the graph
+			//	
+			//}
+
+
+			if(caliResult.size() == 1){
+				// for just one object
+				int maxIndex = this->findBestResult();
+				cout<<"The max Index: "<<maxIndex<<endl;
+				if(maxIndex != -1){
+					graphList[j]->setColor(resultList[maxIndex].modelIndex);
+					this->resultList[maxIndex].mark();
+					// transformate the object
+					updateObjectPosition(resultList[maxIndex].modelIndex, resultList[maxIndex].nodePair);
+				}
+			} else {
+				// for more objects
+				bool isfind = false;
+				for(int i=0;i<modelList.size();i++){
+					if(resultArray[i].weight > 0){
+						graphList[j]->setColor(i);
+						resultArray[i].mark();
+						updateObjectPosition(i, resultArray[i].nodePair);
+						break;
+					}
+				}
 			}
+			delete []resultArray;
+
+			// show the appearence rate
+			//cout<<"The appearance rate are:"<<endl;
+			//for(int i=0;i<Statistic[0].size();i++){
+			//	cout<<Statistic[0].find(i)->second.getAppearanceRate(timmer)<<"   ";
+			//	//cout<<Statistic[0].find(i)->second.maxContinueFrames<<"   ";
+			//}
+			//cout<<endl;
 		}
-
-		// show the appearence rate
-		//cout<<"The appearance rate are:"<<endl;
-		//for(int i=0;i<Statistic[0].size();i++){
-		//	cout<<Statistic[0].find(i)->second.getAppearanceRate(timmer)<<"   ";
-		//	//cout<<Statistic[0].find(i)->second.maxContinueFrames<<"   ";
-		//}
-		//cout<<endl;
 	}
 	imshow("Recognition", drawMat);
 }
 
 void Recognition::createStatisticMap(){
 	map<int, StatisticDate> statisticDate;
-	for(int i=0;i<this->objectList.size();i++){
+	for(int i=0;i<this->modelList.size();i++){
 		statisticDate.insert(pair<int, StatisticDate>(i, StatisticDate()));
 	}
 	this->Statistic.push_back(statisticDate);
@@ -245,7 +283,7 @@ void Recognition::updateResultList(int index, NodePairs resultPair, Node *center
 	vector<RecognitionResult>::iterator it = this->resultList.begin();
 	for(;it!=this->resultList.end();it++){
 		// If in same object
-		if(it->objIndex == index){
+		if(it->modelIndex == index){
 			objWeight += it->weight * objProp;
 		}
 
@@ -284,7 +322,7 @@ void Recognition::updateResultList(int index, NodePairs resultPair){
 	vector<RecognitionResult>::iterator it = this->resultList.begin();
 	for(;it!=this->resultList.end();it++){
 		// If in same object
-		if(it->objIndex == index){
+		if(it->modelIndex == index){
 			objWeight += it->weight * objProp;
 		}
 
@@ -317,6 +355,51 @@ void Recognition::updateResultList(int index, NodePairs resultPair){
 	this->resultList.push_back(newResult);
 }
 
+void Recognition::updateResultList(int objIndex, int modelIndex, NodePairs resultPair){
+	// The proportion of object and neighbors
+	float objProp = 0.01;
+	float neiProp = 0.01;
+
+	// The basic weight for the new result
+	float objWeight = 1;
+	float neiWeight = 0;
+
+	// get the old result by index of object and model
+	RecognitionResult *oldResult = &(this->resultMap[objIndex][modelIndex]);
+	// first result
+
+	//if(oldResult->modelIndex == -1){
+	//	oldResult->modelIndex = modelIndex;
+	//} else {
+	//	if(oldResult->modelIndex == modelIndex){
+	//		objWeight += oldResult->weight * objProp;
+	//	}
+	//}
+
+	// Compare the neighborhood
+	NodePairs::iterator resultPairIt = resultPair.begin();
+	for(;resultPairIt != resultPair.end();resultPairIt++){
+		NodePairs::iterator oldPairIt = oldResult->nodePair.begin();
+		for(;oldPairIt!=oldResult->nodePair.end();oldPairIt++){
+			// if identical point is found
+			if(resultPairIt->first == oldPairIt->first){
+				neiWeight += oldResult->weight * neiProp * 2;
+				break;
+			}
+
+			// if neighborhood is found
+			if(resultPairIt->first->hasNeighbor(oldPairIt->first)){
+				neiWeight += oldResult->weight * neiProp;
+			}
+		}
+	}
+
+	// Update result in result map
+	oldResult->modelIndex = modelIndex;
+	oldResult->weight += objWeight+neiWeight;
+	oldResult->nodePair = resultPair;
+}
+
 void Recognition::updateObjectPosition(int index, NodePairs resultPair){
 	Mat R = Mat::eye(3,3,CV_32FC1);
 	Mat T = Mat::zeros(3,1,CV_32FC1);
@@ -329,7 +412,7 @@ void Recognition::updateObjectPosition(int index, NodePairs resultPair){
 		newPoints.push_back(it->second->getPoint());
 	}
 	UQFindRAndT(oldPoints, newPoints, R, T);
-	objectList[index]->transformate(R,T);
+	modelList[index]->transformate(R,T);
 }
 
 int Recognition::findBestResult(){
@@ -344,6 +427,22 @@ int Recognition::findBestResult(){
 		}
 	}
 	cout<<"The Max Weight: "<<maxWeight<<endl;
+	return maxIndex;
+}
+
+int Recognition::findBestResult(int objIndex){
+	// Parameter to find the best result
+	float maxWeight = -1;
+	int maxIndex = -1;
+	for(int i=0;i<this->resultMap[objIndex].size();i++){
+		// find the best result
+		if(this->resultMap[objIndex][i].weight > maxWeight){
+			maxIndex = i;
+			maxWeight = this->resultMap[objIndex][i].weight;
+		}
+		cout<<"The Weight of Object "<<objIndex<<" for Model "<<this->resultMap[objIndex][i].modelIndex<<" is: "<<maxWeight<<endl;
+	}
+	
 	return maxIndex;
 }
 
