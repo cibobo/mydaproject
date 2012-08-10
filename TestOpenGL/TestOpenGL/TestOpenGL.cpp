@@ -10,7 +10,7 @@
  */
 #define RECOGNITION
 
-//#define OFFLINE
+#define OFFLINE
 
 /*
  * Defination for the Algorithmen
@@ -103,16 +103,16 @@ int MAXJUMPEDFEATURES = 5;
 int FRAMERATE = 30;
 
 // The input path
-const char *INPUTPATH = "Eva3DRotation5";
+const char *INPUTPATH = "Eva2Boxes";
 
-char *OUTPUTPATH = "Eva3DRotation5";
+char *OUTPUTPATH = "Eva2Boxes";
 bool ISDATASAVED = false;
 
 // Evaluation output path
 char *EVAOUTPUTPATH = "FirstTest";
 
 // The vtk file name
-char *MODELNAME = "box_test";
+char *MODELNAME = "box2_all2";
 
 //int HISFRAMEINDEX = 3;
 
@@ -207,7 +207,7 @@ void openGLThreadPorc( void *param )
 			//display(pOpenGLWinUI, bildDataBuffer[0]);
 			EnterCriticalSection (&calcCrs);
 #ifdef RECOGNITION
-			displayRecog(pOpenGLWinUI, recognition->graph);
+			displayRecog(pOpenGLWinUI, recognition->graphList);
 			glEnable(GL_LIGHTING);
 #else
 			display(pOpenGLWinUI, bildDataBuffer.back());
@@ -518,7 +518,7 @@ void objWindowThreadPorc(void *param ){
 		} else {
 			EnterCriticalSection (&calcCrs);
 #ifdef RECOGNITION
-			display(pObjGLWinUI, recognition->objectList);
+			display(pObjGLWinUI, recognition->modelList);
 #else
 			display(pObjGLWinUI, obj);
 #endif
@@ -1123,7 +1123,8 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 
 				vector<vector<PMDPoint>> caliResult;
 				//eps for my calibration
-				float CALIEPS3D = 0.17;
+				//Very Important Parameter
+				float CALIEPS3D = 0.18;
 				int minPts = 2;
 
 				
@@ -1136,6 +1137,7 @@ int _tmain(int argc, TCHAR* argv[], TCHAR* envp[])
 				//} else {
 					calibrationPMDPoint(caliResult, summerizedFeatures, CALIEPS3D);
 				//}
+					//DBSCANPMDPoint(caliResult, summerizedFeatures, 0.18, 1);
 
 //TODO: fix the problem of DBSCAN
 				//if(summerizedFeatures.size()>0){
