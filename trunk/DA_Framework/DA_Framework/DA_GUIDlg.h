@@ -4,6 +4,8 @@
 #pragma once
 
 #include "MainThread.hpp"
+#include "afxcmn.h"
+#include "afxwin.h"
 
 
 // CDA_GUIDlg-Dialogfeld
@@ -33,11 +35,30 @@ protected:
 public:
 	MainThread *pMainThread;
 
-	bool radioOnline;
-	bool radioOffline;
-	CString offlinePath;
+	// whether the Online mode is selected
+	BOOL isOnline;
+	// whether the Offline mode is selected
+	BOOL isOffline;
 	// whether the real-time Observing Window is visible
 	BOOL isObservingWindowVisible;
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedCancel();
+	afx_msg void OnBnClickedButtonPause();
+	afx_msg void OnBnClickedCheckVisual1();
+	// Control Variable for the Framerate Slider
+	CSliderCtrl framerateSlider;
+	// The Slider for the Framerate
+	afx_msg void OnNMCustomdrawSliderFramerate(NMHDR *pNMHDR, LRESULT *pResult);
+	// The Edit Control for the Framerate
+	CEdit framerateEditor;
+	afx_msg void OnEnChangeEditFramerate();
+	// The Edit Control for the input data path for the offline mode
+	CEdit inputPathEditor;
+	afx_msg void OnEnChangeEditOfflinepath();
+	// The edit control for the outputP path for the online mode
+	CEdit outputPathEditor;
+	// The radio button for the selecting of the Online mode
+	afx_msg void OnBnClickedRadioOffline();
+	// The radio button for the selecting of the Offline mode
+	afx_msg void OnBnClickedRadioOnline();
 };

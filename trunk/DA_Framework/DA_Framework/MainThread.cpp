@@ -4,6 +4,8 @@
 MainThread::MainThread(){
 	ThreadIndex = 1001;
 
+	p3DDataViewContext = new OpenGLContext;
+
 	bDone = false;
 	isPause = false;
 	isDataUsed = false;
@@ -16,7 +18,8 @@ MainThread::MainThread(){
 
 	FRAMERATE = 30;
 
-	INPUTPATH = "Eva2Boxes";
+	//INPUTPATH = "Eva2Boxes";
+	INPUTPATH = new char[150];
 	OUTPUTPATH = "Eva2Boxes";
 	ISDATASAVED = false;
 
@@ -33,6 +36,10 @@ MainThread::MainThread(){
 	InitializeCriticalSection (&cvInitCrs);
 	InitializeCriticalSection (&calcCrs);
 
+}
+
+MainThread::~MainThread(){
+	delete p3DDataViewContext;
 }
 
 /**
@@ -113,7 +120,7 @@ DWORD MainThread::offlineInputThreadProc(void){
 DWORD MainThread::openGLSceneThreadPorc(void) 
 { 
 	static OpenGLWinUI *pOpenGLWinUI = new OpenGLWinUI;
-	p3DDataViewContext = new OpenGLContext;
+	//p3DDataViewContext = new OpenGLContext;
 
 	TlsSetValue(ThreadIndex, pOpenGLWinUI);
 
@@ -169,7 +176,7 @@ DWORD MainThread::openGLSceneThreadPorc(void)
 		}
 	}
 
-	delete p3DDataViewContext;
+	//delete p3DDataViewContext;
 	delete pOpenGLWinUI;
 
 	return 0;

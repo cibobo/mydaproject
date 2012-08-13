@@ -55,7 +55,8 @@
 #define V_BILDSIZE 204
 
 
-
+#define FRAMERATE_MIN 30
+#define FRAMERATE_MAX 300
 
 
 

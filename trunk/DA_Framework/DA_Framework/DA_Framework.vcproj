@@ -209,10 +209,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\FrameworkMain.cpp"
-				>
-			</File>
-			<File
 				RelativePath=".\MainThread.cpp"
 				>
 			</File>
@@ -268,10 +264,6 @@
 			</File>
 			<File
 				RelativePath=".\DistanceFilter.hpp"
-				>
-			</File>
-			<File
-				RelativePath=".\FrameworkMain.hpp"
 				>
 			</File>
 			<File
