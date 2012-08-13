@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2012.5.22)  21 JUN 2012 23:06
+This is pdfTeX, Version 3.1415926-2.3-1.40.12 (MiKTeX 2.9) (preloaded format=pdflatex 2012.5.22)  10 AUG 2012 16:48
 entering extended mode
 **Muster.tex
 (C:\Users\Beibei\Documents\DA\Ausarbeitung\Muster.tex
@@ -241,7 +241,36 @@ Document Style algorithmicx 1.2 - a greatly improved `algorithmic' style
 \ALG@tmplength=\skip55
 )
 Document Style - pseudocode environments for use with the `algorithmicx' style
-) ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\hyperref\hyperref.sty"
+) ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\mh\mathtools.sty"
+Package: mathtools 2011/02/12 v1.10 mathematical typesetting tools
+
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\graphics\keyval.sty"
+Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
+\KV@toks@=\toks32
+)
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\tools\calc.sty"
+Package: calc 2007/08/22 v4.3 Infix arithmetic (KKT,FJ)
+\calc@Acount=\count126
+\calc@Bcount=\count127
+\calc@Adimen=\dimen126
+\calc@Bdimen=\dimen127
+\calc@Askip=\skip56
+\calc@Bskip=\skip57
+LaTeX Info: Redefining \setlength on input line 76.
+LaTeX Info: Redefining \addtolength on input line 77.
+\calc@Ccount=\count128
+\calc@Cskip=\skip58
+)
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\mh\mhsetup.sty"
+Package: mhsetup 2010/01/21 v1.2a programming setup (MH)
+)
+\g_MT_multlinerow_int=\count129
+\l_MT_multwidth_dim=\dimen128
+\origjot=\skip59
+\l_MT_shortvdotswithinadjustabove_dim=\dimen129
+\l_MT_shortvdotswithinadjustbelow_dim=\dimen130
+)
+("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\hyperref\hyperref.sty"
 Package: hyperref 2011/04/17 v6.82g Hypertext links for LaTeX
 
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\generic\oberdiek\hobsub-hyperref.sty"
@@ -285,24 +314,20 @@ Package: atbegshi 2011/01/30 v1.15 At begin shipout hook (HO)
 Package: refcount 2010/12/01 v3.2 Data extraction from references (HO)
 Package: hycolor 2011/01/30 v1.7 Color options of hyperref/bookmark (HO)
 )
-("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\graphics\keyval.sty"
-Package: keyval 1999/03/16 v1.13 key=value parser (DPC)
-\KV@toks@=\toks32
-)
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\generic\ifxetex\ifxetex.sty"
 Package: ifxetex 2010/09/12 v0.6 Provides ifxetex conditional
 )
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\oberdiek\kvoptions.sty"
 Package: kvoptions 2010/12/23 v3.10 Keyval support for LaTeX options (HO)
 )
-\@linkdim=\dimen126
-\Hy@linkcounter=\count126
-\Hy@pagecounter=\count127
+\@linkdim=\dimen131
+\Hy@linkcounter=\count130
+\Hy@pagecounter=\count131
 
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\hyperref\pd1enc.def"
 File: pd1enc.def 2011/04/17 v6.82g Hyperref: PDFDocEncoding definition (HO)
 )
-\Hy@SavedSpaceFactor=\count128
+\Hy@SavedSpaceFactor=\count132
 
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\00miktex\hyperref.cfg"
 File: hyperref.cfg 2002/06/06 v1.2 hyperref configuration of TeXLive
@@ -325,11 +350,11 @@ Package: rerunfilecheck 2011/04/15 v1.7 Rerun checks for auxiliary files (HO)
 Package uniquecounter Info: New unique counter `rerunfilecheck' on input line 2
 82.
 ))
-\c@Hy@tempcnt=\count129
+\c@Hy@tempcnt=\count133
 LaTeX Info: Redefining \url on input line 4617.
-\Fld@menulength=\count130
-\Field@Width=\dimen127
-\Fld@charsize=\dimen128
+\Fld@menulength=\count134
+\Field@Width=\dimen132
+\Fld@charsize=\dimen133
 Package hyperref Info: Hyper figures OFF on input line 5701.
 Package hyperref Info: Link nesting OFF on input line 5706.
 Package hyperref Info: Hyper index ON on input line 5709.
@@ -339,18 +364,18 @@ Package hyperref Info: Link coloring with OCG OFF on input line 5726.
 Package hyperref Info: PDF/A mode OFF on input line 5731.
 LaTeX Info: Redefining \ref on input line 5771.
 LaTeX Info: Redefining \pageref on input line 5775.
-\Hy@abspage=\count131
-\c@Item=\count132
-\c@Hfootnote=\count133
+\Hy@abspage=\count135
+\c@Item=\count136
+\c@Hfootnote=\count137
 )
 
 Package hyperref Message: Driver: hpdftex.
 
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\hyperref\hpdftex.def"
 File: hpdftex.def 2011/04/17 v6.82g Hyperref driver for pdfTeX
-\Fld@listcount=\count134
-\c@bookmark@seq@number=\count135
-\Hy@SectionHShift=\skip56
+\Fld@listcount=\count138
+\c@bookmark@seq@number=\count139
+\Hy@SectionHShift=\skip60
 )
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\graphics\graphicx.sty"
 Package: graphicx 1999/02/16 v1.0f Enhanced LaTeX Graphics (DPC,SPQR)
@@ -368,10 +393,10 @@ Package graphics Info: Driver file: pdftex.def on input line 91.
 
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\pdftex-def\pdftex.def"
 File: pdftex.def 2011/05/27 v0.06d Graphics/color for pdfTeX
-\Gread@gobject=\count136
+\Gread@gobject=\count140
 ))
-\Gin@req@height=\dimen129
-\Gin@req@width=\dimen130
+\Gin@req@height=\dimen134
+\Gin@req@width=\dimen135
 )
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\thumbpdf\thumbpdf.sty"
 Package: thumbpdf 2010/07/07 v3.11 Inclusion of thumbnails (HO)
@@ -387,38 +412,38 @@ File: color.cfg 2007/01/18 v1.5 color configuration of teTeX/TeXLive
 )
 Package color Info: Driver file: pdftex.def on input line 130.
 )
-\c@countCites=\count137
-\c@countNotCited=\count138
-\c@definition=\count139
-\c@theorem=\count140
-\c@lemma=\count141
-\c@proposition=\count142
-\c@corollary=\count143
-\c@observation=\count144
-\c@fact=\count145
-\c@procedure=\count146
-\c@postulat=\count147
-\c@remark=\count148
-\c@example=\count149
+\c@countCites=\count141
+\c@countNotCited=\count142
+\c@definition=\count143
+\c@theorem=\count144
+\c@lemma=\count145
+\c@proposition=\count146
+\c@corollary=\count147
+\c@observation=\count148
+\c@fact=\count149
+\c@procedure=\count150
+\c@postulat=\count151
+\c@remark=\count152
+\c@example=\count153
 \ProofSym=\box36
 
 (C:\Users\Beibei\Documents\DA\Ausarbeitung\Muster.aux)
-LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 203.
-LaTeX Font Info:    ... okay on input line 203.
-LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 203.
-LaTeX Font Info:    ... okay on input line 203.
-LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 203.
-LaTeX Font Info:    ... okay on input line 203.
-LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 203.
-LaTeX Font Info:    ... okay on input line 203.
-LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 203.
-LaTeX Font Info:    ... okay on input line 203.
-LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 203.
-LaTeX Font Info:    ... okay on input line 203.
-LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 203.
-LaTeX Font Info:    ... okay on input line 203.
+LaTeX Font Info:    Checking defaults for OML/cmm/m/it on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for T1/cmr/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for OT1/cmr/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for OMS/cmsy/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for OMX/cmex/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for U/cmr/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
+LaTeX Font Info:    Checking defaults for PD1/pdf/m/n on input line 204.
+LaTeX Font Info:    ... okay on input line 204.
 \AtBeginShipoutBox=\box37
-Package hyperref Info: Link coloring ON on input line 203.
+Package hyperref Info: Link coloring ON on input line 204.
 
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\hyperref\nameref.sty"
 Package: nameref 2010/04/30 v2.40 Cross-referencing by name of section
@@ -426,11 +451,11 @@ Package: nameref 2010/04/30 v2.40 Cross-referencing by name of section
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\generic\oberdiek\gettitlestring.sty"
 Package: gettitlestring 2010/12/03 v1.4 Cleanup title references (HO)
 )
-\c@section@level=\count150
+\c@section@level=\count154
 )
-LaTeX Info: Redefining \ref on input line 203.
-LaTeX Info: Redefining \pageref on input line 203.
-LaTeX Info: Redefining \nameref on input line 203.
+LaTeX Info: Redefining \ref on input line 204.
+LaTeX Info: Redefining \pageref on input line 204.
+LaTeX Info: Redefining \nameref on input line 204.
 
 (C:\Users\Beibei\Documents\DA\Ausarbeitung\Muster.out)
 (C:\Users\Beibei\Documents\DA\Ausarbeitung\Muster.out)
@@ -438,15 +463,15 @@ LaTeX Info: Redefining \nameref on input line 203.
 
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\context\base\supp-pdf.mkii"
 [Loading MPS to PDF converter (version 2006.09.02).]
-\scratchcounter=\count151
-\scratchdimen=\dimen131
+\scratchcounter=\count155
+\scratchdimen=\dimen136
 \scratchbox=\box38
-\nofMPsegments=\count152
-\nofMParguments=\count153
+\nofMPsegments=\count156
+\nofMParguments=\count157
 \everyMPshowfont=\toks33
-\MPscratchCnt=\count154
-\MPscratchDim=\dimen132
-\MPnumerator=\count155
+\MPscratchCnt=\count158
+\MPscratchDim=\dimen137
+\MPnumerator=\count159
 \everyMPtoPDFconversion=\toks34
 ) (C:\Users\Beibei\Documents\DA\Ausarbeitung\Kapitel/titel.tex
 LaTeX Font Info:    Try loading font information for U+msa on input line 46.
@@ -459,7 +484,7 @@ LaTeX Font Info:    Try loading font information for U+msb on input line 46.
 ("C:\Program Files (x86)\MiKTeX 2.9\tex\latex\amsfonts\umsb.fd"
 File: umsb.fd 2009/06/22 v3.00 AMS symbols B
 )
-<Abbildungen/kit_logo_de_farbe_positiv.jpg, id=247, 199.7061pt x 91.3011pt>
+<Abbildungen/kit_logo_de_farbe_positiv.jpg, id=275, 199.7061pt x 91.3011pt>
 File: Abbildungen/kit_logo_de_farbe_positiv.jpg Graphic file (type jpg)
 
 <use Abbildungen/kit_logo_de_farbe_positiv.jpg>
@@ -576,7 +601,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 16--20
 
  []
 
-<Abbildungen/PMDParam.png, id=496, 695.59875pt x 468.24937pt>
+<Abbildungen/PMDParam.png, id=532, 695.59875pt x 468.24937pt>
 File: Abbildungen/PMDParam.png Graphic file (type png)
 
 <use Abbildungen/PMDParam.png>
@@ -593,7 +618,7 @@ Underfull \vbox (badness 10000) has occurred while \output is active []
  [12
 
 ]
-<Abbildungen/PMDIntTime.png, id=508, 636.12656pt x 221.32687pt>
+<Abbildungen/PMDIntTime.png, id=544, 636.12656pt x 221.32687pt>
 File: Abbildungen/PMDIntTime.png Graphic file (type png)
 
 <use Abbildungen/PMDIntTime.png>
@@ -607,7 +632,7 @@ Underfull \hbox (badness 10000) in paragraph at lines 44--46
 
  []
 
-<Abbildungen/Kinect.png, id=522, 418.56375pt x 268.00125pt>
+<Abbildungen/Kinect.png, id=558, 418.56375pt x 268.00125pt>
 File: Abbildungen/Kinect.png Graphic file (type png)
 
 <use Abbildungen/Kinect.png>
@@ -615,7 +640,7 @@ Package pdftex.def Info: Abbildungen/Kinect.png used on input line 49.
 (pdftex.def)             Requested size: 251.14018pt x 160.80197pt.
  [14 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/PMDIntTime.png> <C:
 /Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Kinect.png>] [15]
-<Abbildungen/Compare-3D-Dis.png, id=543, 881.54344pt x 392.96812pt>
+<Abbildungen/Compare-3D-Dis.png, id=579, 881.54344pt x 392.96812pt>
 File: Abbildungen/Compare-3D-Dis.png Graphic file (type png)
 
 <use Abbildungen/Compare-3D-Dis.png>
@@ -623,86 +648,98 @@ Package pdftex.def Info: Abbildungen/Compare-3D-Dis.png used on input line 83.
 (pdftex.def)             Requested size: 396.69089pt x 176.83401pt.
  [16 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Compare-3D-Dis.png>
 ]
-<Abbildungen/SampleBild.png, id=551, 1576.38937pt x 380.92313pt>
+<Abbildungen/SampleBild.png, id=587, 1576.38937pt x 380.92313pt>
 File: Abbildungen/SampleBild.png Graphic file (type png)
 
 <use Abbildungen/SampleBild.png>
-Package pdftex.def Info: Abbildungen/SampleBild.png used on input line 97.
+Package pdftex.def Info: Abbildungen/SampleBild.png used on input line 131.
 (pdftex.def)             Requested size: 346.80673pt x 83.80333pt.
-
-<Abbildungen/Number-of-detected-features.png, id=554, 599.23875pt x 350.05782pt
+ [17]
+<Abbildungen/Number-of-detected-features.png, id=598, 599.23875pt x 350.05782pt
 >
 File: Abbildungen/Number-of-detected-features.png Graphic file (type png)
  <use Abbildungen/Number-of-detected-features.png>
 Package pdftex.def Info: Abbildungen/Number-of-detected-features.png used on in
-put line 104.
+put line 138.
 (pdftex.def)             Requested size: 419.46426pt x 245.03879pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 109--113
+Underfull \hbox (badness 10000) in paragraph at lines 143--147
 
  []
 
-[17 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/SampleBild.png> <C:/
-Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Number-of-detected-features.
-png>]
-<Abbildungen/Average-tracking-error.png, id=569, 599.23875pt x 413.29407pt>
+
+Underfull \vbox (badness 1496) has occurred while \output is active []
+
+ [18 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/SampleBild.png> <C:
+/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Number-of-detected-features
+.png>]
+<Abbildungen/Average-tracking-error.png, id=613, 599.23875pt x 413.29407pt>
 File: Abbildungen/Average-tracking-error.png Graphic file (type png)
 
 <use Abbildungen/Average-tracking-error.png>
 Package pdftex.def Info: Abbildungen/Average-tracking-error.png used on input l
-ine 116.
+ine 150.
 (pdftex.def)             Requested size: 419.46426pt x 289.30386pt.
-
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [18 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Average-tracking-er
+ [19 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Average-tracking-er
 ror.png>]
-Underfull \hbox (badness 10000) in paragraph at lines 138--142
+<Abbildungen/Bi-level-filter2.png, id=627, 767.86874pt x 198.7425pt>
+File: Abbildungen/Bi-level-filter2.png Graphic file (type png)
+
+<use Abbildungen/Bi-level-filter2.png>
+Package pdftex.def Info: Abbildungen/Bi-level-filter2.png used on input line 16
+3.
+(pdftex.def)             Requested size: 460.7248pt x 119.24641pt.
+
+Overfull \hbox (19.70708pt too wide) in paragraph at lines 163--164
+ [][] 
+ []
+
+[20 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Bi-level-filter2.png
+>] [21]
+Underfull \hbox (badness 10000) in paragraph at lines 203--207
 
  []
 
-[19] [20]
-Underfull \hbox (badness 10000) in paragraph at lines 226--230
-
+[22] [23]
+Overfull \hbox (15.08673pt too wide) in paragraph at lines 298--298
+[]\OT1/cmr/bx/n/14.4 Korrespondenzuntersuchung durch Sin-gul[]arwert-zer-le-gun
+g 
  []
 
-[21]
 Package hyperref Info: bookmark level for unknown algorithm defaults to 0 on in
-put line 250.
- [22] [23]
-Overfull \hbox (13.14516pt too wide) in paragraph at lines 372--372
+put line 320.
+[24] [25] [26]
+Overfull \hbox (13.14516pt too wide) in paragraph at lines 442--442
 []\OT1/cmr/bx/n/14.4 Beschreibung der Dre-hun-gen im Drei-di-men-sio-na-len Rau
 m
  []
 
-[24] [25] [26] [27]
-Underfull \hbox (badness 10000) in paragraph at lines 574--578
+[27] [28] [29] [30]
+Underfull \hbox (badness 10000) in paragraph at lines 644--648
 
  []
 
 
 LaTeX Font Warning: Font shape `OT1/cmss/m/it' in size <12> not available
-(Font)              Font shape `OT1/cmss/m/sl' tried instead on input line 580.
+(Font)              Font shape `OT1/cmss/m/sl' tried instead on input line 650.
 
 
-[28] <Abbildungen/DBSCAN.png, id=670, 1003.75pt x 723.70375pt>
+[31] <Abbildungen/DBSCAN.png, id=737, 1003.75pt x 723.70375pt>
 File: Abbildungen/DBSCAN.png Graphic file (type png)
 
 <use Abbildungen/DBSCAN.png>
-Package pdftex.def Info: Abbildungen/DBSCAN.png used on input line 622.
+Package pdftex.def Info: Abbildungen/DBSCAN.png used on input line 692.
 (pdftex.def)             Requested size: 301.12732pt x 217.1128pt.
 
-Underfull \hbox (badness 10000) in paragraph at lines 627--631
+Underfull \hbox (badness 10000) in paragraph at lines 697--701
 
  []
 
-[29 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/DBSCAN.png>]
-Underfull \vbox (badness 10000) has occurred while \output is active []
-
- [30])
-(C:\Users\Beibei\Documents\DA\Ausarbeitung\Kapitel/Implementierung.tex [31]
+[32 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/DBSCAN.png>]
+[33]) (C:\Users\Beibei\Documents\DA\Ausarbeitung\Kapitel/Implementierung.tex
+[34]
 Kapitel 4.
-<Abbildungen/HauptAblauf.png, id=694, 822.4326pt x 285.10515pt>
+<Abbildungen/HauptAblauf.png, id=760, 822.4326pt x 285.10515pt>
 File: Abbildungen/HauptAblauf.png Graphic file (type png)
 
 <use Abbildungen/HauptAblauf.png>
@@ -713,38 +750,58 @@ Overfull \hbox (11.32162pt too wide) in paragraph at lines 6--7
  [][] 
  []
 
-[32
+[35
 
  <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/HauptAblauf.png>]
-<Abbildungen/Ablaufsbild.png, id=702, 535.5207pt x 753.0534pt>
+<Abbildungen/Ablaufsbild.png, id=768, 535.5207pt x 753.0534pt>
 File: Abbildungen/Ablaufsbild.png Graphic file (type png)
 
 <use Abbildungen/Ablaufsbild.png>
 Package pdftex.def Info: Abbildungen/Ablaufsbild.png used on input line 24.
 (pdftex.def)             Requested size: 374.86194pt x 527.13379pt.
+
+<Abbildungen/MarkerSize1.png, id=771, 785.93625pt x 150.5625pt>
+File: Abbildungen/MarkerSize1.png Graphic file (type png)
+
+<use Abbildungen/MarkerSize1.png>
+Package pdftex.def Info: Abbildungen/MarkerSize1.png used on input line 37.
+(pdftex.def)             Requested size: 392.96716pt x 75.28105pt.
+
+<Abbildungen/MarkerSize2.png, id=772, 471.26062pt x 307.1475pt>
+File: Abbildungen/MarkerSize2.png Graphic file (type png)
+
+<use Abbildungen/MarkerSize2.png>
+Package pdftex.def Info: Abbildungen/MarkerSize2.png used on input line 44.
+(pdftex.def)             Requested size: 424.13065pt x 276.43019pt.
 )
 (C:\Users\Beibei\Documents\DA\Ausarbeitung\Kapitel/ExperimentelleAuswertung.tex
-[33] [34 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Ablaufsbild.png
->]
+
+Underfull \vbox (badness 10000) has occurred while \output is active []
+
+ [36]
+[37 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/Ablaufsbild.png>]
+[38 <C:/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/MarkerSize1.png> <C:
+/Users/Beibei/Documents/DA/Ausarbeitung/Abbildungen/MarkerSize2.png>] [39]
 Kapitel 5.
-) (C:\Users\Beibei\Documents\DA\Ausarbeitung\Kapitel/Schlusswort.tex [35
+) (C:\Users\Beibei\Documents\DA\Ausarbeitung\Kapitel/Schlusswort.tex [40
 
 ]
 Kapitel 6.
-) [36
+) [41
+
+] [42
 
 ] (C:\Users\Beibei\Documents\DA\Ausarbeitung\Kapitel/Literatur.tex
 (C:\Users\Beibei\Documents\DA\Ausarbeitung\Muster.brf)
 \tf@brf=\write5
- [37
-
+ [43
 
 ]
 Underfull \hbox (badness 10000) in paragraph at lines 107--107
 []\OT1/cmr/m/n/12 Kinect-How it works  http://www.cadet.at/wp-
  []
 
-[38]
+[44]
 Underfull \hbox (badness 10000) in paragraph at lines 148--148
 []\OT1/cmr/m/n/12 PMDs Cam-Cu-be Einf[]uhrung:
  []
@@ -766,32 +823,38 @@ Overfull \hbox (0.62991pt too wide) in paragraph at lines 152--152
 camcube[]
  []
 
-[39]
+[45]
 Overfull \hbox (12.31093pt too wide) in paragraph at lines 176--176
 []\OT1/cmr/m/n/12 TOF-Kamera Wi-ki-pe-dia: http://de.wikipedia.org/wiki/Time-
  []
 
 )
-Package atveryend Info: Empty hook `BeforeClearDocument' on input line 312.
- [40]
-Package atveryend Info: Empty hook `AfterLastShipout' on input line 312.
+Package atveryend Info: Empty hook `BeforeClearDocument' on input line 313.
+ [46]
+Package atveryend Info: Empty hook `AfterLastShipout' on input line 313.
  (C:\Users\Beibei\Documents\DA\Ausarbeitung\Muster.aux)
-Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 312.
-Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 312.
+Package atveryend Info: Executing hook `AtVeryEndDocument' on input line 313.
+Package atveryend Info: Executing hook `AtEndAfterFileList' on input line 313.
 Package rerunfilecheck Info: File `Muster.out' has not changed.
-(rerunfilecheck)             Checksum: 870B3ADFBDF6D5A5B6C8077756B4241C;4521.
-Package rerunfilecheck Info: File `Muster.brf' has not changed.
-(rerunfilecheck)             Checksum: 8AC5BAD4FC416803120C384538D7AB15;3548.
-Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 312.
+(rerunfilecheck)             Checksum: 78D2C6F95A1F43C6BE309FDC8685A2FB;5111.
+
+
+Package rerunfilecheck Warning: File `Muster.brf' has changed.
+(rerunfilecheck)                Rerun to get bibliographical references right.
+
+Package rerunfilecheck Info: Checksums for `Muster.brf':
+(rerunfilecheck)             Before: 60A88B4FD18238BACEDC90381825A1B2;3640
+(rerunfilecheck)             After:  0E1A51A3E9C66C8A85418F0A102B348E;3640.
+Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 313.
  ) 
 Here is how much of TeX's memory you used:
- 7995 strings out of 494049
- 113077 string characters out of 3146062
- 203062 words of memory out of 3000000
- 10904 multiletter control sequences out of 15000+200000
+ 8538 strings out of 494049
+ 122136 string characters out of 3146062
+ 216015 words of memory out of 3000000
+ 11414 multiletter control sequences out of 15000+200000
  15412 words of font info for 55 fonts, out of 3000000 for 9000
  715 hyphenation exceptions out of 8191
- 32i,13n,28p,2490b,407s stack positions out of 5000i,500n,10000p,200000b,50000s
+ 32i,13n,28p,2552b,411s stack positions out of 5000i,500n,10000p,200000b,50000s
 <C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmbx12.pfb>
 <C:/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmex10.pfb><C
 :/Program Files (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmmi12.pfb><C:/
@@ -804,12 +867,13 @@ iles (x86)/MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmr6.pfb><C:/Program Files
 /MiKTeX 2.9/fonts/type1/public/amsfonts/cm/cmss10.pfb><C:/Program Files (x86)/M
 iKTeX 2.9/fonts/type1/public/amsfonts/cm/cmssi12.pfb><C:/Program Files (x86)/Mi
 KTeX 2.9/fonts/type1/public/amsfonts/cm/cmsy10.pfb><C:/Program Files (x86)/MiKT
-eX 2.9/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Program Files (x86)/MiKTeX 
-2.9/fonts/type1/public/amsfonts/cm/cmti12.pfb><C:/Program Files (x86)/MiKTeX 2.
-9/fonts/type1/public/amsfonts/symbols/msbm10.pfb>
-Output written on Muster.pdf (46 pages, 3964445 bytes).
+eX 2.9/fonts/type1/public/amsfonts/cm/cmsy6.pfb><C:/Program Files (x86)/MiKTeX 
+2.9/fonts/type1/public/amsfonts/cm/cmsy8.pfb><C:/Program Files (x86)/MiKTeX 2.9
+/fonts/type1/public/amsfonts/cm/cmti12.pfb><C:/Program Files (x86)/MiKTeX 2.9/f
+onts/type1/public/amsfonts/symbols/msbm10.pfb>
+Output written on Muster.pdf (52 pages, 4100873 bytes).
 PDF statistics:
- 898 PDF objects out of 1000 (max. 8388607)
- 202 named destinations out of 1000 (max. 500000)
- 544 words of extra memory for PDF output out of 10000 (max. 10000000)
+ 996 PDF objects out of 1000 (max. 8388607)
+ 222 named destinations out of 1000 (max. 500000)
+ 615 words of extra memory for PDF output out of 10000 (max. 10000000)
 

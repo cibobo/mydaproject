@@ -30,6 +30,21 @@ Die allgemeine Ablaufprozess des Programms findet man in Abbildung~\ref{HauptAbl
 \subsection{Markenerkennung}
 
 \subsubsection{Auswahl der Größe der Marken}
+Die Erkennungsergebnisse der Objekte werden von der Größe der Marken stark beeinflusst, deshalb ein Test über die Markengröße zuerst notwendig ist. Die Testmarken werden in weiße auf einem schwarzen Papier gedruckt. Es gibt insgesamt 7 verschiedenen Großstufen, und die Marken von jeder Stufe werden durch jeweils Quadrat und Kreis formuliert. Abbildung~\ref{MS1} zeigt die unterschiedliche Erkennungsergebnisse der Marken, wenn das Objekt am verschiedenen Positionen aber auf der gleichen Ebene liegt. Abbildung~\ref{MS2} zeigt den Einfluss auf den Ergebnisse von der Distanz zu der Kamera. Was deutlich ist, dass je näher das Objekt von der Kamera angebracht wird, desto kleinere die Größe der Marken benötigt.
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.5]{Abbildungen/MarkerSize1.png}
+\caption{Die Erkennungsergebnisse der Marken für unterschiedliche Positionen.}
+\label{MS1}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.9]{Abbildungen/MarkerSize2.png}
+\caption{Die Erkennungsergebnisse der Marken für unterschiedliche Distanz zu der Kamera. Auf der ersten Reihe liegen die Graustufenbilder mit roten erkannten Marken; Die entsprechende 3D Bilder auf der zweiten Reihe zeigen die vertikalen Positionen des Objekts.}
+\label{MS2}
+\end{figure}
 
 \subsubsection{Kontrolle der Helligkeit}
 
