@@ -76,8 +76,8 @@ public:
 	// framerate
 	int FRAMERATE;
 
-	// The input path
-	const char *INPUTPATH;
+	// The input data stream path for the offline mode
+	char *INPUTPATH;
 	// The output path for the Online Data source
 	char *OUTPUTPATH;
 

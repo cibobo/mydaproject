@@ -8,6 +8,7 @@
 #define IDD_DA_FRAMEWORK_DIALOG         102
 #define IDR_MAINFRAME                   128
 #define IDC_BUTTON1                     1000
+#define IDC_BUTTON_PAUSE                1000
 #define IDC_RADIO1                      1001
 #define IDC_RADIO_LERNING               1001
 #define IDC_RADIO2                      1002
@@ -30,8 +31,9 @@
 #define IDC_RADIO6                      1012
 #define IDC_RADIO7                      1013
 #define IDC_EDIT3                       1014
-#define IDC_SPIN1                       1015
-#define IDC_SLIDER1                     1016
+#define IDC_SLIDER_FRAMERATE            1016
+#define IDC_EDIT4                       1017
+#define IDC_EDIT_FRAMERATE              1017
 
 // Next default values for new objects
 // 
@@ -39,7 +41,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1017
+#define _APS_NEXT_CONTROL_VALUE         1018
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
