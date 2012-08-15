@@ -225,6 +225,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Parameters.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -280,6 +284,10 @@
 			</File>
 			<File
 				RelativePath=".\OpenGLWin.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Parameters.hpp"
 				>
 			</File>
 			<File

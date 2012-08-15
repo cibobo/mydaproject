@@ -33,14 +33,10 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
+	// An Instance of Class MainThread, which include all necessary parameters of visualization
 	MainThread *pMainThread;
 
-	// whether the Online mode is selected
-	BOOL isOnline;
-	// whether the Offline mode is selected
-	BOOL isOffline;
-	// whether the real-time Observing Window is visible
-	BOOL isObservingWindowVisible;
+
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedCancel();
 	afx_msg void OnBnClickedButtonPause();
@@ -57,8 +53,4 @@ public:
 	afx_msg void OnEnChangeEditOfflinepath();
 	// The edit control for the outputP path for the online mode
 	CEdit outputPathEditor;
-	// The radio button for the selecting of the Online mode
-	afx_msg void OnBnClickedRadioOffline();
-	// The radio button for the selecting of the Offline mode
-	afx_msg void OnBnClickedRadioOnline();
 };
