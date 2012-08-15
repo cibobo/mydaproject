@@ -48,9 +48,6 @@ END_MESSAGE_MAP()
 
 CDA_GUIDlg::CDA_GUIDlg(CWnd* pParent /*=NULL*/)
 	: CDialog(CDA_GUIDlg::IDD, pParent)
-	, isOnline(false)
-	, isOffline(true)
-	, isObservingWindowVisible(true)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	// create a instance for MainThread
@@ -60,12 +57,35 @@ CDA_GUIDlg::CDA_GUIDlg(CWnd* pParent /*=NULL*/)
 void CDA_GUIDlg::DoDataExchange(CDataExchange* pDX)
 {
 	CDialog::DoDataExchange(pDX);
-	DDX_Check(pDX, IDC_RADIO_OFFLINE, isOffline);
-	DDX_Check(pDX, IDC_CHECK_VISUAL1, isObservingWindowVisible);
+	DDX_Check(pDX, IDC_CHECK_VISUAL1, pMainThread->isObservingWindowVisible);
+	DDX_Check(pDX, IDC_CHECK_VISUAL2, pMainThread->isResultWindowVisible);
+	DDX_Check(pDX, IDC_CHECK_VISUAL3, pMainThread->isOpenCVWindowVisible);
+
+	// Radio Button for controlling the On and Offline mode
+	DDX_Check(pDX, IDC_RADIO_ONLINE, pMainThread->isOnline);
+	DDX_Check(pDX, IDC_RADIO_OFFLINE, pMainThread->isOffline);
+	// Radio Button for controlling the Learning and Recognition mode
+	DDX_Check(pDX, IDC_RADIO_LEARNING, pMainThread->isLearning);
+	DDX_Check(pDX, IDC_RADIO_RECOGNITION, pMainThread->isRecognise);
+	
 	DDX_Control(pDX, IDC_SLIDER_FRAMERATE, framerateSlider);
 	DDX_Control(pDX, IDC_EDIT_FRAMERATE, framerateEditor);
 	DDX_Control(pDX, IDC_EDIT_OFFLINEPATH, inputPathEditor);
-	DDX_Control(pDX, IDC_EDIT1, outputPathEditor);
+	DDX_Control(pDX, IDC_EDIT_ONLINEPATH, outputPathEditor);
+
+	// Detection Parameters
+	DDX_Text(pDX, IDC_EDIT_MAXAFEATURES, pMainThread->pParameters->MAXFEATURECOUNT);
+	DDX_Text(pDX, IDC_EDIT_MINAFEATURES, pMainThread->pParameters->MINFEATURECOUNT);
+	DDX_Text(pDX, IDC_EDIT_MAXELOOPS, pMainThread->pParameters->MAXDETECTLOOPS);
+	DDX_Text(pDX, IDC_EDIT_BBRIGHTNESS, pMainThread->pParameters->balance);
+	DDX_Text(pDX, IDC_EDIT_BCONTRAST, pMainThread->pParameters->contrast);
+
+	// CenSurE Parameters
+	DDX_Text(pDX, IDC_EDIT_MAXSIZE, pMainThread->pParameters->MAXSIZE);
+	DDX_Text(pDX, IDC_EDIT_RESTHRESHOLD, pMainThread->pParameters->responseThreshold);
+	DDX_Text(pDX, IDC_EDIT_LINETHRESHOLDP, pMainThread->pParameters->LINETHRESHOLDPROJECTED);
+	DDX_Text(pDX, IDC_EDIT_LINETHRESHOLDB, pMainThread->pParameters->LINETHRESHOLDBINARIZED);
+	DDX_Text(pDX, IDC_EDIT_NONMAXSUPSIZE, pMainThread->pParameters->SUPPRESSNONMAXSIZE);
 }
 
 BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
@@ -80,8 +100,6 @@ BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER_FRAMERATE, &CDA_GUIDlg::OnNMCustomdrawSliderFramerate)
 	ON_EN_CHANGE(IDC_EDIT_FRAMERATE, &CDA_GUIDlg::OnEnChangeEditFramerate)
 	ON_EN_CHANGE(IDC_EDIT_OFFLINEPATH, &CDA_GUIDlg::OnEnChangeEditOfflinepath)
-	ON_BN_CLICKED(IDC_RADIO_OFFLINE, &CDA_GUIDlg::OnBnClickedRadioOffline)
-	ON_BN_CLICKED(IDC_RADIO_ONLINE, &CDA_GUIDlg::OnBnClickedRadioOnline)
 END_MESSAGE_MAP()
 
 
@@ -184,14 +202,17 @@ void CDA_GUIDlg::OnBnClickedOk()
 	//	cout<<"Failed to create input thread"<<endl;
 	//}
 
-	DWORD InputThreadID, OpenGLThreadID;
-	if(this->isOffline){
-		CreateThread(NULL, 0, pMainThread->beginInputThread, (void*)pMainThread, 0, &InputThreadID);
-	}
+	//DWORD InputThreadID, OpenGLThreadID;
+	////if(this->isOffline){
+	//if(pMainThread->isOffline){
+	//	CreateThread(NULL, 0, pMainThread->beginInputThread, (void*)pMainThread, 0, &InputThreadID);
+	//}
 
-	if(this->isObservingWindowVisible){
-		CreateThread(NULL, 0, pMainThread->beginOpenGLSceneThread, (void*)pMainThread, 0, &OpenGLThreadID);
-	}
+	//if(pMainThread->isObservingWindowVisible){
+	//	CreateThread(NULL, 0, pMainThread->beginOpenGLSceneThread, (void*)pMainThread, 0, &OpenGLThreadID);
+	//}
+	DWORD CalculateThreadID;
+	CreateThread(NULL, 0, pMainThread->beginCalculationThread, (void*)pMainThread, 0, &CalculateThreadID);
 }
 
 //OnClick Listener for the Quit button
@@ -218,7 +239,7 @@ void CDA_GUIDlg::OnBnClickedButtonPause()
 //Controll the visuable of the Observing Windows
 void CDA_GUIDlg::OnBnClickedCheckVisual1()
 {
-	this->isObservingWindowVisible = !(this->isObservingWindowVisible);
+	pMainThread->isObservingWindowVisible = !(pMainThread->isObservingWindowVisible);
 }
 
 
@@ -273,16 +294,4 @@ void CDA_GUIDlg::OnEnChangeEditOfflinepath()
 	int length = str.GetLength();
 	strcpy(pMainThread->INPUTPATH, str);
 
-}
-
-//Control the Online mode is been selected or not
-void CDA_GUIDlg::OnBnClickedRadioOffline()
-{
-	this->isOnline = !(this->isOnline);
-}
-
-//Control the Offline mode is been selected or not
-void CDA_GUIDlg::OnBnClickedRadioOnline()
-{
-	this->isOffline = !(this->isOffline);
 }

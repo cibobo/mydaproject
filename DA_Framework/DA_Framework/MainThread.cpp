@@ -2,7 +2,12 @@
 #include "MainThread.hpp"
 
 MainThread::MainThread(){
+	pParameters = new Parameters();
+
 	ThreadIndex = 1001;
+
+	isLearning = true;
+	isRecognise = false;
 
 	p3DDataViewContext = new OpenGLContext;
 
@@ -19,6 +24,8 @@ MainThread::MainThread(){
 	FRAMERATE = 30;
 
 	//INPUTPATH = "Eva2Boxes";
+	isOnline = false;
+	isOffline = !isOnline;
 	INPUTPATH = new char[150];
 	OUTPUTPATH = "Eva2Boxes";
 	ISDATASAVED = false;
@@ -36,6 +43,7 @@ MainThread::MainThread(){
 	InitializeCriticalSection (&cvInitCrs);
 	InitializeCriticalSection (&calcCrs);
 
+	isObservingWindowVisible = true;
 }
 
 MainThread::~MainThread(){
@@ -54,6 +62,48 @@ DWORD WINAPI MainThread::beginInputThread(void *param){
 DWORD WINAPI MainThread::beginOpenGLSceneThread(void *param){
 	MainThread *This = (MainThread*)param;
 	return This->openGLSceneThreadPorc();
+}
+
+DWORD WINAPI MainThread::beginCalculationThread(void *param){
+	MainThread *This = (MainThread*)param;
+	return This->calculationThreadProc();
+}
+
+DWORD MainThread::calculationThreadProc(void){
+	DWORD InputThreadID, OpenGLThreadID;
+	if(this->isOffline){
+		CreateThread(NULL, 0, this->beginInputThread, (void*)this, 0, &InputThreadID);
+	} 
+
+	if(this->isObservingWindowVisible){
+		CreateThread(NULL, 0, this->beginOpenGLSceneThread, (void*)this, 0, &OpenGLThreadID);
+	}
+
+
+	while (!bDone) 
+	{ 	
+		if(isPause){
+			continue;
+		}
+
+		if(isDataUsed){
+			continue;
+		}
+		//call the calculate function after the init of PMD Camera
+		EnterCriticalSection (&cvInitCrs);
+		EnterCriticalSection (&calcCrs);
+		EnterCriticalSection(&frameCrs);
+
+		//get the current Bild Data, which is saved at the last position of the List
+		BildData *currentBildData = bildDataBuffer.back();
+		
+		// Gaussian Filter
+		filterDepthDate(currentBildData->threeDData, 0.3);
+
+		// create the data for a RGB image
+		unsigned char showdata[41616*3];
+	}
+	return 0;
 }
 
 DWORD MainThread::offlineInputThreadProc(void){

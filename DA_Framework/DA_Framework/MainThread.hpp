@@ -11,6 +11,7 @@
 #include "DistanceFilter.hpp"
 #include "MyDataIO.hpp"
 #include "OpenGLDraw.hpp"
+#include "Parameters.hpp"
 
 using namespace std;
 
@@ -19,13 +20,18 @@ public:
 	MainThread();
 	~MainThread();
 
+	// Instance of Parameters
+	Parameters *pParameters;
+
 	// Announcement of subthreads
 	DWORD offlineInputThreadProc(void);
 	DWORD openGLSceneThreadPorc(void);
+	DWORD calculationThreadProc(void);
 
 	// Static functions to satart the threads
 	static DWORD WINAPI beginInputThread(void *param);
 	static DWORD WINAPI beginOpenGLSceneThread(void *param);
+	static DWORD WINAPI beginCalculationThread(void *param);
 
 
 	DWORD ThreadIndex;
@@ -40,6 +46,12 @@ public:
 	CRITICAL_SECTION frameCrs;
 	// for the calculation process. 
 	CRITICAL_SECTION calcCrs;
+
+	// The Uniqueness controlled by the attributes of Radio Buttons
+	// Is learning mode
+	BOOL isLearning;
+	// Is recognition mode
+	BOOL isRecognise;
 
 	// Windows message to controll the Showing windows
 	MSG msg;
@@ -76,11 +88,16 @@ public:
 	// framerate
 	int FRAMERATE;
 
+	// The Uniqueness controlled by the attributes of Radio Buttons
+	// whether the Online mode is selected
+	BOOL isOnline;
+	// whether the Offline mode is selected
+	BOOL isOffline;
 	// The input data stream path for the offline mode
 	char *INPUTPATH;
 	// The output path for the Online Data source
 	char *OUTPUTPATH;
-
+	// Just for the Online Mode: whether save the data in local drive
 	bool ISDATASAVED;
 
 	// Evaluation output path
@@ -97,4 +114,11 @@ public:
 
 	//Object *obj;
 	//Recognition *recognition;
+
+	// Whether the real-time Observing Window is visible
+	BOOL isObservingWindowVisible;
+	// Whether the Result Window is visible
+	BOOL isResultWindowVisible;
+	// Whether the OpenCV help Window is visible
+	BOOL isOpenCVWindowVisible;
 };
