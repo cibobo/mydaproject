@@ -42,8 +42,11 @@ MainThread::MainThread(){
 	InitializeCriticalSection (&glInitCrs);
 	InitializeCriticalSection (&cvInitCrs);
 	InitializeCriticalSection (&calcCrs);
+	InitializeCriticalSection (&filterInitCrs);
 
-	isObservingWindowVisible = true;
+	isObservingWindowVisible = false;
+	isResultWindowVisible = false;
+	isOpenCVWindowVisible = true;
 }
 
 MainThread::~MainThread(){
@@ -61,7 +64,7 @@ DWORD WINAPI MainThread::beginInputThread(void *param){
 
 DWORD WINAPI MainThread::beginOpenGLSceneThread(void *param){
 	MainThread *This = (MainThread*)param;
-	return This->openGLSceneThreadPorc();
+	return This->openGLSceneThreadProc();
 }
 
 DWORD WINAPI MainThread::beginCalculationThread(void *param){
@@ -69,8 +72,13 @@ DWORD WINAPI MainThread::beginCalculationThread(void *param){
 	return This->calculationThreadProc();
 }
 
+DWORD WINAPI MainThread::beginOpenCVHelpThread(void *param){
+	MainThread *This = (MainThread*)param;
+	return This->openCVHelpThreadProc();
+}
+
 DWORD MainThread::calculationThreadProc(void){
-	DWORD InputThreadID, OpenGLThreadID;
+	DWORD InputThreadID, OpenGLThreadID, OpenCVThreadID;
 	if(this->isOffline){
 		CreateThread(NULL, 0, this->beginInputThread, (void*)this, 0, &InputThreadID);
 	} 
@@ -80,28 +88,45 @@ DWORD MainThread::calculationThreadProc(void){
 	}
 
 
-	while (!bDone) 
-	{ 	
-		if(isPause){
-			continue;
-		}
+	//while (!bDone) 
+	//{ 	
+	//	if(isPause){
+	//		continue;
+	//	}
 
-		if(isDataUsed){
-			continue;
-		}
+	//	if(isDataUsed){
+	//		continue;
+	//	}
+	if(!bDone && !isPause && !isDataUsed){
+
 		//call the calculate function after the init of PMD Camera
+		//EnterCriticalSection (&filterInitCrs);
+
+		//EnterCriticalSection (&glInitCrs);
 		EnterCriticalSection (&cvInitCrs);
-		EnterCriticalSection (&calcCrs);
-		EnterCriticalSection(&frameCrs);
+		//EnterCriticalSection (&calcCrs);
+		//EnterCriticalSection(&frameCrs);
 
 		//get the current Bild Data, which is saved at the last position of the List
 		BildData *currentBildData = bildDataBuffer.back();
 		
 		// Gaussian Filter
-		filterDepthDate(currentBildData->threeDData, 0.3);
+		ImageProcess::filterDepthDate(currentBildData->threeDData, 0.3);
 
-		// create the data for a RGB image
-		unsigned char showdata[41616*3];
+		//LeaveCriticalSection (&filterInitCrs);
+
+		//LeaveCriticalSection (&calcCrs);
+		
+
+		// If OpenCV Widnows are selected to show
+		//if(this->isOpenCVWindowVisible){
+		//	CreateThread(NULL, 0, this->beginOpenCVHelpThread, (void*)this, 0, &OpenCVThreadID);
+		//}
+
+		//LeaveCriticalSection(&frameCrs);
+		LeaveCriticalSection (&cvInitCrs);
+		//LeaveCriticalSection (&glInitCrs);
+		
 	}
 	return 0;
 }
@@ -109,6 +134,7 @@ DWORD MainThread::calculationThreadProc(void){
 DWORD MainThread::offlineInputThreadProc(void){
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
+	EnterCriticalSection (&filterInitCrs);
 	setDefaultLoadPath(INPUTPATH);
 
 	//get the distance data for the first step
@@ -135,6 +161,7 @@ DWORD MainThread::offlineInputThreadProc(void){
 	}
 	cout<<"Upgrading complete!"<<endl;
 	
+	LeaveCriticalSection (&filterInitCrs);
 	LeaveCriticalSection (&cvInitCrs);
 	LeaveCriticalSection (&glInitCrs);
 
@@ -167,7 +194,7 @@ DWORD MainThread::offlineInputThreadProc(void){
 	return 0;
 }
 
-DWORD MainThread::openGLSceneThreadPorc(void) 
+DWORD MainThread::openGLSceneThreadProc(void) 
 { 
 	static OpenGLWinUI *pOpenGLWinUI = new OpenGLWinUI;
 	//p3DDataViewContext = new OpenGLContext;
@@ -231,3 +258,62 @@ DWORD MainThread::openGLSceneThreadPorc(void)
 
 	return 0;
 } 
+DWORD MainThread::openCVHelpThreadProc(void)
+{
+	while(!bDone){
+		EnterCriticalSection (&cvInitCrs);
+		// Create Matrix to save the RGB images for both current and historical frames
+		Mat curMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
+		Mat hisMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
+
+		// Get data from float array to Matrix
+		ImageProcess::transFloatToMat(bildDataBuffer.back()->ampData, curMat, pParameters->balance, pParameters->contrast);
+		ImageProcess::transFloatToMat(bildDataBuffer.front()->ampData, hisMat, pParameters->balance, pParameters->contrast);
+
+		// The correspondent window
+		Mat testImg = Mat(V_BILDSIZE, H_BILDSIZE*2, CV_8UC3);
+		Mat left = Mat(testImg, Range::all(), Range(0,H_BILDSIZE));
+		Mat right = Mat(testImg, Range::all(), Range(H_BILDSIZE,H_BILDSIZE*2));
+		hisMat.copyTo(left);
+		curMat.copyTo(right);
+
+		//for(int i=0;i<hisFeatures.size();i++){
+		//	// show the old features
+		//	circle(left, hisFeatures[i].index, 2, Scalar(0,255,0,0), -1);
+		//	// show the current features
+		//	circle(right, curFeatures[i].index, 2, Scalar(0,0,255,0), -1);
+		//}
+
+		////if(hisFeatures.size()>0&&curFeatures.size()>0){
+		////	featureAssociate(hisFeatures, curFeatures, ASSOCIATESITA, oldIndexResult, newIndexResult);
+		//	for(int i=0;i<oldResult.size();i++){
+		//		Point2f trans(204,0);
+		//		//line(testImg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
+		//		line(testImg, oldResult[i].index, newResult[i].index+trans, Scalar(255,255,0,0));
+		//	}
+		////	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
+		////}
+		namedWindow("OpenCVCorrespondenz", CV_WINDOW_AUTOSIZE);
+		imshow("OpenCVCorrespondenz", testImg);
+
+
+		// The Summed Features Window
+		Mat graphImg;
+		curMat.copyTo(graphImg);
+
+		//for(int i=0;i<curFeatures.size();i++){
+		//	circle(graphImg, curFeatures[i].index, 2, Scalar(0,0,255), -1);
+		//	for(int j=i;j<curFeatures.size();j++){
+		//		line(graphImg, curFeatures[i].index, curFeatures[j].index, Scalar(0, 255, 255, 0));
+		//	}
+		//}
+		namedWindow("OpenCVSummedFeatures", CV_WINDOW_AUTOSIZE);
+		imshow("OpenCVSummedFeatures", graphImg);
+
+		LeaveCriticalSection (&cvInitCrs);
+
+		char c = waitKey(100);
+		if(c == 27) break;
+	}
+	return 0;
+}

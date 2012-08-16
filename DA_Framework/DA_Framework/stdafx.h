@@ -51,8 +51,8 @@
 #endif // _AFX_NO_AFXCMN_SUPPORT
 
 
-#define H_BILDSIZE 204
-#define V_BILDSIZE 204
+#define H_BILDSIZE 204 //width
+#define V_BILDSIZE 204 //height
 
 
 #define FRAMERATE_MIN 30
