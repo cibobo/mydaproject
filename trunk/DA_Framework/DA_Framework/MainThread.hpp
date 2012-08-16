@@ -7,8 +7,9 @@
 #include <iostream>
 #include <list>
 
-#include "BildData.hpp"
+//#include "BildData.hpp"
 #include "DistanceFilter.hpp"
+#include "ImageProcess.hpp"
 #include "MyDataIO.hpp"
 #include "OpenGLDraw.hpp"
 #include "Parameters.hpp"
@@ -23,15 +24,21 @@ public:
 	// Instance of Parameters
 	Parameters *pParameters;
 
+	//// Instance of ImageProcess
+	//ImageProcess *pImageProcess;
+
 	// Announcement of subthreads
 	DWORD offlineInputThreadProc(void);
-	DWORD openGLSceneThreadPorc(void);
+	DWORD openGLSceneThreadProc(void);
 	DWORD calculationThreadProc(void);
+	DWORD openCVHelpThreadProc(void);
 
 	// Static functions to satart the threads
 	static DWORD WINAPI beginInputThread(void *param);
 	static DWORD WINAPI beginOpenGLSceneThread(void *param);
 	static DWORD WINAPI beginCalculationThread(void *param);
+	// Thread for all OpenCV help windows
+	static DWORD WINAPI beginOpenCVHelpThread(void *param);
 
 
 	DWORD ThreadIndex;
@@ -46,6 +53,8 @@ public:
 	CRITICAL_SECTION frameCrs;
 	// for the calculation process. 
 	CRITICAL_SECTION calcCrs;
+	// for the depth filter init
+	CRITICAL_SECTION filterInitCrs;
 
 	// The Uniqueness controlled by the attributes of Radio Buttons
 	// Is learning mode
