@@ -39,6 +39,10 @@ public:
 	// Pointer of 3D Data
 	float *threeDData;
 
+	// Pointer of filtered data
+	float *filteredData;
+
+	// The detected features
 	vector<PMDPoint> features;
 
 	// test complete features

@@ -14,6 +14,7 @@ BildData::BildData(){
 	this->intData = new float[dataSize];
     this->ampData = new float[dataSize];
 	this->threeDData = new float[3*dataSize];
+	this->filteredData = new float[dataSize];
 	//clusterLabel = Mat::zeros(dataSize, 1, CV_8UC1);
 }
 
@@ -22,4 +23,5 @@ BildData::~BildData(){
 	delete [] this->intData;
 	delete [] this->ampData;
 	delete [] this->threeDData;
+	delete [] this->filteredData;
 }

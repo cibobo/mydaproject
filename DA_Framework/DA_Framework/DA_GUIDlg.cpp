@@ -74,18 +74,27 @@ void CDA_GUIDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_ONLINEPATH, outputPathEditor);
 
 	// Detection Parameters
-	DDX_Text(pDX, IDC_EDIT_MAXAFEATURES, pMainThread->pParameters->MAXFEATURECOUNT);
-	DDX_Text(pDX, IDC_EDIT_MINAFEATURES, pMainThread->pParameters->MINFEATURECOUNT);
-	DDX_Text(pDX, IDC_EDIT_MAXELOOPS, pMainThread->pParameters->MAXDETECTLOOPS);
-	DDX_Text(pDX, IDC_EDIT_BBRIGHTNESS, pMainThread->pParameters->balance);
-	DDX_Text(pDX, IDC_EDIT_BCONTRAST, pMainThread->pParameters->contrast);
+	DDX_Text(pDX, IDC_EDIT_MAXAFEATURES, pMainThread->pDetector->MAXFEATURECOUNT);
+	DDX_Text(pDX, IDC_EDIT_MINAFEATURES, pMainThread->pDetector->MINFEATURECOUNT);
+	DDX_Text(pDX, IDC_EDIT_MAXELOOPS, pMainThread->pDetector->MAXDETECTLOOPS);
+	DDX_Text(pDX, IDC_EDIT_BBRIGHTNESS, pMainThread->pDetector->BEGINBRIGHTNESS);
+	DDX_Text(pDX, IDC_EDIT_BCONTRAST, pMainThread->pDetector->BEGINCONTRAST);
 
 	// CenSurE Parameters
-	DDX_Text(pDX, IDC_EDIT_MAXSIZE, pMainThread->pParameters->MAXSIZE);
-	DDX_Text(pDX, IDC_EDIT_RESTHRESHOLD, pMainThread->pParameters->responseThreshold);
-	DDX_Text(pDX, IDC_EDIT_LINETHRESHOLDP, pMainThread->pParameters->LINETHRESHOLDPROJECTED);
-	DDX_Text(pDX, IDC_EDIT_LINETHRESHOLDB, pMainThread->pParameters->LINETHRESHOLDBINARIZED);
-	DDX_Text(pDX, IDC_EDIT_NONMAXSUPSIZE, pMainThread->pParameters->SUPPRESSNONMAXSIZE);
+	DDX_Text(pDX, IDC_EDIT_MAXSIZE, pMainThread->pDetector->MAXSIZE);
+	DDX_Text(pDX, IDC_EDIT_RESTHRESHOLD, pMainThread->pDetector->responseThreshold);
+	DDX_Text(pDX, IDC_EDIT_LINETHRESHOLDP, pMainThread->pDetector->LINETHRESHOLDPROJECTED);
+	DDX_Text(pDX, IDC_EDIT_LINETHRESHOLDB, pMainThread->pDetector->LINETHRESHOLDBINARIZED);
+	DDX_Text(pDX, IDC_EDIT_NONMAXSUPSIZE, pMainThread->pDetector->SUPPRESSNONMAXSIZE);
+
+	// Brightness Controll
+	DDX_Text(pDX, IDC_EDIT_CBRIGHTNESS, pMainThread->pDetector->balance);
+	DDX_Text(pDX, IDC_EDIT_CCONTRAST, pMainThread->pDetector->contrast);
+
+	// Distance Filter Parameters
+	DDX_Text(pDX, IDC_EDIT_DFVALUE, pMainThread->pParameters->DISTANCEFILTER_EPS);
+	DDX_Text(pDX, IDC_EDIT_DFPROPORTION, pMainThread->pParameters->DISTANCEFILTER_DIFFRATE);
+	DDX_Text(pDX, IDC_EDIT_DFFRAMES, pMainThread->pParameters->DISTANCEFILTER_FRAMES);
 }
 
 BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
@@ -97,9 +106,15 @@ BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
 	ON_BN_CLICKED(IDCANCEL, &CDA_GUIDlg::OnBnClickedCancel)
 	ON_BN_CLICKED(IDC_BUTTON_PAUSE, &CDA_GUIDlg::OnBnClickedButtonPause)
 	ON_BN_CLICKED(IDC_CHECK_VISUAL1, &CDA_GUIDlg::OnBnClickedCheckVisual1)
+	ON_BN_CLICKED(IDC_CHECK_VISUAL2, &CDA_GUIDlg::OnBnClickedCheckVisual2)
+	ON_BN_CLICKED(IDC_CHECK_VISUAL3, &CDA_GUIDlg::OnBnClickedCheckVisual3)
 	ON_NOTIFY(NM_CUSTOMDRAW, IDC_SLIDER_FRAMERATE, &CDA_GUIDlg::OnNMCustomdrawSliderFramerate)
 	ON_EN_CHANGE(IDC_EDIT_FRAMERATE, &CDA_GUIDlg::OnEnChangeEditFramerate)
 	ON_EN_CHANGE(IDC_EDIT_OFFLINEPATH, &CDA_GUIDlg::OnEnChangeEditOfflinepath)
+	ON_BN_CLICKED(IDC_RADIO_OFFLINE, &CDA_GUIDlg::OnBnClickedRadioOffline)
+	ON_BN_CLICKED(IDC_RADIO_ONLINE, &CDA_GUIDlg::OnBnClickedRadioOnline)
+	ON_BN_CLICKED(IDC_RADIO_LEARNING, &CDA_GUIDlg::OnBnClickedRadioLearning)
+	ON_BN_CLICKED(IDC_RADIO_RECOGNITION, &CDA_GUIDlg::OnBnClickedRadioRecognition)
 END_MESSAGE_MAP()
 
 
@@ -194,25 +209,14 @@ HCURSOR CDA_GUIDlg::OnQueryDragIcon()
 //OnClick listener for the Run button
 void CDA_GUIDlg::OnBnClickedOk()
 {
-	// TODO: Fügen Sie hier Ihren Kontrollbehandlungscode für die Benachrichtigung ein.
-	//OnOK();
-	//pMainThread->beginInputThread(0);
-
-	//if(_beginthread (pMainThread->beginInputThread, 0, NULL) == -1){
-	//	cout<<"Failed to create input thread"<<endl;
-	//}
-
-	//DWORD InputThreadID, OpenGLThreadID;
-	////if(this->isOffline){
-	//if(pMainThread->isOffline){
-	//	CreateThread(NULL, 0, pMainThread->beginInputThread, (void*)pMainThread, 0, &InputThreadID);
-	//}
-
 	//if(pMainThread->isObservingWindowVisible){
 	//	CreateThread(NULL, 0, pMainThread->beginOpenGLSceneThread, (void*)pMainThread, 0, &OpenGLThreadID);
 	//}
 	DWORD CalculateThreadID;
-	CreateThread(NULL, 0, pMainThread->beginCalculationThread, (void*)pMainThread, 0, &CalculateThreadID);
+	//CreateThread(NULL, 0, pMainThread->beginCalculationThread, (void*)pMainThread, 0, &CalculateThreadID);
+	pMainThread->run();
+	//Update the Dialog data
+	UpdateData(true);
 }
 
 //OnClick Listener for the Quit button
@@ -242,6 +246,15 @@ void CDA_GUIDlg::OnBnClickedCheckVisual1()
 	pMainThread->isObservingWindowVisible = !(pMainThread->isObservingWindowVisible);
 }
 
+void CDA_GUIDlg::OnBnClickedCheckVisual2()
+{
+	pMainThread->isResultWindowVisible = !(pMainThread->isResultWindowVisible);
+}
+
+void CDA_GUIDlg::OnBnClickedCheckVisual3()
+{
+	pMainThread->isOpenCVWindowVisible = !(pMainThread->isOpenCVWindowVisible);
+}
 
 void CDA_GUIDlg::OnNMCustomdrawSliderFramerate(NMHDR *pNMHDR, LRESULT *pResult)
 {
@@ -294,4 +307,31 @@ void CDA_GUIDlg::OnEnChangeEditOfflinepath()
 	int length = str.GetLength();
 	strcpy(pMainThread->INPUTPATH, str);
 
+}
+
+
+
+
+void CDA_GUIDlg::OnBnClickedRadioOffline()
+{
+	pMainThread->isOffline = true;
+	pMainThread->isOnline = false;
+}
+
+void CDA_GUIDlg::OnBnClickedRadioOnline()
+{
+	pMainThread->isOnline = true;
+	pMainThread->isOffline = false;
+}
+
+void CDA_GUIDlg::OnBnClickedRadioLearning()
+{
+	pMainThread->isLearning = true;
+	pMainThread->isRecognise = false;
+}
+
+void CDA_GUIDlg::OnBnClickedRadioRecognition()
+{
+	pMainThread->isRecognise = true;
+	pMainThread->isLearning = false;
 }

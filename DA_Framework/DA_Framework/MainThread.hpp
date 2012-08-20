@@ -9,8 +9,9 @@
 
 //#include "BildData.hpp"
 #include "DistanceFilter.hpp"
-#include "ImageProcess.hpp"
+//#include "ImageProcess.hpp"
 #include "MyDataIO.hpp"
+#include "MyFeatureDetector.hpp"
 #include "OpenGLDraw.hpp"
 #include "Parameters.hpp"
 
@@ -23,6 +24,12 @@ public:
 
 	// Instance of Parameters
 	Parameters *pParameters;
+
+	// The Distance Filter
+	DistanceFilter *dFilter;
+
+	// Instance of Detector
+	MyFeatureDetector *pDetector;
 
 	//// Instance of ImageProcess
 	//ImageProcess *pImageProcess;
@@ -39,6 +46,8 @@ public:
 	static DWORD WINAPI beginCalculationThread(void *param);
 	// Thread for all OpenCV help windows
 	static DWORD WINAPI beginOpenCVHelpThread(void *param);
+
+	void run();
 
 
 	DWORD ThreadIndex;
@@ -115,11 +124,7 @@ public:
 	// The vtk file name
 	char *MODELNAME;
 
-	// The Distance Filter
-	DistanceFilter *dFilter;
-	// The two paramter of Distance Filter
-	float DISTANCEFILTER_EPS;
-	float DISTANCEFILTER_DIFFRATE;
+
 
 	//Object *obj;
 	//Recognition *recognition;

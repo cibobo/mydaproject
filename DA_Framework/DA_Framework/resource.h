@@ -55,6 +55,15 @@
 #define IDC_EDIT_BBRIGHTNESS            1026
 #define IDC_EDIT13                      1027
 #define IDC_EDIT_BCONTRAST              1027
+#define IDC_EDIT14                      1028
+#define IDC_EDIT_DFVALUE                1028
+#define IDC_EDIT15                      1029
+#define IDC_EDIT_DFPROPORTION           1029
+#define IDC_EDIT16                      1030
+#define IDC_EDIT_DFFRAMES               1030
+#define IDC_EDIT_CBRIGHTNESS            1031
+#define IDC_EDIT18                      1032
+#define IDC_EDIT_CCONTRAST              1032
 
 // Next default values for new objects
 // 
@@ -62,7 +71,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1028
+#define _APS_NEXT_CONTROL_VALUE         1033
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
