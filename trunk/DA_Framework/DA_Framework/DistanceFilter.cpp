@@ -87,8 +87,8 @@ bool DistanceFilter::Filte(float *dis, float *src, float *dst){
 }
 
 bool DistanceFilter::Filte(BildData *bildData, float *dst){
-	this->eps = 0.1;
-	this->diffRate = 0.08;
+	//this->eps = 0.1;
+	//this->diffRate = 0.08;
 
 	// count how many data are different
 	int diffCount = 0;

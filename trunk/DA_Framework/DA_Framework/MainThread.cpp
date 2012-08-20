@@ -4,6 +4,8 @@
 MainThread::MainThread(){
 	pParameters = new Parameters();
 
+	pDetector = new MyFeatureDetector();
+
 	ThreadIndex = 1001;
 
 	isLearning = true;
@@ -33,9 +35,6 @@ MainThread::MainThread(){
 	EVAOUTPUTPATH = "FirstTest";
 
 	MODELNAME = "box2_all2";
-
-	DISTANCEFILTER_EPS = 0.1;
-	DISTANCEFILTER_DIFFRATE = 0.08;
 
 	InitializeCriticalSection (&pauseCrs);
 	InitializeCriticalSection (&frameCrs);
@@ -77,8 +76,8 @@ DWORD WINAPI MainThread::beginOpenCVHelpThread(void *param){
 	return This->openCVHelpThreadProc();
 }
 
-DWORD MainThread::calculationThreadProc(void){
-	DWORD InputThreadID, OpenGLThreadID, OpenCVThreadID;
+void MainThread::run(){
+	DWORD InputThreadID, OpenGLThreadID, OpenCVThreadID, CalculateThreadID;
 	if(this->isOffline){
 		CreateThread(NULL, 0, this->beginInputThread, (void*)this, 0, &InputThreadID);
 	} 
@@ -87,25 +86,42 @@ DWORD MainThread::calculationThreadProc(void){
 		CreateThread(NULL, 0, this->beginOpenGLSceneThread, (void*)this, 0, &OpenGLThreadID);
 	}
 
+	// Begin the Calculation Process
+	CreateThread(NULL, 0, this->beginCalculationThread, (void*)this, 0, &CalculateThreadID);
 
-	//while (!bDone) 
-	//{ 	
-	//	if(isPause){
-	//		continue;
-	//	}
+	// If OpenCV Widnows are selected to show
+	if(this->isOpenCVWindowVisible){
+		CreateThread(NULL, 0, this->beginOpenCVHelpThread, (void*)this, 0, &OpenCVThreadID);
+	}
+}
 
-	//	if(isDataUsed){
-	//		continue;
-	//	}
-	if(!bDone && !isPause && !isDataUsed){
+DWORD MainThread::calculationThreadProc(void){
+	//DWORD InputThreadID, OpenGLThreadID, OpenCVThreadID;
+	//if(this->isOffline){
+	//	CreateThread(NULL, 0, this->beginInputThread, (void*)this, 0, &InputThreadID);
+	//} 
 
+	//if(this->isObservingWindowVisible){
+	//	CreateThread(NULL, 0, this->beginOpenGLSceneThread, (void*)this, 0, &OpenGLThreadID);
+	//}
+
+	EnterCriticalSection (&glInitCrs);
+	EnterCriticalSection (&cvInitCrs);
+	LeaveCriticalSection (&cvInitCrs);
+	LeaveCriticalSection (&glInitCrs);
+
+	while(!bDone){
+
+		if(isDataUsed){
+			continue;
+		}
 		//call the calculate function after the init of PMD Camera
 		//EnterCriticalSection (&filterInitCrs);
 
-		//EnterCriticalSection (&glInitCrs);
-		EnterCriticalSection (&cvInitCrs);
-		//EnterCriticalSection (&calcCrs);
-		//EnterCriticalSection(&frameCrs);
+
+		EnterCriticalSection(&pauseCrs);
+		EnterCriticalSection(&frameCrs);
+		EnterCriticalSection (&calcCrs);
 
 		//get the current Bild Data, which is saved at the last position of the List
 		BildData *currentBildData = bildDataBuffer.back();
@@ -113,19 +129,19 @@ DWORD MainThread::calculationThreadProc(void){
 		// Gaussian Filter
 		ImageProcess::filterDepthDate(currentBildData->threeDData, 0.3);
 
+		// Distance Filter
+		bool isDiff = this->dFilter->Filte(currentBildData, currentBildData->filteredData);
+
+		if(isDiff){
+			pDetector->setDetectedData(currentBildData->filteredData);
+			pDetector->usingSTAR();
+		}
+
+		LeaveCriticalSection (&calcCrs);
+		LeaveCriticalSection(&frameCrs);
+		LeaveCriticalSection(&pauseCrs);
+
 		//LeaveCriticalSection (&filterInitCrs);
-
-		//LeaveCriticalSection (&calcCrs);
-		
-
-		// If OpenCV Widnows are selected to show
-		//if(this->isOpenCVWindowVisible){
-		//	CreateThread(NULL, 0, this->beginOpenCVHelpThread, (void*)this, 0, &OpenCVThreadID);
-		//}
-
-		//LeaveCriticalSection(&frameCrs);
-		LeaveCriticalSection (&cvInitCrs);
-		//LeaveCriticalSection (&glInitCrs);
 		
 	}
 	return 0;
@@ -134,17 +150,17 @@ DWORD MainThread::calculationThreadProc(void){
 DWORD MainThread::offlineInputThreadProc(void){
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	EnterCriticalSection (&filterInitCrs);
+	//EnterCriticalSection (&filterInitCrs);
 	setDefaultLoadPath(INPUTPATH);
 
 	//get the distance data for the first step
 	BildData *temp = new BildData();
 	loadAllDataFromFile(3, temp);
 	//init a distance filter
-	dFilter = new DistanceFilter(temp, DISTANCEFILTER_EPS, DISTANCEFILTER_DIFFRATE);
+	dFilter = new DistanceFilter(temp, this->pParameters->DISTANCEFILTER_EPS, this->pParameters->DISTANCEFILTER_DIFFRATE);
 
 	cout<<"Upgrading Distance Filter and Save Data into Buffer....."<<endl;
-	for(int i=1;i<20;i++){
+	for(int i=1;i<this->pParameters->DISTANCEFILTER_FRAMES;i++){
 		frameIndex = i;
 		//loadNormalDataFromFile("distance", i, bildData->disData);
 		BildData *temp = new BildData();
@@ -161,7 +177,7 @@ DWORD MainThread::offlineInputThreadProc(void){
 	}
 	cout<<"Upgrading complete!"<<endl;
 	
-	LeaveCriticalSection (&filterInitCrs);
+	//LeaveCriticalSection (&filterInitCrs);
 	LeaveCriticalSection (&cvInitCrs);
 	LeaveCriticalSection (&glInitCrs);
 
@@ -241,7 +257,8 @@ DWORD MainThread::openGLSceneThreadProc(void)
 			}
 		} else {
 			//display(pOpenGLWinUI, bildDataBuffer[0]);
-			EnterCriticalSection (&calcCrs);
+			//EnterCriticalSection (&calcCrs);
+			EnterCriticalSection(&frameCrs);
 #ifdef RECOGNITION
 			displayRecog(pOpenGLWinUI, recognition->graphList);
 			glEnable(GL_LIGHTING);
@@ -249,7 +266,8 @@ DWORD MainThread::openGLSceneThreadProc(void)
 			display(pOpenGLWinUI, bildDataBuffer.back());
 #endif
 			SwapBuffers(p3DDataViewContext->hDC);
-			LeaveCriticalSection (&calcCrs);
+			//LeaveCriticalSection (&calcCrs);
+			LeaveCriticalSection(&frameCrs);
 		}
 	}
 
@@ -260,15 +278,31 @@ DWORD MainThread::openGLSceneThreadProc(void)
 } 
 DWORD MainThread::openCVHelpThreadProc(void)
 {
-	while(!bDone){
-		EnterCriticalSection (&cvInitCrs);
+	EnterCriticalSection (&cvInitCrs);
+	namedWindow("OpenCVFeatureDetection", CV_WINDOW_AUTOSIZE);
+	namedWindow("OpenCVCorrespondenz", CV_WINDOW_AUTOSIZE);
+	namedWindow("OpenCVSummedFeatures", CV_WINDOW_AUTOSIZE);
+	LeaveCriticalSection (&cvInitCrs);
+
+	while(!bDone){	
 		// Create Matrix to save the RGB images for both current and historical frames
+		//Matrix for Feature Detection
+		Mat feaMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
 		Mat curMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
 		Mat hisMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
 
+
 		// Get data from float array to Matrix
-		ImageProcess::transFloatToMat(bildDataBuffer.back()->ampData, curMat, pParameters->balance, pParameters->contrast);
-		ImageProcess::transFloatToMat(bildDataBuffer.front()->ampData, hisMat, pParameters->balance, pParameters->contrast);
+		EnterCriticalSection (&calcCrs);
+		ImageProcess::transFloatToMat3(bildDataBuffer.back()->filteredData, feaMat, pDetector->balance, pDetector->contrast);
+		ImageProcess::transFloatToMat3(bildDataBuffer.back()->ampData, curMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
+		ImageProcess::transFloatToMat3(bildDataBuffer.front()->ampData, hisMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
+
+		// The Window for feature Detection
+		for(int i=0;i<pDetector->keypoints.size();i++){
+			circle(feaMat, pDetector->keypoints[i].pt, 1, Scalar(0,0,255,0), -1);
+		}
+		imshow("OpenCVFeatureDetection", feaMat);
 
 		// The correspondent window
 		Mat testImg = Mat(V_BILDSIZE, H_BILDSIZE*2, CV_8UC3);
@@ -293,7 +327,7 @@ DWORD MainThread::openCVHelpThreadProc(void)
 		//	}
 		////	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
 		////}
-		namedWindow("OpenCVCorrespondenz", CV_WINDOW_AUTOSIZE);
+		
 		imshow("OpenCVCorrespondenz", testImg);
 
 
@@ -307,10 +341,10 @@ DWORD MainThread::openCVHelpThreadProc(void)
 		//		line(graphImg, curFeatures[i].index, curFeatures[j].index, Scalar(0, 255, 255, 0));
 		//	}
 		//}
-		namedWindow("OpenCVSummedFeatures", CV_WINDOW_AUTOSIZE);
+		
 		imshow("OpenCVSummedFeatures", graphImg);
 
-		LeaveCriticalSection (&cvInitCrs);
+		LeaveCriticalSection (&calcCrs);
 
 		char c = waitKey(100);
 		if(c == 27) break;

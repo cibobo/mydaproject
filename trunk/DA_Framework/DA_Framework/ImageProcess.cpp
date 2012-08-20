@@ -17,7 +17,33 @@ void ImageProcess::filterDepthDate(float threeDData[], double sigma){
 	}
 }
 
+void ImageProcess::transFloatToChar(float *src, unsigned char *dst, float balance, float contrast){
+	for(int i=0;i<V_BILDSIZE*H_BILDSIZE;i++){
+		float gray = (src[i]-balance)/contrast;
+		if(gray>255){
+			gray = 255;
+		} else if(gray <0){
+			gray = 0;
+		}
+		dst[i] = gray;
+	}
+}
+
 void ImageProcess::transFloatToMat(float *src, cv::Mat &dst, float balance, float contrast){
+	for(int i=0;i<V_BILDSIZE;i++){
+		for(int j=0;j<H_BILDSIZE;j++){
+			int gray = (src[i*V_BILDSIZE+j]-balance)/contrast;
+			if(gray>255){
+				gray = 255;
+			} else if(gray <0){
+				gray = 0;
+			}
+			dst.at<unsigned char>(i,j) = gray;
+		}
+	}
+}
+
+void ImageProcess::transFloatToMat3(float *src, cv::Mat &dst, float balance, float contrast){
 	dst = dst.reshape(1);
 	for(int i=0;i<V_BILDSIZE;i++){
 		for(int j=0;j<H_BILDSIZE;j++){

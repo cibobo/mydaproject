@@ -40,7 +40,12 @@ public:
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedCancel();
 	afx_msg void OnBnClickedButtonPause();
+	// Check box for the visibility of OpenGL Observing Window
 	afx_msg void OnBnClickedCheckVisual1();
+	// Check box for the visibility of OpenGL Result Window
+	afx_msg void OnBnClickedCheckVisual2();
+	// Check box for the visibility of OpenCV Help Window
+	afx_msg void OnBnClickedCheckVisual3();
 	// Control Variable for the Framerate Slider
 	CSliderCtrl framerateSlider;
 	// The Slider for the Framerate
@@ -51,6 +56,13 @@ public:
 	// The Edit Control for the input data path for the offline mode
 	CEdit inputPathEditor;
 	afx_msg void OnEnChangeEditOfflinepath();
-	// The edit control for the outputP path for the online mode
+	// The Edit Control for the outputP path for the online mode
 	CEdit outputPathEditor;
+
+	// Radio Button for controlling the On and Offline mode
+	afx_msg void OnBnClickedRadioOffline();
+	afx_msg void OnBnClickedRadioOnline();
+	// Radio Button for controlling the Learning and Recognition mode
+	afx_msg void OnBnClickedRadioLearning();
+	afx_msg void OnBnClickedRadioRecognition();
 };

@@ -221,6 +221,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\MyFeatureDetector.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\OpenGLDraw.cpp"
 				>
 			</File>
@@ -284,6 +288,10 @@
 			</File>
 			<File
 				RelativePath=".\MyDataIO.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\MyFeatureDetector.hpp"
 				>
 			</File>
 			<File
