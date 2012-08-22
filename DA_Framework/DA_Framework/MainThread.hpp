@@ -10,6 +10,7 @@
 //#include "BildData.hpp"
 #include "DistanceFilter.hpp"
 //#include "ImageProcess.hpp"
+#include "Learning.hpp"
 #include "MyDataIO.hpp"
 #include "MyFeatureDetector.hpp"
 #include "OpenGLDraw.hpp"
@@ -26,10 +27,13 @@ public:
 	Parameters *pParameters;
 
 	// The Distance Filter
-	DistanceFilter *dFilter;
+	DistanceFilter *pDFilter;
 
 	// Instance of Detector
 	MyFeatureDetector *pDetector;
+
+	// Instance of Learning
+	Learning *pLearning;
 
 	//// Instance of ImageProcess
 	//ImageProcess *pImageProcess;

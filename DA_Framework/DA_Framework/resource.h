@@ -62,8 +62,22 @@
 #define IDC_EDIT16                      1030
 #define IDC_EDIT_DFFRAMES               1030
 #define IDC_EDIT_CBRIGHTNESS            1031
-#define IDC_EDIT18                      1032
+#define IDC_EDIT_MINENERGY              1031
 #define IDC_EDIT_CCONTRAST              1032
+#define IDC_EDIT_MAXENERGY              1032
+#define IDC_EDIT_PEPS                   1033
+#define IDC_EDIT18                      1034
+#define IDC_EDIT_PMINPTS                1034
+#define IDC_EDIT_MINCONTRAST            1035
+#define IDC_EDIT_MAXCONTRAST            1036
+#define IDC_EDIT_MINRSPTHRESHOLD        1037
+#define IDC_EDIT_MAXENERGY3             1038
+#define IDC_EDIT_MAXRSPTHRESHOLD        1038
+#define IDC_EDIT_SEPS                   1039
+#define IDC_EDIT_SMINPTS                1040
+#define IDC_EDIT_ASSDISTANCE            1041
+#define IDC_EDIT_ASSVARIANCE            1041
+#define IDC_EDIT_ASSRATE                1042
 
 // Next default values for new objects
 // 
@@ -71,7 +85,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1033
+#define _APS_NEXT_CONTROL_VALUE         1035
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

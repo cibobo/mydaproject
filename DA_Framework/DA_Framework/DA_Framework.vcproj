@@ -213,6 +213,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Learning.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\MainThread.cpp"
 				>
 			</File>
@@ -280,6 +284,10 @@
 			</File>
 			<File
 				RelativePath=".\ImageProcess.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Learning.hpp"
 				>
 			</File>
 			<File
