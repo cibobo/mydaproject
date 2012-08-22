@@ -9,12 +9,15 @@
  */
 
 class DistanceFilter {
-
-private:
+public:
 	/*
 	 * To save the distance data of envieronment
 	 */
 	float *origArray;
+	/*
+	 * The number of frames, which would be used for creating the Distance Filter
+	 */
+	int creatingFrames;
 	/*
 	 * The minimal recogenized distance between the envieronment and the object
 	 */
@@ -25,7 +28,7 @@ private:
 	 */
 	float diffRate;
 
-public:
+
 	DistanceFilter();
 	DistanceFilter(float *dis);
 	DistanceFilter(float *dis, float epsilon, float rate);

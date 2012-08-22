@@ -2,9 +2,10 @@
 #include "DistanceFilter.hpp"
 
 DistanceFilter::DistanceFilter(){
-	this->origArray = new float[H_BILDSIZE*V_BILDSIZE];
-	this->eps = 0.05;
-	this->diffRate = 0.05;
+	this->origArray = NULL;
+	this->eps = 0.1;
+	this->diffRate = 0.08;
+	this->creatingFrames = 20;
 }
 
 DistanceFilter::DistanceFilter(float *dis){
@@ -30,8 +31,9 @@ DistanceFilter::DistanceFilter(BildData *bildData){
 	for(int i=0;i<H_BILDSIZE*V_BILDSIZE;i++){
 		origArray[i] = bildData->threeDData[i*3+2];
 	}
-	this->eps = 0.05;
-	this->diffRate = 0.05;
+	this->eps = 0.1;
+	this->diffRate = 0.08;
+	this->creatingFrames = 20;
 }
 
 DistanceFilter::DistanceFilter(BildData *bildData, float epsilon, float rate){
@@ -56,10 +58,17 @@ void DistanceFilter::Upgrade(float *dis){
 }
 
 void DistanceFilter::Upgrade(BildData *bildData){
-	for(int i=0;i<H_BILDSIZE*V_BILDSIZE;i++){
-		//if(fabs(dis[i]-origArray[i]) < this->eps){
-			this->origArray[i] = (this->origArray[i] + bildData->threeDData[i*3+2])/2;
-		//}
+	if(this->origArray == NULL){
+		this->origArray = new float[H_BILDSIZE*V_BILDSIZE];
+		for(int i=0;i<H_BILDSIZE*V_BILDSIZE;i++){
+			origArray[i] = bildData->threeDData[i*3+2];
+		}
+	} else {
+		for(int i=0;i<H_BILDSIZE*V_BILDSIZE;i++){
+			//if(fabs(dis[i]-origArray[i]) < this->eps){
+				this->origArray[i] = (this->origArray[i] + bildData->threeDData[i*3+2])/2;
+			//}
+		}
 	}
 }
 

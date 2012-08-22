@@ -88,13 +88,29 @@ void CDA_GUIDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_NONMAXSUPSIZE, pMainThread->pDetector->SUPPRESSNONMAXSIZE);
 
 	// Brightness Controll
-	DDX_Text(pDX, IDC_EDIT_CBRIGHTNESS, pMainThread->pDetector->balance);
-	DDX_Text(pDX, IDC_EDIT_CCONTRAST, pMainThread->pDetector->contrast);
+	DDX_Text(pDX, IDC_EDIT_MINENERGY, pMainThread->pDetector->MINSTANDARDENERGY);
+	DDX_Text(pDX, IDC_EDIT_MAXENERGY, pMainThread->pDetector->MAXSTANDARDENERGY);
+	DDX_Text(pDX, IDC_EDIT_MINCONTRAST, pMainThread->pDetector->MINCONTRAST);
+	DDX_Text(pDX, IDC_EDIT_MAXCONTRAST, pMainThread->pDetector->MAXCONTRAST);
+	DDX_Text(pDX, IDC_EDIT_MINRSPTHRESHOLD, pMainThread->pDetector->MINRESPONSETHRESHOLD);
+	DDX_Text(pDX, IDC_EDIT_MAXRSPTHRESHOLD, pMainThread->pDetector->MAXRESPONSETHRESHOLD);
+
+	//Plane DBSCAN Parameters
+	DDX_Text(pDX, IDC_EDIT_PEPS, pMainThread->pDetector->planeCombiEps);
+	DDX_Text(pDX, IDC_EDIT_PMINPTS, pMainThread->pDetector->planeCombiMinPts);
 
 	// Distance Filter Parameters
-	DDX_Text(pDX, IDC_EDIT_DFVALUE, pMainThread->pParameters->DISTANCEFILTER_EPS);
-	DDX_Text(pDX, IDC_EDIT_DFPROPORTION, pMainThread->pParameters->DISTANCEFILTER_DIFFRATE);
-	DDX_Text(pDX, IDC_EDIT_DFFRAMES, pMainThread->pParameters->DISTANCEFILTER_FRAMES);
+	DDX_Text(pDX, IDC_EDIT_DFVALUE, pMainThread->pDFilter->eps);
+	DDX_Text(pDX, IDC_EDIT_DFPROPORTION, pMainThread->pDFilter->diffRate);
+	DDX_Text(pDX, IDC_EDIT_DFFRAMES, pMainThread->pDFilter->creatingFrames);
+
+	//Spatial DBSCAN Parameters
+	DDX_Text(pDX, IDC_EDIT_SEPS, pMainThread->pLearning->spatialCombiEps);
+	DDX_Text(pDX, IDC_EDIT_SMINPTS, pMainThread->pLearning->spatialCombiMinPts);
+
+	//Association Parameters
+	DDX_Text(pDX, IDC_EDIT_ASSVARIANCE, pMainThread->pLearning->associateVariance);
+	DDX_Text(pDX, IDC_EDIT_ASSRATE, pMainThread->pLearning->associateRate);
 }
 
 BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)

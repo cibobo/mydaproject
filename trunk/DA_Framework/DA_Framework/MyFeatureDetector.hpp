@@ -11,14 +11,18 @@ public:
 	void usingSTAR();
 	void usingSURF();
 
-	void setDetectedData(float *data);
-	int brightnessControllSTAR(unsigned char *tempData);
+	void setDetectedData(BildData *data);
+	int brightnessControllSTAR();
+
+	void planeFeaturesCombination();
+	void createPMDFeatures();
 
 
 	Mat detectedMat;
-	Mat testMat;
-	float *detectedData;
+	BildData *detectedData;
 	vector<KeyPoint> keypoints;
+	vector<vector<Point2f>> planeFeatureGroups;
+	vector<PMDPoint> PMDFeatures;
 
 	//Detection's parameters
 	// Minimal allowed Features
@@ -49,4 +53,8 @@ public:
 	float MAXCONTRAST;
 	float MINRESPONSETHRESHOLD;
 	float MAXRESPONSETHRESHOLD;
+
+	//Parameter of plane features combination
+	float planeCombiEps;
+	int planeCombiMinPts;
 };

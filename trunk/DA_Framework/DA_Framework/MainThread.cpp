@@ -4,7 +4,11 @@
 MainThread::MainThread(){
 	pParameters = new Parameters();
 
+	pDFilter = new DistanceFilter();
+
 	pDetector = new MyFeatureDetector();
+
+	pLearning = new Learning();
 
 	ThreadIndex = 1001;
 
@@ -130,12 +134,22 @@ DWORD MainThread::calculationThreadProc(void){
 		ImageProcess::filterDepthDate(currentBildData->threeDData, 0.3);
 
 		// Distance Filter
-		bool isDiff = this->dFilter->Filte(currentBildData, currentBildData->filteredData);
+		bool isDiff = this->pDFilter->Filte(currentBildData, currentBildData->filteredData);
 
 		if(isDiff){
-			pDetector->setDetectedData(currentBildData->filteredData);
+			pDetector->setDetectedData(currentBildData);
 			pDetector->usingSTAR();
+			pDetector->createPMDFeatures();
+
+			
 		}
+
+		pLearning->setTrainingFeatures(pDetector->PMDFeatures);
+		pLearning->setCurrentBildData(currentBildData);
+		pLearning->setHistoricalBildData(bildDataBuffer.front());
+
+		pLearning->findObjectFeatures();
+		pLearning->findAssociations();
 
 		LeaveCriticalSection (&calcCrs);
 		LeaveCriticalSection(&frameCrs);
@@ -153,14 +167,15 @@ DWORD MainThread::offlineInputThreadProc(void){
 	//EnterCriticalSection (&filterInitCrs);
 	setDefaultLoadPath(INPUTPATH);
 
-	//get the distance data for the first step
-	BildData *temp = new BildData();
-	loadAllDataFromFile(3, temp);
-	//init a distance filter
-	dFilter = new DistanceFilter(temp, this->pParameters->DISTANCEFILTER_EPS, this->pParameters->DISTANCEFILTER_DIFFRATE);
+	////get the distance data for the first step
+	//BildData *temp = new BildData();
+	//loadAllDataFromFile(3, temp);
+	////init a distance filter
+	////dFilter = new DistanceFilter(temp, this->pParameters->DISTANCEFILTER_EPS, this->pParameters->DISTANCEFILTER_DIFFRATE);
+	//dFilter = new DistanceFilter(temp); 
 
 	cout<<"Upgrading Distance Filter and Save Data into Buffer....."<<endl;
-	for(int i=1;i<this->pParameters->DISTANCEFILTER_FRAMES;i++){
+	for(int i=1;i<pDFilter->creatingFrames;i++){
 		frameIndex = i;
 		//loadNormalDataFromFile("distance", i, bildData->disData);
 		BildData *temp = new BildData();
@@ -173,7 +188,7 @@ DWORD MainThread::offlineInputThreadProc(void){
 		bildDataBuffer.push_back(temp);
 
 		//dFilter->Upgrade(temp->disData);
-		dFilter->Upgrade(temp);
+		pDFilter->Upgrade(temp);
 	}
 	cout<<"Upgrading complete!"<<endl;
 	
@@ -304,6 +319,8 @@ DWORD MainThread::openCVHelpThreadProc(void)
 		}
 		imshow("OpenCVFeatureDetection", feaMat);
 
+		LeaveCriticalSection (&calcCrs);
+
 		// The correspondent window
 		Mat testImg = Mat(V_BILDSIZE, H_BILDSIZE*2, CV_8UC3);
 		Mat left = Mat(testImg, Range::all(), Range(0,H_BILDSIZE));
@@ -311,42 +328,58 @@ DWORD MainThread::openCVHelpThreadProc(void)
 		hisMat.copyTo(left);
 		curMat.copyTo(right);
 
-		//for(int i=0;i<hisFeatures.size();i++){
-		//	// show the old features
-		//	circle(left, hisFeatures[i].index, 2, Scalar(0,255,0,0), -1);
-		//	// show the current features
-		//	circle(right, curFeatures[i].index, 2, Scalar(0,0,255,0), -1);
-		//}
+		EnterCriticalSection (&calcCrs);
 
-		////if(hisFeatures.size()>0&&curFeatures.size()>0){
-		////	featureAssociate(hisFeatures, curFeatures, ASSOCIATESITA, oldIndexResult, newIndexResult);
-		//	for(int i=0;i<oldResult.size();i++){
-		//		Point2f trans(204,0);
-		//		//line(testImg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
-		//		line(testImg, oldResult[i].index, newResult[i].index+trans, Scalar(255,255,0,0));
-		//	}
-		////	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
-		////}
+		vector<PMDPoint> curFeatures = bildDataBuffer.back()->features;
+		vector<PMDPoint> hisFeatures = bildDataBuffer.front()->features;
+
+		vector<PMDPoint> oldResult = this->pLearning->hisAssPoints;
+		vector<PMDPoint> newResult = this->pLearning->curAssPoints;
+
+		for(int i=0;i<hisFeatures.size();i++){
+			// show the old features
+			circle(left, hisFeatures[i].index, 2, Scalar(0,255,0,0), -1);
+		}
+
+		for(int i=0;i<curFeatures.size();i++){
+			// show the current features
+			circle(right, curFeatures[i].index, 2, Scalar(0,0,255,0), -1);
+		}
+
+		//if(hisFeatures.size()>0&&curFeatures.size()>0){
+		//	featureAssociate(hisFeatures, curFeatures, ASSOCIATESITA, oldIndexResult, newIndexResult);
+			for(int i=0;i<oldResult.size();i++){
+				Point2f trans(204,0);
+				//line(testImg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
+				line(testImg, oldResult[i].index, newResult[i].index+trans, Scalar(255,255,0,0));
+			}
+		//	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
+		//}
 		
 		imshow("OpenCVCorrespondenz", testImg);
 
+		LeaveCriticalSection (&calcCrs);
 
+
+		EnterCriticalSection (&calcCrs);
 		// The Summed Features Window
 		Mat graphImg;
 		curMat.copyTo(graphImg);
+		
 
-		//for(int i=0;i<curFeatures.size();i++){
-		//	circle(graphImg, curFeatures[i].index, 2, Scalar(0,0,255), -1);
-		//	for(int j=i;j<curFeatures.size();j++){
-		//		line(graphImg, curFeatures[i].index, curFeatures[j].index, Scalar(0, 255, 255, 0));
-		//	}
-		//}
+
+		for(int i=0;i<curFeatures.size();i++){
+			circle(graphImg, curFeatures[i].index, 2, Scalar(0,0,255), -1);
+			for(int j=i;j<curFeatures.size();j++){
+				line(graphImg, curFeatures[i].index, curFeatures[j].index, Scalar(0, 255, 255, 0));
+			}
+		}
 		
 		imshow("OpenCVSummedFeatures", graphImg);
 
 		LeaveCriticalSection (&calcCrs);
 
-		char c = waitKey(100);
+		char c = waitKey(10);
 		if(c == 27) break;
 	}
 	return 0;

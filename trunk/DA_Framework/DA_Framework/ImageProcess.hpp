@@ -1,3 +1,6 @@
+#ifndef IMAGEPROCESS_HPP
+#define IMAGEPROCESS_HPP
+
 #include <cv.h>
 
 #include "BildData.hpp"
@@ -19,5 +22,25 @@ public:
 	 **/
 	void static transFloatToMat3(float *src, Mat &dst, float balance, float contrast);
 
-	void static transFloatToChar(float *src, unsigned char *dst, float balance, float contrast);
+	/**
+	 * The Cluster methode with DBSCAN
+	 *   Refference: http://de.wikipedia.org/wiki/DBSCAN
+	 **/
+	void static DBSCAN(vector<vector<Point2f>> &C, vector<Point2f> D, float eps, int minPts);
+
+	void static DBSCANPMDPoint(vector<vector<PMDPoint>> &C, vector<PMDPoint> D, float eps, int minPts);
+
+	//Helping function to separate a vector of PMDPoint into two vectors for both 3D Point and 2D Point
+	void static decPMDPointVector(vector<PMDPoint> pmdPoints, vector<Point3f> &points3D, vector<Point2f> &points2D);
+
+	/**
+	 * To find the associated features between two frames
+	 *   See the paper of G.L.Scott and H.C.Lonuet-Higgins:
+	 *   "An algorithm for associating the features of two images"
+	 **/
+	bool static featureAssociatePMD(vector<PMDPoint> oldFeature, vector<PMDPoint> newFeature, float sigma, 
+					   vector<PMDPoint> &findFeatureOld, vector<PMDPoint> &findFeatureNew,
+					   float &avrDis, float &disPE, float &sumP);
 };
+
+#endif;
