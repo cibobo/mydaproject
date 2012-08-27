@@ -16,6 +16,8 @@ MainThread::MainThread(){
 	isRecognise = false;
 
 	p3DDataViewContext = new OpenGLContext;
+	pObjViewContext = new OpenGLContext;
+
 
 	bDone = false;
 	isPause = false;
@@ -33,7 +35,7 @@ MainThread::MainThread(){
 	isOnline = false;
 	isOffline = !isOnline;
 	INPUTPATH = new char[150];
-	OUTPUTPATH = "Eva2Boxes";
+	OUTPUTPATH = "Eva3DRotation5";
 	ISDATASAVED = false;
 
 	EVAOUTPUTPATH = "FirstTest";
@@ -69,6 +71,10 @@ DWORD WINAPI MainThread::beginOpenGLSceneThread(void *param){
 	MainThread *This = (MainThread*)param;
 	return This->openGLSceneThreadProc();
 }
+DWORD WINAPI MainThread::beginOpenGLResultThread(void *param){
+	MainThread *This = (MainThread*)param;
+	return This->openGLResultThreadProc();
+}
 
 DWORD WINAPI MainThread::beginCalculationThread(void *param){
 	MainThread *This = (MainThread*)param;
@@ -86,8 +92,14 @@ void MainThread::run(){
 		CreateThread(NULL, 0, this->beginInputThread, (void*)this, 0, &InputThreadID);
 	} 
 
+	// If OpenGL Observing window is visible
 	if(this->isObservingWindowVisible){
 		CreateThread(NULL, 0, this->beginOpenGLSceneThread, (void*)this, 0, &OpenGLThreadID);
+	}
+	
+	// If OpenGL result window is visible
+	if(this->isResultWindowVisible){
+		CreateThread(NULL, 0, this->beginOpenGLResultThread, (void*)this, 0, &OpenGLThreadID);
 	}
 
 	// Begin the Calculation Process
@@ -150,8 +162,15 @@ DWORD MainThread::calculationThreadProc(void){
 
 		pLearning->findObjectFeatures();
 		pLearning->findAssociations();
+		pLearning->findTransformation();
+		pLearning->updateObject();
 
+		this->isDataUsed = true;
 		LeaveCriticalSection (&calcCrs);
+
+		// display 3D structur of the Object in an OpenGL Window
+		PostMessage(pObjViewContext->hWnd, WM_PAINT, 0, 0);	
+
 		LeaveCriticalSection(&frameCrs);
 		LeaveCriticalSection(&pauseCrs);
 
@@ -291,6 +310,52 @@ DWORD MainThread::openGLSceneThreadProc(void)
 
 	return 0;
 } 
+DWORD MainThread::openGLResultThreadProc(void){
+	static OpenGLWinUI *pObjGLWinUI = new OpenGLWinUI;
+
+	TlsSetValue(ThreadIndex, pObjGLWinUI);
+
+	if(!CreateOpenGLWindow("Object Window", 0, 0, 1500, 750, PFD_TYPE_RGBA, 0, pObjGLWinUI, pObjViewContext)){
+		exit(0);
+	}
+
+	cout<<"The Object Structur OpenGL Windows is running"<<endl;
+
+	while(!bDone){
+		if(PeekMessage(&msg,NULL,0,0,PM_REMOVE)){
+			if(msg.message==WM_QUIT){
+				bDone = TRUE;
+			} else if(msg.message==WM_RBUTTONDOWN){
+				// klick right button of mouse to stop and rerun the input of frame
+				if(isPause){
+					cout<<"frame running!"<<endl;
+					LeaveCriticalSection(&pauseCrs);
+					isPause = false;
+				} else {
+					cout<<"frame pause!"<<endl;
+					EnterCriticalSection(&pauseCrs);
+					isPause = true;
+				}
+			} else{
+				TranslateMessage(&msg);
+				DispatchMessage(&msg);
+				//display(pOpenGLWinUI, disData, intData, ampData);
+			}
+		} else {
+			EnterCriticalSection (&calcCrs);
+#ifdef RECOGNITION
+			display(pObjGLWinUI, recognition->modelList);
+#else
+			display(pObjGLWinUI, this->pLearning->pObject);
+			//display(pObjGLWinUI, bildDataBuffer.back());
+#endif
+			SwapBuffers(pObjViewContext->hDC);
+			glEnable(GL_LIGHTING);
+			LeaveCriticalSection(&calcCrs);
+		}
+	}
+	delete pObjGLWinUI;
+}
 DWORD MainThread::openCVHelpThreadProc(void)
 {
 	EnterCriticalSection (&cvInitCrs);

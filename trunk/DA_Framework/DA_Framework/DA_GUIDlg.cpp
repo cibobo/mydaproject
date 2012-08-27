@@ -111,6 +111,10 @@ void CDA_GUIDlg::DoDataExchange(CDataExchange* pDX)
 	//Association Parameters
 	DDX_Text(pDX, IDC_EDIT_ASSVARIANCE, pMainThread->pLearning->associateVariance);
 	DDX_Text(pDX, IDC_EDIT_ASSRATE, pMainThread->pLearning->associateRate);
+
+	//Kalmanfilter's Controller
+	DDX_Check(pDX, IDC_CHECK_TFILTER, pMainThread->pLearning->isTKFilter);
+	DDX_Check(pDX, IDC_CHECK_RFILTER, pMainThread->pLearning->isQKFilter);
 }
 
 BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
@@ -168,7 +172,7 @@ BOOL CDA_GUIDlg::OnInitDialog()
 	this->framerateSlider.SetRangeMax(FRAMERATE_MAX, false);
 
 	// Init Input Path with the default Data Source
-	this->inputPathEditor.SetWindowTextA(CString("Eva2Boxes"));
+	this->inputPathEditor.SetWindowTextA(CString("Eva3DRotation5"));
 
 	return TRUE;  // Geben Sie TRUE zurück, außer ein Steuerelement soll den Fokus erhalten
 }
