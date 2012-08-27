@@ -75,9 +75,12 @@
 #define IDC_EDIT_MAXRSPTHRESHOLD        1038
 #define IDC_EDIT_SEPS                   1039
 #define IDC_EDIT_SMINPTS                1040
-#define IDC_EDIT_ASSDISTANCE            1041
 #define IDC_EDIT_ASSVARIANCE            1041
 #define IDC_EDIT_ASSRATE                1042
+#define IDC_CHECK5                      1043
+#define IDC_CHECK_TFILTER               1043
+#define IDC_CHECK6                      1044
+#define IDC_CHECK_RFILTER               1044
 
 // Next default values for new objects
 // 
@@ -85,7 +88,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1035
+#define _APS_NEXT_CONTROL_VALUE         1045
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

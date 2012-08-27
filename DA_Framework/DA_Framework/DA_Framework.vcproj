@@ -209,6 +209,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Graph.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ImageProcess.cpp"
 				>
 			</File>
@@ -226,6 +230,10 @@
 			</File>
 			<File
 				RelativePath=".\MyFeatureDetector.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Object.cpp"
 				>
 			</File>
 			<File
@@ -283,6 +291,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Graph.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\ImageProcess.hpp"
 				>
 			</File>
@@ -300,6 +312,10 @@
 			</File>
 			<File
 				RelativePath=".\MyFeatureDetector.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Object.hpp"
 				>
 			</File>
 			<File

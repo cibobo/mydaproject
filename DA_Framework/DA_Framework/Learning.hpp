@@ -1,10 +1,16 @@
 #include "BildData.hpp"
 #include "ImageProcess.hpp"
+#include "Object.hpp"
 
 class Learning{
 public:
 	Learning();
 	~Learning(){};
+
+	//Initalization of Kalmanfilter
+	void initKalmanFilter();
+	//Update of Kalmanfilter
+	//void updateKalmanFilter(Mat measure, Mat &estimate);
 
 	//Get the trainings data of detected features
 	void setTrainingFeatures(vector<PMDPoint> features);
@@ -19,6 +25,10 @@ public:
 	void findObjectFeatures();
 	//To find the association between the current bild and historical bild
 	void findAssociations();
+	//To find the Transformation between two frames
+	void findTransformation();
+	//Update the Object
+	void updateObject();
 
 	//Vector to save the training data
 	vector<PMDPoint> trainingFeatures;
@@ -31,6 +41,11 @@ public:
 	//Historical associated result
 	vector<PMDPoint> hisAssPoints;
 
+	//Target Object
+	Object *pObject;
+	//Temp Translation and Rotation matrix for learning
+	Mat tempT, tempR;
+
 	//Parameter for the spatial DBSCAN, to segement the features for the learning
 	float spatialCombiEps;
 	int spatialCombiMinPts;
@@ -40,5 +55,14 @@ public:
 	float associateVariance;
 	//Association Rate
 	float associateRate;
+
+	//KalmanFilters
+	// KalmanFilter for Translationsmatrix
+	KalmanFilter tFilter;
+	// KalmanFilter for the Qaternion
+	KalmanFilter qFilter;
+	// Boolean Control for the KalmanFilters
+	BOOL isTKFilter;
+	BOOL isQKFilter;
 };
 

@@ -27,7 +27,7 @@ public:
 	 *   Refference: http://de.wikipedia.org/wiki/DBSCAN
 	 **/
 	void static DBSCAN(vector<vector<Point2f>> &C, vector<Point2f> D, float eps, int minPts);
-
+	// DBSCAN for the PMDPoints
 	void static DBSCANPMDPoint(vector<vector<PMDPoint>> &C, vector<PMDPoint> D, float eps, int minPts);
 
 	//Helping function to separate a vector of PMDPoint into two vectors for both 3D Point and 2D Point
@@ -41,6 +41,17 @@ public:
 	bool static featureAssociatePMD(vector<PMDPoint> oldFeature, vector<PMDPoint> newFeature, float sigma, 
 					   vector<PMDPoint> &findFeatureOld, vector<PMDPoint> &findFeatureNew,
 					   float &avrDis, float &disPE, float &sumP);
+
+	/**
+	 * Using unit quaternions to calculate the absolute orientation
+	 * Bertgikd K.P.Horn 1987
+	 *
+	 * Using KalmanFilter for the center point
+	 **/
+	//Matrix version
+	float static m_UQFindRAndT(Mat &M, Mat &D, Mat &R, Mat &T, KalmanFilter *pTFilter=NULL);
+	//Points vector's version
+	float static UQFindRAndT(vector<Point3f> oldFeatures, vector<Point3f> newFeatures, Mat &R, Mat &T, KalmanFilter *pTFilter=NULL);
 };
 
 #endif;

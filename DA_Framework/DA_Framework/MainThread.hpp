@@ -41,12 +41,14 @@ public:
 	// Announcement of subthreads
 	DWORD offlineInputThreadProc(void);
 	DWORD openGLSceneThreadProc(void);
+	DWORD openGLResultThreadProc(void);
 	DWORD calculationThreadProc(void);
 	DWORD openCVHelpThreadProc(void);
 
 	// Static functions to satart the threads
 	static DWORD WINAPI beginInputThread(void *param);
 	static DWORD WINAPI beginOpenGLSceneThread(void *param);
+	static DWORD WINAPI beginOpenGLResultThread(void *param);
 	static DWORD WINAPI beginCalculationThread(void *param);
 	// Thread for all OpenCV help windows
 	static DWORD WINAPI beginOpenCVHelpThread(void *param);
