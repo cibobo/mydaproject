@@ -67,7 +67,7 @@ void CDA_GUIDlg::DoDataExchange(CDataExchange* pDX)
 	// Radio Button for controlling the Learning and Recognition mode
 	DDX_Check(pDX, IDC_RADIO_LEARNING, pMainThread->isLearning);
 	DDX_Check(pDX, IDC_RADIO_RECOGNITION, pMainThread->isRecognise);
-	
+
 	DDX_Control(pDX, IDC_SLIDER_FRAMERATE, framerateSlider);
 	DDX_Control(pDX, IDC_EDIT_FRAMERATE, framerateEditor);
 	DDX_Control(pDX, IDC_EDIT_OFFLINEPATH, inputPathEditor);
@@ -115,6 +115,20 @@ void CDA_GUIDlg::DoDataExchange(CDataExchange* pDX)
 	//Kalmanfilter's Controller
 	DDX_Check(pDX, IDC_CHECK_TFILTER, pMainThread->pLearning->isTKFilter);
 	DDX_Check(pDX, IDC_CHECK_RFILTER, pMainThread->pLearning->isQKFilter);
+
+	//Graph Update Prameters
+	DDX_Text(pDX, IDC_EDIT_GUPDATE_DT, pMainThread->pLearning->updateDThreshold);
+	DDX_Text(pDX, IDC_EDIT_GUPDATE_TT, pMainThread->pLearning->updateTThreshold);
+
+	//Frame Controll Parameters
+	DDX_Text(pDX, IDC_EDIT_FC_DTHRESHOLD, pMainThread->pIterator->qualityCheckThreshold);
+	DDX_Text(pDX, IDC_EDIT_FC_ARATE, pMainThread->pIterator->qualityCheckMinAcceptRate);
+	DDX_Text(pDX, IDC_EDIT_FC_LDATABUFFER, pMainThread->pIterator->DATABUFFERLENGTH);
+	DDX_Text(pDX, IDC_EDIT_FC_MJFEATURES, pMainThread->pIterator->MAXJUMPEDFEATURES);
+
+	DDX_Control(pDX, IDC_EDIT_SAVINGNAME, SavingNameEdit);
+	DDX_Control(pDX, IDC_BUTTON_SAVE, SaveButton);
+	DDX_Control(pDX, IDC_BUTTON_PAUSE, PauseButton);
 }
 
 BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
@@ -135,6 +149,8 @@ BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
 	ON_BN_CLICKED(IDC_RADIO_ONLINE, &CDA_GUIDlg::OnBnClickedRadioOnline)
 	ON_BN_CLICKED(IDC_RADIO_LEARNING, &CDA_GUIDlg::OnBnClickedRadioLearning)
 	ON_BN_CLICKED(IDC_RADIO_RECOGNITION, &CDA_GUIDlg::OnBnClickedRadioRecognition)
+	ON_BN_CLICKED(IDC_BUTTON_SAVE, &CDA_GUIDlg::OnBnClickedButtonSave)
+	ON_EN_CHANGE(IDC_EDIT_SAVINGNAME, &CDA_GUIDlg::OnEnChangeEditSavingname)
 END_MESSAGE_MAP()
 
 
@@ -173,6 +189,9 @@ BOOL CDA_GUIDlg::OnInitDialog()
 
 	// Init Input Path with the default Data Source
 	this->inputPathEditor.SetWindowTextA(CString("Eva3DRotation5"));
+
+	// Init SaveButton. The defaut status is disable
+	this->SaveButton.EnableWindow(false);
 
 	return TRUE;  // Geben Sie TRUE zurück, außer ein Steuerelement soll den Fokus erhalten
 }
@@ -253,10 +272,12 @@ void CDA_GUIDlg::OnBnClickedButtonPause()
 		cout<<"frame running!"<<endl;
 		LeaveCriticalSection(&(pMainThread->pauseCrs));
 		pMainThread->isPause = false;
+		this->PauseButton.SetWindowTextA(CString("Pause"));
 	} else {
 		cout<<"frame pause!"<<endl;
 		EnterCriticalSection(&(pMainThread->pauseCrs));
 		pMainThread->isPause = true;
+		this->PauseButton.SetWindowTextA(CString("Continue"));
 	}
 }
 
@@ -329,9 +350,6 @@ void CDA_GUIDlg::OnEnChangeEditOfflinepath()
 
 }
 
-
-
-
 void CDA_GUIDlg::OnBnClickedRadioOffline()
 {
 	pMainThread->isOffline = true;
@@ -354,4 +372,30 @@ void CDA_GUIDlg::OnBnClickedRadioRecognition()
 {
 	pMainThread->isRecognise = true;
 	pMainThread->isLearning = false;
+}
+
+void CDA_GUIDlg::OnBnClickedButtonSave()
+{
+	CString str;
+	this->SavingNameEdit.GetWindowTextA(str);
+	//int length = str.GetLength();
+	//const char* name;
+	string name((LPCTSTR)str);
+	this->pMainThread->pLearning->pObject->saveToVTKFile(name.data());
+}
+
+void CDA_GUIDlg::OnEnChangeEditSavingname()
+{
+	// TODO:  Falls dies ein RICHEDIT-Steuerelement ist, wird das Kontrollelement
+	// diese Benachrichtigung nicht senden, es sei denn, Sie setzen den CDialog::OnInitDialog() außer Kraft.
+	// Funktion und Aufruf CRichEditCtrl().SetEventMask()
+	// mit dem ENM_CHANGE-Flag ORed in der Eingabe.
+
+	CString str;
+	this->SavingNameEdit.GetWindowTextA(str);
+	if(str.GetLength()<1){
+		this->SaveButton.EnableWindow(false);
+	} else {
+		this->SaveButton.EnableWindow(true);
+	}
 }

@@ -12,14 +12,19 @@ using namespace cv;
  **/
 class Node : public Point3f{
 public:
+	//Type Definition
 	typedef map<Node*, Node*> NodePairs;
 	typedef map<Node*, float> Neighbors;
 
+	//To save all neighbors, which have edge connecting to the current node
 	Neighbors neighbors;
+
 	int index;
+	//The life time of the node
 	int timmer;
+	//Whether this node is as fixed node recognized
 	bool isFixed;
-	// to save the color of the node, in order to sepreate the points of different plane
+	//To save the color of the node, in order to sepreate the points of different plane
 	int color;
 
 	Node();
@@ -36,6 +41,9 @@ public:
 	void addNeighbor(Node *node);
 	bool deleteNeighbor(Node *node);
 	bool hasNeighbor(Node *other);
+
+	//Check all neighbors of both 'this' node and 'other' node 
+	//Save the nodepairs into the 'nodePairs', which their edge length is smaller than e 
 	void findCorresNeighbors(Node *other, NodePairs &nodePairs, float e);
 };
 
@@ -45,23 +53,36 @@ public:
  **/
 class Graph{
 public:
-	// Type Definition
+	/*
+	 * Type Definition
+	 */
+	//NodePairs for the Graph Isomorphismus
 	typedef map<Node*, Node*> NodePairs;
+	//Each element of Neighbors contains the point of the neighbor node and the edge length between them
 	typedef map<Node*, float> Neighbors;
 
+	/*
+	 * Data Parameters
+	 */
+	//Vector of Nodes to save all nodes in graph
 	vector<Node*> nodeList;
-	vector<Node*> fixedNodeList;
+	//vector<Node*> fixedNodeList;
 	int indexCount;
 	int lifeTime;
 	int fixNodeCount;
+
 	// The rotationmatrix from beginning status to the current status
 	Mat R;
 	Mat T;
 
+	//Constructors
 	Graph();
 	Graph(vector<Point3f> points);
 	~Graph();
 
+	/*
+	 * Standard Functions for graph
+	 */
 	void addNode(Point3f &node);
 	void addNodes(vector<Point3f> points);
 
@@ -78,15 +99,20 @@ public:
 	void unionGraph(Graph *graph);
 
 	//void createMaxGraph(vector<vector<Point2f>> pointSets);
+	//Create a complete graph with input points
 	void createCompleteGraph(vector<Point3f> points);
 
 	int getSize();
 	vector<Point3f> getPoints();
-	//bool updateGraph(vector<Point3f> points);
-	bool updateGraph(vector<Point3f> points, Mat R, Mat T);
+
+	//Update current graph with the new points and the rotation and traslation matrix
+	bool updateGraph(vector<Point3f> points, Mat R, Mat T, float dThreshold=0.004, int tThreashold=25);
 
 	void showWithOpenCV(const char *name);
 	
+	/*
+	 * Functions for the Graph Isomorphismus
+	 */
 	// The nodePairs saving the pointer of associate Nodes, where the first place for the node in Graph 'other'
 	bool isEqual(Graph *other);
 	bool isEqual1(Graph *other, float e, float rate);

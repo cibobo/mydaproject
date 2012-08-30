@@ -308,84 +308,7 @@ void Graph::createCompleteGraph(vector<Point3f> points){
 	}
 }
 
-//bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
-//	// if there is no input points
-//	if(points.size()<=0){
-//		return false;
-//	} else {
-//		// if the graph contains no points
-//		if(this->nodeList.size()<=0){
-//			//this->addNodes(points);
-//			this->createCompleteGraph(points);
-//			return false;
-//		} else {
-//			//update the position of the old points
-//			for(int i=0;i<this->nodeList.size();i++){
-//				Mat oldPoint = Mat(this->nodeList[i]->getPoint());
-//				//cout<<"The oldPoint: "<<oldPoint<<endl;
-//				Mat newPoint = R*oldPoint + T;
-//				//cout<<"The newPoint: "<<newPoint<<endl;
-//				this->nodeList[i]->setPosition(Point3f(newPoint.at<float>(0,0),
-//													   newPoint.at<float>(1,0),
-//													   //2));
-//													   newPoint.at<float>(2,0)));
-//			}
-//
-//			vector<Point3f> tempPoints = points;
-//			float e = 0.004;
-//			int timeThreshold = 35;
-//			for(int i=0;i<this->nodeList.size();i++){
-//				Node *currentNode = this->nodeList[i];
-//				int j;
-//				bool isFound = false;
-//				//find a coorespondence relationship to the new point			
-//				for(j=0;j<tempPoints.size();j++){
-//					//if they are very close
-//					if((fabs(currentNode->x - tempPoints[j].x) < e) && 
-//					   (fabs(currentNode->y - tempPoints[j].y) < e) && 
-//					   (fabs(currentNode->z - tempPoints[j].z) < e)){ //&& !currentNode->isFixed){
-//					//if(currentNode->distanceTo(tempPoints[j]) < e){
-//						   //increase the life time of the node in graph
-//						   currentNode->timmer +=2;
-//						   //if the life time of the node is bigger than the threshold
-//						   if(currentNode->timmer >= timeThreshold){
-//							   currentNode->isFixed = true;
-//							   this->fixedNodeList.push_back(currentNode);
-//							   this->fixNodeCount++;
-//						   }
-//						   //delete the point from tempPoints
-//						   tempPoints.erase(tempPoints.begin()+j);
-//						   isFound = true;
-//						   break;
-//					}
-//				}
-//				//if there is no close poind found for the i-th node  
-//				if(!isFound){
-//					//if the node is not a fixed node and the life time is smaller than 0
-//					if((!currentNode->isFixed) && (--currentNode->timmer < 0)){
-//						this->deleteNode(i);
-//					}
-//					//if(--currentNode->timmer < 0){
-//					//	if(currentNode->isFixed){
-//					//		currentNode->isFixed = false;
-//					//		currentNode->timmer = timeThreshold;
-//					//	} else {
-//					//		this->deleteNode(i);
-//					//	}
-//					//}
-//				} 	
-//			}
-//
-//			//add the rest new node into the nodelist
-//			this->addNodes(tempPoints);	
-//
-//
-//		}
-//	}
-//	return true;
-//}
-
-bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
+bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T, float dThreshold, int tThreshold){
 	// if there is no input points
 	if(points.size()<=0){
 		return false;
@@ -412,8 +335,8 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 													newPoint.at<float>(2,0)));
 			}
 
-			float e = 0.004;
-			int timeThreshold = 25;
+			float e = dThreshold;
+			int timeThreshold = tThreshold;
 			for(int i=0;i<this->nodeList.size();i++){
 				Node *currentNode = this->nodeList[i];
 				int j;
@@ -430,7 +353,7 @@ bool Graph::updateGraph(vector<Point3f> points, Mat R, Mat T){
 						   //if the life time of the node is bigger than the threshold
 						   if(currentNode->timmer >= timeThreshold){
 							   currentNode->isFixed = true;
-							   this->fixedNodeList.push_back(currentNode);
+							   //this->fixedNodeList.push_back(currentNode);
 							   this->fixNodeCount++;
 						   }
 						   // union the correspondenz points

@@ -209,6 +209,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FrameIterator.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Graph.cpp"
 				>
 			</File>
@@ -245,7 +249,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Parameters.cpp"
+				RelativePath=".\Recognition.cpp"
 				>
 			</File>
 			<File
@@ -291,6 +295,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\FrameIterator.hpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Graph.hpp"
 				>
 			</File>
@@ -327,7 +335,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\Parameters.hpp"
+				RelativePath=".\Recognition.hpp"
 				>
 			</File>
 			<File
