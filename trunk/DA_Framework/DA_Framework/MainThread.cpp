@@ -2,13 +2,15 @@
 #include "MainThread.hpp"
 
 MainThread::MainThread(){
-	pParameters = new Parameters();
-
 	pDFilter = new DistanceFilter();
 
 	pDetector = new MyFeatureDetector();
 
 	pLearning = new Learning();
+
+	pIterator = new FrameIterator();
+
+	pRecognition = new Recognition();
 
 	ThreadIndex = 1001;
 
@@ -24,10 +26,6 @@ MainThread::MainThread(){
 	isDataUsed = false;
 
 	associaterate = 0.02;
-
-	DETECTINGRATE = 2;
-	MAXJUMPEDFEATURES = 5;
-	jumpedFeatures = 0;
 
 	FRAMERATE = 30;
 
@@ -47,7 +45,6 @@ MainThread::MainThread(){
 	InitializeCriticalSection (&glInitCrs);
 	InitializeCriticalSection (&cvInitCrs);
 	InitializeCriticalSection (&calcCrs);
-	InitializeCriticalSection (&filterInitCrs);
 
 	isObservingWindowVisible = false;
 	isResultWindowVisible = false;
@@ -140,7 +137,7 @@ DWORD MainThread::calculationThreadProc(void){
 		EnterCriticalSection (&calcCrs);
 
 		//get the current Bild Data, which is saved at the last position of the List
-		BildData *currentBildData = bildDataBuffer.back();
+		BildData *currentBildData = pIterator->getCurrentBildData();
 		
 		// Gaussian Filter
 		ImageProcess::filterDepthDate(currentBildData->threeDData, 0.3);
@@ -156,14 +153,27 @@ DWORD MainThread::calculationThreadProc(void){
 			
 		}
 
-		pLearning->setTrainingFeatures(pDetector->PMDFeatures);
-		pLearning->setCurrentBildData(currentBildData);
-		pLearning->setHistoricalBildData(bildDataBuffer.front());
+		if(this->isLearning){
+			pLearning->setTrainingFeatures(pDetector->PMDFeatures);
+			pLearning->setCurrentBildData(currentBildData);
+			pLearning->setHistoricalBildData(pIterator->getHistoricalBildData());
 
-		pLearning->findObjectFeatures();
-		pLearning->findAssociations();
-		pLearning->findTransformation();
-		pLearning->updateObject();
+			pLearning->findObjectFeatures();
+			if(pLearning->hisBildData->features.size()>0 &&
+			   pLearning->curBildData->features.size()>0){
+				pLearning->findAssociations();
+				pLearning->findTransformation();
+				//pLearning->updateObject();
+
+				//Choosing frame
+				pIterator->framesControl(pLearning);
+
+			}
+		} 
+
+		if(this->isRecognise){
+			pRecognition->objectRecognition(pDetector->PMDFeatures);
+		}
 
 		this->isDataUsed = true;
 		LeaveCriticalSection (&calcCrs);
@@ -183,56 +193,39 @@ DWORD MainThread::calculationThreadProc(void){
 DWORD MainThread::offlineInputThreadProc(void){
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
-	//EnterCriticalSection (&filterInitCrs);
-	setDefaultLoadPath(INPUTPATH);
 
-	////get the distance data for the first step
-	//BildData *temp = new BildData();
-	//loadAllDataFromFile(3, temp);
-	////init a distance filter
-	////dFilter = new DistanceFilter(temp, this->pParameters->DISTANCEFILTER_EPS, this->pParameters->DISTANCEFILTER_DIFFRATE);
-	//dFilter = new DistanceFilter(temp); 
+	setDefaultLoadPath(INPUTPATH);
 
 	cout<<"Upgrading Distance Filter and Save Data into Buffer....."<<endl;
 	for(int i=1;i<pDFilter->creatingFrames;i++){
-		frameIndex = i;
+		pIterator->frameIndex = i;
 		//loadNormalDataFromFile("distance", i, bildData->disData);
 		BildData *temp = new BildData();
 		loadAllDataFromFile(i, temp);
-		if(bildDataBuffer.size()>=DETECTINGRATE){
-			//delete the first element from the list
-			bildDataBuffer.pop_front();
-		}
-		//add the new element into the end of the List
-		bildDataBuffer.push_back(temp);
+
+		//add the new data into the DataBuffer
+		pIterator->initDataBuffer(temp);
 
 		//dFilter->Upgrade(temp->disData);
 		pDFilter->Upgrade(temp);
 	}
 	cout<<"Upgrading complete!"<<endl;
 	
-	//LeaveCriticalSection (&filterInitCrs);
 	LeaveCriticalSection (&cvInitCrs);
 	LeaveCriticalSection (&glInitCrs);
 
 	for(int i=20;i<999;i++){
 		cout<<endl<<"============================= "<<i<<" ==========================="<<endl;
-		frameIndex = i;
+		pIterator->frameIndex = i;
 		EnterCriticalSection(&pauseCrs);
 		EnterCriticalSection(&frameCrs);
 
 		BildData *temp = new BildData();
 		loadAllDataFromFile(i, temp);
 
-		// Pop the first element of the Buffer, and the destructor will be called automatically 
-		// if sepcial process begin, the old data would not be removed
-		if(jumpedFeatures<1){
-			bildDataBuffer.pop_front();
-		}
-		bildDataBuffer.push_back(temp);
+		pIterator->updateDataBuffer(temp);
 
-		//updata the OpenGL Window
-		//PostMessage(openGLhnd, WM_PAINT, 0, 0);	
+		//updata the OpenGL Window	
 		PostMessage(p3DDataViewContext->hWnd, WM_PAINT, 0, 0);	
 		isDataUsed = false;
 
@@ -251,13 +244,20 @@ DWORD MainThread::openGLSceneThreadProc(void)
 
 	TlsSetValue(ThreadIndex, pOpenGLWinUI);
 
-#ifdef RECOGNITION
-	int width = 600;
-	int height = 600;
-#else
-	int width = 900;
-	int height = 600;
-#endif
+
+	int width;
+	int height;
+
+	if(this->isLearning){
+		width = 900;
+		height = 600;
+	} 
+
+	if(this->isRecognise){
+		width = 600;
+		height = 600;
+	}
+
 
 	EnterCriticalSection (&glInitCrs);
 
@@ -293,12 +293,13 @@ DWORD MainThread::openGLSceneThreadProc(void)
 			//display(pOpenGLWinUI, bildDataBuffer[0]);
 			//EnterCriticalSection (&calcCrs);
 			EnterCriticalSection(&frameCrs);
-#ifdef RECOGNITION
-			displayRecog(pOpenGLWinUI, recognition->graphList);
-			glEnable(GL_LIGHTING);
-#else
-			display(pOpenGLWinUI, bildDataBuffer.back());
-#endif
+			if(this->isRecognise){
+				displayGraphs(pOpenGLWinUI, pRecognition->graphList);
+				glEnable(GL_LIGHTING);
+			}
+			if(this->isLearning){
+				display(pOpenGLWinUI, pIterator->getCurrentBildData());
+			}
 			SwapBuffers(p3DDataViewContext->hDC);
 			//LeaveCriticalSection (&calcCrs);
 			LeaveCriticalSection(&frameCrs);
@@ -315,7 +316,7 @@ DWORD MainThread::openGLResultThreadProc(void){
 
 	TlsSetValue(ThreadIndex, pObjGLWinUI);
 
-	if(!CreateOpenGLWindow("Object Window", 0, 0, 1500, 750, PFD_TYPE_RGBA, 0, pObjGLWinUI, pObjViewContext)){
+	if(!CreateOpenGLWindow("Object Window", 0, 0, 1000, 750, PFD_TYPE_RGBA, 0, pObjGLWinUI, pObjViewContext)){
 		exit(0);
 	}
 
@@ -343,12 +344,12 @@ DWORD MainThread::openGLResultThreadProc(void){
 			}
 		} else {
 			EnterCriticalSection (&calcCrs);
-#ifdef RECOGNITION
-			display(pObjGLWinUI, recognition->modelList);
-#else
-			display(pObjGLWinUI, this->pLearning->pObject);
-			//display(pObjGLWinUI, bildDataBuffer.back());
-#endif
+			if(this->isRecognise){
+				displayObjects(pObjGLWinUI, pRecognition->modelList);
+			}
+			if(this->isLearning){
+				display(pObjGLWinUI, this->pLearning->pObject);
+			}
 			SwapBuffers(pObjViewContext->hDC);
 			glEnable(GL_LIGHTING);
 			LeaveCriticalSection(&calcCrs);
@@ -374,9 +375,12 @@ DWORD MainThread::openCVHelpThreadProc(void)
 
 		// Get data from float array to Matrix
 		EnterCriticalSection (&calcCrs);
-		ImageProcess::transFloatToMat3(bildDataBuffer.back()->filteredData, feaMat, pDetector->balance, pDetector->contrast);
-		ImageProcess::transFloatToMat3(bildDataBuffer.back()->ampData, curMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
-		ImageProcess::transFloatToMat3(bildDataBuffer.front()->ampData, hisMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
+		BildData* curBildData = pIterator->getCurrentBildData();
+		BildData* hisBildData = pIterator->getHistoricalBildData();
+
+		ImageProcess::transFloatToMat3(curBildData->filteredData, feaMat, pDetector->balance, pDetector->contrast);
+		ImageProcess::transFloatToMat3(curBildData->ampData, curMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
+		ImageProcess::transFloatToMat3(hisBildData->ampData, hisMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
 
 		// The Window for feature Detection
 		for(int i=0;i<pDetector->keypoints.size();i++){
@@ -395,8 +399,8 @@ DWORD MainThread::openCVHelpThreadProc(void)
 
 		EnterCriticalSection (&calcCrs);
 
-		vector<PMDPoint> curFeatures = bildDataBuffer.back()->features;
-		vector<PMDPoint> hisFeatures = bildDataBuffer.front()->features;
+		vector<PMDPoint> curFeatures = curBildData->features;
+		vector<PMDPoint> hisFeatures = hisBildData->features;
 
 		vector<PMDPoint> oldResult = this->pLearning->hisAssPoints;
 		vector<PMDPoint> newResult = this->pLearning->curAssPoints;

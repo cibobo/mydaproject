@@ -12,7 +12,7 @@ public:
 	~Object();
 
 	//Update the Object strucure graph with Rotaion and Translation matrix
-	void update(vector<Point3f> points, Mat R, Mat T);
+	void update(vector<Point3f> points, Mat R, Mat T, float dThreshold, int tThreshold);
 
 	//void getMiddelPoint(Point3f &mid);
 	void clearUnfixedNodes();

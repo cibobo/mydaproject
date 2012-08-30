@@ -19,11 +19,11 @@ Object::Object(const char *name){
 Object::~Object(){
 }
 
-void Object::update(vector<Point3f> points, Mat R, Mat T){
+void Object::update(vector<Point3f> points, Mat R, Mat T, float dThreshold, int tThreshold){
 	curR = R;
 	curT = T;
 
-	updateGraph(points, curR, curT);
+	updateGraph(points, curR, curT, dThreshold, tThreshold);
 	
 	////if lesser than 3 fixed node have been found, which means, that no plane can be identified. Than reset the rotationsmatrix
 	//if(this->fixNodeCount>=3){

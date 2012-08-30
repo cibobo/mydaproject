@@ -38,7 +38,7 @@ public:
 	 *   See the paper of G.L.Scott and H.C.Lonuet-Higgins:
 	 *   "An algorithm for associating the features of two images"
 	 **/
-	bool static featureAssociatePMD(vector<PMDPoint> oldFeature, vector<PMDPoint> newFeature, float sigma, 
+	bool static featureAssociatePMD(vector<PMDPoint> oldFeature, vector<PMDPoint> newFeature, float sigma, float assRate,
 					   vector<PMDPoint> &findFeatureOld, vector<PMDPoint> &findFeatureNew,
 					   float &avrDis, float &disPE, float &sumP);
 

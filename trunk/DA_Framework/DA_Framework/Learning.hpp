@@ -29,6 +29,11 @@ public:
 	void findTransformation();
 	//Update the Object
 	void updateObject();
+	//Update the Object with inputs
+	void updateObject(vector<PMDPoint> features, Mat R, Mat T);
+	//Check the Quality of the Transformation. Get the proportion of the associated points
+	float getCorresRate(float e);
+	
 
 	//Vector to save the training data
 	vector<PMDPoint> trainingFeatures;
@@ -41,11 +46,6 @@ public:
 	//Historical associated result
 	vector<PMDPoint> hisAssPoints;
 
-	//Target Object
-	Object *pObject;
-	//Temp Translation and Rotation matrix for learning
-	Mat tempT, tempR;
-
 	//Parameter for the spatial DBSCAN, to segement the features for the learning
 	float spatialCombiEps;
 	int spatialCombiMinPts;
@@ -55,6 +55,8 @@ public:
 	float associateVariance;
 	//Association Rate
 	float associateRate;
+	//Whether is the Assuciation successful
+	bool isAssSuccess;
 
 	//KalmanFilters
 	// KalmanFilter for Translationsmatrix
@@ -64,5 +66,19 @@ public:
 	// Boolean Control for the KalmanFilters
 	BOOL isTKFilter;
 	BOOL isQKFilter;
+
+	// Target Object
+	Object *pObject;
+	// Temp Translation and Rotation matrix for learning
+	Mat tempT, tempR;
+	// Object updating parameters
+	//Define how near the two point are, that they will be recognized as one node  
+	float updateDThreshold;
+	//Define how long a node is been observed continuously, that it will be recognized as a fixed node 
+	int updateTThreshold;
+
+	//Measurment of the Orientation
+	//Sum of the maximal values of the Matrix P in FeatureAssociation
+	float sumMaxValue;
 };
 

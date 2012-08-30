@@ -65,4 +65,14 @@ public:
 	// Radio Button for controlling the Learning and Recognition mode
 	afx_msg void OnBnClickedRadioLearning();
 	afx_msg void OnBnClickedRadioRecognition();
+	// Button for saving the object into a VTK data
+	afx_msg void OnBnClickedButtonSave();
+	// Edit Control to set the name of the saving VTK datei of the object
+	CEdit SavingNameEdit;
+	// Funktion to check whether the saving name is empty
+	afx_msg void OnEnChangeEditSavingname();
+	// Button to save the result of learning
+	CButton SaveButton;
+	// Button to pause and continue the programm 
+	CButton PauseButton;
 };

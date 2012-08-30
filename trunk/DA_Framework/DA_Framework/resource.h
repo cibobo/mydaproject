@@ -33,6 +33,8 @@
 #define IDC_RADIO6                      1012
 #define IDC_RADIO7                      1013
 #define IDC_EDIT3                       1014
+#define IDC_EDIT17                      1015
+#define IDC_EDIT_SAVINGNAME             1015
 #define IDC_SLIDER_FRAMERATE            1016
 #define IDC_EDIT_FRAMERATE              1017
 #define IDC_EDIT4                       1018
@@ -81,6 +83,14 @@
 #define IDC_CHECK_TFILTER               1043
 #define IDC_CHECK6                      1044
 #define IDC_CHECK_RFILTER               1044
+#define IDC_EDIT_GUPDATE_DT             1047
+#define IDC_EDIT_GUPDATE_TT             1048
+#define IDC_EDIT_FC_DTHRESHOLD          1049
+#define IDC_EDIT_FC_ARATE               1050
+#define IDC_BUTTON_SAVE                 1051
+#define IDC_EDIT_FC_LDATABUFFER         1053
+#define IDC_EDIT_GUPDATE_TT2            1054
+#define IDC_EDIT_FC_MJFEATURES          1054
 
 // Next default values for new objects
 // 
@@ -88,7 +98,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1045
+#define _APS_NEXT_CONTROL_VALUE         1052
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

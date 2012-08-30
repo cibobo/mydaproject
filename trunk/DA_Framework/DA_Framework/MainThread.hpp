@@ -9,12 +9,13 @@
 
 //#include "BildData.hpp"
 #include "DistanceFilter.hpp"
+#include "FrameIterator.hpp"
 //#include "ImageProcess.hpp"
-#include "Learning.hpp"
+//#include "Learning.hpp"
 #include "MyDataIO.hpp"
 #include "MyFeatureDetector.hpp"
 #include "OpenGLDraw.hpp"
-#include "Parameters.hpp"
+#include "Recognition.hpp"
 
 using namespace std;
 
@@ -23,20 +24,20 @@ public:
 	MainThread();
 	~MainThread();
 
-	// Instance of Parameters
-	Parameters *pParameters;
-
 	// The Distance Filter
 	DistanceFilter *pDFilter;
 
-	// Instance of Detector
+	// Point of Instance of Detector
 	MyFeatureDetector *pDetector;
 
-	// Instance of Learning
+	// Point of Instance of Learning
 	Learning *pLearning;
 
-	//// Instance of ImageProcess
-	//ImageProcess *pImageProcess;
+	// Point of Instance of FrameIterator
+	FrameIterator *pIterator;
+
+	// Point of Instance of Recognition
+	Recognition *pRecognition;
 
 	// Announcement of subthreads
 	DWORD offlineInputThreadProc(void);
@@ -68,8 +69,6 @@ public:
 	CRITICAL_SECTION frameCrs;
 	// for the calculation process. 
 	CRITICAL_SECTION calcCrs;
-	// for the depth filter init
-	CRITICAL_SECTION filterInitCrs;
 
 	// The Uniqueness controlled by the attributes of Radio Buttons
 	// Is learning mode
@@ -93,21 +92,6 @@ public:
 	OpenGLContext *p3DDataViewContext;
 	// The Context for Objekt structur Window
 	OpenGLContext *pObjViewContext;
-
-
-
-	// The Buffer for BildDatas, which is saving the newest BildData at last place and the oldest at the first place.
-	list<BildData*> bildDataBuffer;
-
-	// The difference between the index of the current frame and historical frame
-	int DETECTINGRATE;
-	// The maximal number of allowed jumping frames 
-	int MAXJUMPEDFEATURES;
-	// To save the number of jumped frames
-	int jumpedFeatures;
-	// The current index of frame
-	int frameIndex;
-
 
 	// framerate
 	int FRAMERATE;

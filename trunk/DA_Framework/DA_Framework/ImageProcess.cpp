@@ -250,7 +250,7 @@ void ImageProcess::decPMDPointVector(vector<PMDPoint> pmdPoints, vector<Point3f>
 	}
 }
 
-bool ImageProcess::featureAssociatePMD(vector<PMDPoint> oldFeature, vector<PMDPoint> newFeature, float sigma, 
+bool ImageProcess::featureAssociatePMD(vector<PMDPoint> oldFeature, vector<PMDPoint> newFeature, float sigma, float assRate,
 					   vector<PMDPoint> &findFeatureOld, vector<PMDPoint> &findFeatureNew,
 					   float &avrDis, float &disPE, float &sumP){
 	// set the number of the old features as the row size
@@ -328,7 +328,7 @@ bool ImageProcess::featureAssociatePMD(vector<PMDPoint> oldFeature, vector<PMDPo
 			}
 		}
 		// if the loop of the column is complete, a frame coorespondence for two frames are found.
-		if(j==m && maxValue>0.76){
+		if(j==m && maxValue>assRate){
 			disPE += fabs(1-maxValue);
 			sumP += maxValue;
 			cout<<i<<" : "<<maxValue<<endl;

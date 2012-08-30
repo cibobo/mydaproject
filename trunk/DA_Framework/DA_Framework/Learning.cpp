@@ -7,6 +7,7 @@ Learning::Learning(){
 
 	associateVariance = 0.02;
 	associateRate = 0.76;
+	this->isAssSuccess = false;
 
 	isTKFilter = true;
 	isQKFilter = false;
@@ -14,6 +15,11 @@ Learning::Learning(){
 	this->pObject = new Object();
 	tempR = Mat::eye(3,3,CV_32FC1);
 	tempT = Mat::zeros(3,1,CV_32FC1);
+
+	updateDThreshold = 0.004;
+	updateTThreshold = 25;
+
+	sumMaxValue = -1;
 
 	initKalmanFilter();
 }
@@ -88,13 +94,14 @@ void Learning::findObjectFeatures(){
 
 void Learning::findAssociations(){
 	if(this->curBildData->features.size()>0 && this->hisBildData->features.size()>0){
-		float avrDis, disPE, sumP;
-		bool isAssSuccess = ImageProcess::featureAssociatePMD(this->hisBildData->features, 
-															  this->curBildData->features, 
-															  this->associateVariance, 
-															  this->hisAssPoints, 
-															  this->curAssPoints, 
-															  avrDis, disPE, sumP);
+		float avrDis, disPE;
+		this->isAssSuccess = ImageProcess::featureAssociatePMD(this->hisBildData->features, 
+															   this->curBildData->features, 
+															   this->associateVariance, 
+															   this->associateRate,
+															   this->hisAssPoints, 
+															   this->curAssPoints, 
+															   avrDis, disPE, this->sumMaxValue);
 		if(avrDis < 0.02){			
 			this->associateVariance = avrDis;
 		} else {
@@ -119,5 +126,42 @@ void Learning::updateObject(){
 	vector<Point3f> features3D;
 	vector<Point2f> features2D;
 	ImageProcess::decPMDPointVector(this->curBildData->features, features3D, features2D);
-	this->pObject->update(features3D, this->tempR, this->tempT);
+	this->pObject->update(features3D, this->tempR, this->tempT, this->updateDThreshold, this->updateTThreshold);
+}
+
+void Learning::updateObject(vector<PMDPoint> features, Mat R, Mat T){
+	vector<Point3f> features3D;
+	vector<Point2f> features2D;
+	ImageProcess::decPMDPointVector(features, features3D, features2D);
+	this->pObject->update(features3D, R, T, this->updateDThreshold, this->updateTThreshold);
+}
+
+float Learning::getCorresRate(float e){
+	if(this->curBildData->features.size()<=0){
+		return -1;
+	} else {
+		if(this->pObject->nodeList.size()<=0){
+			return -1;
+		} else {
+			int coorPoints = 0;
+			int graphSize = this->pObject->nodeList.size();
+			int featureSize = this->curBildData->features.size();
+			for(int i=0;i<graphSize;i++){
+				Mat oldPoint = Mat(this->pObject->nodeList[i]->getPoint());
+				Mat newPoint = this->tempR*oldPoint + this->tempT;
+				for(int j=0;j<featureSize;j++){
+					if(fabs(newPoint.at<float>(0,0) - this->curBildData->features[j].coord.x) < e &&
+					   fabs(newPoint.at<float>(1,0) - this->curBildData->features[j].coord.y) < e &&
+					   fabs(newPoint.at<float>(2,0) - this->curBildData->features[j].coord.z) < e){
+						   // if find the coorespondence point
+						   coorPoints ++;
+							   break;
+					} 
+				}
+			}
+			float rate = float(coorPoints)/featureSize;
+			cout<<"The coorespondence rate: "<<rate<<" = "<<coorPoints<<"/"<<featureSize<<endl;
+			return rate;
+		}
+	}
 }
