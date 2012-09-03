@@ -64,6 +64,10 @@ void CDA_GUIDlg::DoDataExchange(CDataExchange* pDX)
 	// Radio Button for controlling the On and Offline mode
 	DDX_Check(pDX, IDC_RADIO_ONLINE, pMainThread->isOnline);
 	DDX_Check(pDX, IDC_RADIO_OFFLINE, pMainThread->isOffline);
+
+	// Check box to control, whether the online data should be saved or not
+	DDX_Check(pDX, IDC_CHECK_ONLINESAVED, pMainThread->pPMDCamIO->isDataSaved);
+
 	// Radio Button for controlling the Learning and Recognition mode
 	DDX_Check(pDX, IDC_RADIO_LEARNING, pMainThread->isLearning);
 	DDX_Check(pDX, IDC_RADIO_RECOGNITION, pMainThread->isRecognise);
@@ -126,9 +130,23 @@ void CDA_GUIDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Text(pDX, IDC_EDIT_FC_LDATABUFFER, pMainThread->pIterator->DATABUFFERLENGTH);
 	DDX_Text(pDX, IDC_EDIT_FC_MJFEATURES, pMainThread->pIterator->MAXJUMPEDFEATURES);
 
+	//Controllers for the Object Saving 
 	DDX_Control(pDX, IDC_EDIT_SAVINGNAME, SavingNameEdit);
 	DDX_Control(pDX, IDC_BUTTON_SAVE, SaveButton);
 	DDX_Control(pDX, IDC_BUTTON_PAUSE, PauseButton);
+
+	//Graph Isomorphismus Prameters
+	DDX_Text(pDX, IDC_EDIT_GISO_DPRO, pMainThread->pRecognition->distanceProportion);
+	DDX_Text(pDX, IDC_EDIT_GISO_NPRO, pMainThread->pRecognition->nodesCountProportion);
+	DDX_Text(pDX, IDC_EDIT_GISO_DT, pMainThread->pRecognition->distanceThreshold);
+
+	//Model-input's mode
+	DDX_Check(pDX, IDC_RADIO_RMODEL_TEST, pMainThread->pRecognition->isTest);
+	DDX_Check(pDX, IDC_RADIO_RMODEL_LOAD, pMainThread->pRecognition->isLoad);
+	DDX_Check(pDX, IDC_RADIO_RMODEL_CREATE, pMainThread->pRecognition->isCreate);
+
+	DDX_Control(pDX, IDC_EDIT_MODELNAMES, LoadingNameEdit);
+	DDX_Control(pDX, IDC_CHECK_ONLINESAVED, OutputSavedCheck);
 }
 
 BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
@@ -151,6 +169,10 @@ BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
 	ON_BN_CLICKED(IDC_RADIO_RECOGNITION, &CDA_GUIDlg::OnBnClickedRadioRecognition)
 	ON_BN_CLICKED(IDC_BUTTON_SAVE, &CDA_GUIDlg::OnBnClickedButtonSave)
 	ON_EN_CHANGE(IDC_EDIT_SAVINGNAME, &CDA_GUIDlg::OnEnChangeEditSavingname)
+	ON_BN_CLICKED(IDC_RADIO_RMODEL_TEST, &CDA_GUIDlg::OnBnClickedRadioRmodelTest)
+	ON_BN_CLICKED(IDC_RADIO_RMODEL_LOAD, &CDA_GUIDlg::OnBnClickedRadioRmodelLoad)
+	ON_BN_CLICKED(IDC_RADIO_RMODEL_CREATE, &CDA_GUIDlg::OnBnClickedRadioRmodelCreate)
+	ON_BN_CLICKED(IDC_CHECK_ONLINESAVED, &CDA_GUIDlg::OnBnClickedCheckOnlinesaved)
 END_MESSAGE_MAP()
 
 
@@ -188,10 +210,22 @@ BOOL CDA_GUIDlg::OnInitDialog()
 	this->framerateSlider.SetRangeMax(FRAMERATE_MAX, false);
 
 	// Init Input Path with the default Data Source
-	this->inputPathEditor.SetWindowTextA(CString("Eva3DRotation5"));
+	this->inputPathEditor.SetWindowTextA(CString("Eva2Boxes"));
 
 	// Init SaveButton. The defaut status is disable
 	this->SaveButton.EnableWindow(false);
+
+	// Init LoadingNameEdit. The defaut status is disable, if the load modul is not selected
+	this->LoadingNameEdit.SetWindowTextA("Box_all2,Box_all4");
+	if(!this->pMainThread->pRecognition->isLoad){
+		this->LoadingNameEdit.EnableWindow(false);
+	}
+
+	// Init the Online input mode
+	if(!this->pMainThread->pPMDCamIO->isDataSaved){
+		this->OutputSavedCheck.EnableWindow(false);
+		this->outputPathEditor.EnableWindow(false);
+	}
 
 	return TRUE;  // Geben Sie TRUE zurück, außer ein Steuerelement soll den Fokus erhalten
 }
@@ -248,11 +282,42 @@ HCURSOR CDA_GUIDlg::OnQueryDragIcon()
 //OnClick listener for the Run button
 void CDA_GUIDlg::OnBnClickedOk()
 {
-	//if(pMainThread->isObservingWindowVisible){
-	//	CreateThread(NULL, 0, pMainThread->beginOpenGLSceneThread, (void*)pMainThread, 0, &OpenGLThreadID);
-	//}
-	DWORD CalculateThreadID;
-	//CreateThread(NULL, 0, pMainThread->beginCalculationThread, (void*)pMainThread, 0, &CalculateThreadID);
+	//If the Online mode has been selected
+	if(pMainThread->isOnline && pMainThread->pPMDCamIO->isDataSaved){
+		CString str;
+		this->outputPathEditor.GetWindowTextA(str);
+		string path((LPCTSTR)str);
+		//strcpy(pMainThread->pPMDCamIO->savedPath, str);
+		pMainThread->pPMDCamIO->savedPath = path.data();
+	}
+	//If in Recognitions modul
+	if(pMainThread->isRecognise){
+		//If the test modul has been selected
+		if(pMainThread->pRecognition->isTest){
+			pMainThread->pRecognition->loadModels();
+		}
+
+		//If the load modul has been selected
+		if(pMainThread->pRecognition->isLoad){
+			vector<string> namesVec;
+			//Get the models' names
+			CString str;
+			this->LoadingNameEdit.GetWindowTextA(str);
+			string names((LPCTSTR)str);
+			int findPos;
+			//find the names, which are separated with ','
+			while((findPos=names.find(','))!=string::npos){
+				namesVec.push_back(names.substr(0, findPos));
+				names.erase(names.begin(), names.begin()+findPos+1);
+			}
+			if(names.size()>0){
+				namesVec.push_back(names);
+			}
+			//Load models with these names
+			pMainThread->pRecognition->loadModels(namesVec);
+		}
+	}
+
 	pMainThread->run();
 	//Update the Dialog data
 	UpdateData(true);
@@ -345,21 +410,27 @@ void CDA_GUIDlg::OnEnChangeEditOfflinepath()
 
 	CString str;
 	this->inputPathEditor.GetWindowTextA(str);
-	int length = str.GetLength();
 	strcpy(pMainThread->INPUTPATH, str);
-
 }
 
 void CDA_GUIDlg::OnBnClickedRadioOffline()
 {
 	pMainThread->isOffline = true;
 	pMainThread->isOnline = false;
+
+	this->OutputSavedCheck.EnableWindow(false);
+
+	this->inputPathEditor.EnableWindow(true);
 }
 
 void CDA_GUIDlg::OnBnClickedRadioOnline()
 {
 	pMainThread->isOnline = true;
 	pMainThread->isOffline = false;
+
+	this->OutputSavedCheck.EnableWindow(true);
+
+	this->inputPathEditor.EnableWindow(false);
 }
 
 void CDA_GUIDlg::OnBnClickedRadioLearning()
@@ -398,4 +469,39 @@ void CDA_GUIDlg::OnEnChangeEditSavingname()
 	} else {
 		this->SaveButton.EnableWindow(true);
 	}
+}
+
+void CDA_GUIDlg::OnBnClickedRadioRmodelTest()
+{
+	this->pMainThread->pRecognition->isTest = true;
+	this->pMainThread->pRecognition->isLoad = false;
+	this->pMainThread->pRecognition->isCreate = false;
+
+	this->LoadingNameEdit.EnableWindow(false);
+}
+
+void CDA_GUIDlg::OnBnClickedRadioRmodelLoad()
+{
+	this->pMainThread->pRecognition->isTest = false;
+	this->pMainThread->pRecognition->isLoad = true;
+	this->pMainThread->pRecognition->isCreate = false;
+
+	this->LoadingNameEdit.EnableWindow(true);
+}
+
+void CDA_GUIDlg::OnBnClickedRadioRmodelCreate()
+{
+	this->pMainThread->pRecognition->isTest = false;
+	this->pMainThread->pRecognition->isLoad = false;
+	this->pMainThread->pRecognition->isCreate = true;
+
+	this->LoadingNameEdit.EnableWindow(false);
+	this->pMainThread->isLearning = true;
+	this->pMainThread->isRecognise = false;
+}
+
+void CDA_GUIDlg::OnBnClickedCheckOnlinesaved()
+{
+	pMainThread->pPMDCamIO->isDataSaved = this->OutputSavedCheck.GetCheck();
+	this->outputPathEditor.EnableWindow(pMainThread->pPMDCamIO->isDataSaved);
 }

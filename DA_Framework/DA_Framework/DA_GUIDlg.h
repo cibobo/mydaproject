@@ -75,4 +75,13 @@ public:
 	CButton SaveButton;
 	// Button to pause and continue the programm 
 	CButton PauseButton;
+	// The names of loading models for the recognition
+	CEdit LoadingNameEdit;
+	// Radio Buttons to change the different moduls of loading models
+	afx_msg void OnBnClickedRadioRmodelTest();
+	afx_msg void OnBnClickedRadioRmodelLoad();
+	afx_msg void OnBnClickedRadioRmodelCreate();
+	// To controll whether the input data should be saved or not
+	CButton OutputSavedCheck;
+	afx_msg void OnBnClickedCheckOnlinesaved();
 };

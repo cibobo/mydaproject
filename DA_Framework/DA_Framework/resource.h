@@ -17,6 +17,8 @@
 #define IDC_RADIO3                      1003
 #define IDC_RADIO_ONLINE                1003
 #define IDC_CHECK1                      1004
+#define IDC_CHECK_                      1004
+#define IDC_CHECK_ONLINESAVED           1004
 #define IDC_EDIT1                       1005
 #define IDC_EDIT_ONLINEPATH             1005
 #define IDC_RADIO4                      1006
@@ -30,10 +32,13 @@
 #define IDC_CHECK4                      1010
 #define IDC_CHECK_VISUAL3               1010
 #define IDC_RADIO5                      1011
+#define IDC_RADIO_RMODEL_TEST           1011
 #define IDC_RADIO6                      1012
+#define IDC_RADIO_RMODEL_LOAD           1012
 #define IDC_RADIO7                      1013
+#define IDC_RADIO_RMODEL_CREATE         1013
 #define IDC_EDIT3                       1014
-#define IDC_EDIT17                      1015
+#define IDC_EDIT_MODELNAMES             1014
 #define IDC_EDIT_SAVINGNAME             1015
 #define IDC_SLIDER_FRAMERATE            1016
 #define IDC_EDIT_FRAMERATE              1017
@@ -88,9 +93,12 @@
 #define IDC_EDIT_FC_DTHRESHOLD          1049
 #define IDC_EDIT_FC_ARATE               1050
 #define IDC_BUTTON_SAVE                 1051
+#define IDC_EDIT_GISO_DPRO              1052
 #define IDC_EDIT_FC_LDATABUFFER         1053
 #define IDC_EDIT_GUPDATE_TT2            1054
 #define IDC_EDIT_FC_MJFEATURES          1054
+#define IDC_EDIT_GISO_NPRO              1055
+#define IDC_EDIT_GISO_DT                1056
 
 // Next default values for new objects
 // 
@@ -98,7 +106,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1052
+#define _APS_NEXT_CONTROL_VALUE         1059
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

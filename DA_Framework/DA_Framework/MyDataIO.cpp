@@ -31,7 +31,7 @@ bool createDirectory(const char *directory){
 	}
 }
 
-void createDefaultPMDDataDirectory(char *subPath){
+void createDefaultPMDDataDirectory(const char *subPath){
 	defaultSavePath.append(defaultRootPath);
 	defaultSavePath.append(subPath);
 	defaultSavePath.append("/");

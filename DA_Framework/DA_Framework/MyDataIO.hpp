@@ -14,7 +14,7 @@ bool isDirectoryExist(const char *directory);
 
 bool createDirectory(const char *directory);
 
-void createDefaultPMDDataDirectory(char *subPath);
+void createDefaultPMDDataDirectory(const char *subPath);
 
 void saveAllDataToFile(int frameCount, BildData *bildData);
 

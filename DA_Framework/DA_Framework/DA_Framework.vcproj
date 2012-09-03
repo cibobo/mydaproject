@@ -249,6 +249,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\PMDCamIO.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\Recognition.cpp"
 				>
 			</File>
@@ -332,6 +336,10 @@
 			</File>
 			<File
 				RelativePath=".\OpenGLWin.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\PMDCamIO.hpp"
 				>
 			</File>
 			<File

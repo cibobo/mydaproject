@@ -45,6 +45,17 @@ void RecognitionResult::markColorful(){
  * Definition of Recoginition
  *****************************/
 Recognition::Recognition(){
+	distanceProportion = 0.05;
+	nodesCountProportion = 0.5;
+	distanceThreshold = 0.008;
+
+	spatialCombiEps = 0.17;
+	spatialCombiMinPts = 3;
+
+	isTest = true;
+	isLoad = false;
+	isCreate = false;
+
 	maxListLength = 5;
 
 	//Object *obj1 = new Object("Box1");
@@ -59,13 +70,13 @@ Recognition::Recognition(){
 	//Object *obj4 = new Object("Box4");
 	//this->objectList.push_back(obj4);
 
-	Object *obj1 = new Object("Box_all4");
-	obj1->setColor(0);
-	this->modelList.push_back(obj1);
+	//Object *obj1 = new Object("Box_all4");
+	//obj1->setColor(0);
+	//this->modelList.push_back(obj1);
 
-	Object *obj2 = new Object("Box2_all2");
-	obj2->setColor(1);
-	this->modelList.push_back(obj2);
+	//Object *obj2 = new Object("Box2_all2");
+	//obj2->setColor(1);
+	//this->modelList.push_back(obj2);
 
 
 
@@ -75,8 +86,35 @@ Recognition::Recognition(){
 }
 
 Recognition::~Recognition(){
+	for(int i=0;i<this->modelList.size();i++){
+		delete modelList[i];
+	}
 }
 
+
+void Recognition::loadModels(){
+	Object *obj1 = new Object("Box_all4");
+	obj1->setColor(0);
+	this->modelList.push_back(obj1);
+
+	Object *obj2 = new Object("Box2_all2");
+	obj2->setColor(1);
+	this->modelList.push_back(obj2);
+}
+
+void Recognition::loadModels(std::vector<string> names){
+	//If the name vectors are not empty
+	if(names.size()>0){
+		for(int i=0;i<names.size();i++){
+			Object *obj = new Object(names[i].data());
+			obj->setColor(i);
+			this->modelList.push_back(obj);
+		}
+	} else {
+	//Else, load the default test models
+		this->loadModels();
+	}
+}
 /***************************************************************
  *
  * At first only one object will be focused
@@ -85,37 +123,20 @@ Recognition::~Recognition(){
 void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 	timmer++;
 
-	vector<vector<PMDPoint>> caliResult;
-	float CALIEPS3D = 0.17;
-	int minPts = 3;
-
-	ImageProcess::DBSCANPMDPoint(caliResult, inputPoints, CALIEPS3D, minPts);
-
-		
-	namedWindow("Recognition", CV_WINDOW_AUTOSIZE);
-
-	drawMat = Mat::zeros(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
-	
-	for(int i=0;i<caliResult.size();i++){
-		for(int j=0;j<caliResult[i].size();j++){
-			circle(drawMat, caliResult[i][j].index, 2, Scalar(0,0,255,0), -1);
-			for(int k=j+1;k<caliResult[i].size();k++){
-				line(drawMat, caliResult[i][j].index, caliResult[i][k].index, Scalar(0,255,255,0),1);
-			}
-		}
-	}
+	this->segResult.clear();
+	ImageProcess::DBSCANPMDPoint(this->segResult, inputPoints, this->spatialCombiEps, this->spatialCombiMinPts);
 
 	bool compResult = false;
 	//if(caliResult.size()>0 && caliResult[0].size()>0){
 	// loop for all possible objekt
 	this->graphList.clear();
-	for(int j=0;j<caliResult.size();j++){
-		if(caliResult[j].size()>0){
+	for(int j=0;j<this->segResult.size();j++){
+		if(this->segResult[j].size()>0){
 			RecognitionResult *resultArray = new RecognitionResult[modelList.size()];
 			
 			vector<Point3f> point3D;
 			vector<Point2f> point2D;
-			ImageProcess::decPMDPointVector(caliResult[j], point3D, point2D);
+			ImageProcess::decPMDPointVector(this->segResult[j], point3D, point2D);
 
 			Graph *graph = new Graph();
 			graph->createCompleteGraph(point3D);
@@ -127,24 +148,20 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 				// reset the color
 				modelList[i]->setColor(i);
 
-				float e = 0.013;
-				float rate = 0.0;
-				float error = 0;
-				
-				Node* center;
-				//compResult = graph->isEqualAdvance(objectList[i], e, rate, resultPair, center, error);
-				compResult = graph->isEqualAdvance(modelList[i], 0.05, 0.5, 4, resultPair);
+				compResult = graph->isEqual(modelList[i], resultPair, 
+											this->distanceProportion, 
+											this->nodesCountProportion,
+											this->distanceThreshold);
 				if(compResult){
 					cout<<"Find the Object! "<<i<<endl;
 					//int appear = this->Statistic[0].find(i)->second.appear(timmer);
 					//cout<<"The appearence rate is: "<<float(appear)/timmer<<endl;
 
 					// show the result
-					Scalar color = scalarColorList[i];
-					circle(drawMat, Point2f(i*10+5, 5), 5, color, -1);
+
 					
 					
-					if(caliResult.size() == 1){
+					if(this->segResult.size() == 1){
 						// for just one Object
 						updateResultList(i, resultPair);
 					//updateObjectPosition(i, resultPair);
@@ -173,7 +190,7 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 			//}
 
 
-			if(caliResult.size() == 1){
+			if(this->segResult.size() == 1){
 				// for just one object
 				int maxIndex = this->findBestResult();
 				cout<<"The max Index: "<<maxIndex<<endl;
@@ -206,16 +223,8 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 			//cout<<endl;
 		}
 	}
-	imshow("Recognition", drawMat);
 }
 
-//void Recognition::createStatisticMap(){
-//	map<int, StatisticDate> statisticDate;
-//	for(int i=0;i<this->modelList.size();i++){
-//		statisticDate.insert(pair<int, StatisticDate>(i, StatisticDate()));
-//	}
-//	this->Statistic.push_back(statisticDate);
-//}
 
 void Recognition::updateResultList(int index, NodePairs resultPair, Node *center){
 	// The proportion of object and neighbors

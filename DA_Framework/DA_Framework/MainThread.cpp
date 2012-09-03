@@ -12,6 +12,8 @@ MainThread::MainThread(){
 
 	pRecognition = new Recognition();
 
+	pPMDCamIO = new PMDCamIO();
+
 	ThreadIndex = 1001;
 
 	isLearning = true;
@@ -32,9 +34,8 @@ MainThread::MainThread(){
 	//INPUTPATH = "Eva2Boxes";
 	isOnline = false;
 	isOffline = !isOnline;
+
 	INPUTPATH = new char[150];
-	OUTPUTPATH = "Eva3DRotation5";
-	ISDATASAVED = false;
 
 	EVAOUTPUTPATH = "FirstTest";
 
@@ -46,22 +47,35 @@ MainThread::MainThread(){
 	InitializeCriticalSection (&cvInitCrs);
 	InitializeCriticalSection (&calcCrs);
 
-	isObservingWindowVisible = false;
-	isResultWindowVisible = false;
+	isObservingWindowVisible = true;
+	isResultWindowVisible = true;
 	isOpenCVWindowVisible = true;
 }
 
 MainThread::~MainThread(){
+	delete pDFilter;
+	delete pDetector;
+	delete pLearning;
+	delete pIterator;
+	delete pRecognition;
+	
 	delete p3DDataViewContext;
+	delete pObjViewContext;
+
 }
 
 /**
  * creat the static function to start a thread. See:
  * http://stackoverflow.com/questions/1372967/how-do-you-use-createthread-for-functions-which-are-class-members
  **/
-DWORD WINAPI MainThread::beginInputThread(void *param){
+DWORD WINAPI MainThread::beginOfflineInputThread(void *param){
 	MainThread *This = (MainThread*)param;
 	return This->offlineInputThreadProc();
+}
+
+DWORD WINAPI MainThread::beginOnlineInputThread(void *param){
+	MainThread *This = (MainThread*)param;
+	return This->onlineInputThreadProc();
 }
 
 DWORD WINAPI MainThread::beginOpenGLSceneThread(void *param){
@@ -85,9 +99,14 @@ DWORD WINAPI MainThread::beginOpenCVHelpThread(void *param){
 
 void MainThread::run(){
 	DWORD InputThreadID, OpenGLThreadID, OpenCVThreadID, CalculateThreadID;
+	
 	if(this->isOffline){
-		CreateThread(NULL, 0, this->beginInputThread, (void*)this, 0, &InputThreadID);
-	} 
+		CreateThread(NULL, 0, this->beginOfflineInputThread, (void*)this, 0, &InputThreadID);
+	}
+
+	if(this->isOnline){
+		CreateThread(NULL, 0, this->beginOnlineInputThread, (void*)this, 0, &InputThreadID);
+	}
 
 	// If OpenGL Observing window is visible
 	if(this->isObservingWindowVisible){
@@ -237,6 +256,58 @@ DWORD MainThread::offlineInputThreadProc(void){
 	return 0;
 }
 
+DWORD MainThread::onlineInputThreadProc(void){
+	EnterCriticalSection (&glInitCrs);
+	EnterCriticalSection (&cvInitCrs);
+
+	cout<<"PMD Camera Connecting..."<<endl;
+	if(!pPMDCamIO->createPMDCon()){
+		exit(1);
+		//cout<<"input thread running!"<<endl;
+		
+	}
+	cout<<"Upgrading Distance Filter and Save Data into Buffer....."<<endl;
+	for(int i=0;i<pDFilter->creatingFrames;i++){
+		BildData *temp = new BildData();
+		pPMDCamIO->getPMDData(temp);
+
+		//add the new data into the DataBuffer
+		pIterator->initDataBuffer(temp);
+
+		//dFilter->Upgrade(temp->disData);
+		pDFilter->Upgrade(temp);
+	}
+	cout<<"Upgrading complete!"<<endl;
+
+	LeaveCriticalSection (&glInitCrs);
+	LeaveCriticalSection (&cvInitCrs);
+
+	while(!bDone){
+		EnterCriticalSection(&pauseCrs);
+		EnterCriticalSection(&frameCrs);
+
+		try {
+			BildData *temp = new BildData();
+			pPMDCamIO->getPMDData(temp);
+
+			pIterator->updateDataBuffer(temp);
+
+			//updata the OpenGL Window	
+			PostMessage(p3DDataViewContext->hWnd, WM_PAINT, 0, 0);	
+			isDataUsed = false;
+
+		} catch (CMemoryException * e){
+			AfxMessageBox("Irgendwas ist schiefgegangen!");
+		}
+		
+		LeaveCriticalSection(&frameCrs);
+		LeaveCriticalSection(&pauseCrs);
+		Sleep(FRAMERATE);
+	}
+	pPMDCamIO->closePMDCon();
+	return 0;
+}
+
 DWORD MainThread::openGLSceneThreadProc(void) 
 { 
 	static OpenGLWinUI *pOpenGLWinUI = new OpenGLWinUI;
@@ -361,8 +432,13 @@ DWORD MainThread::openCVHelpThreadProc(void)
 {
 	EnterCriticalSection (&cvInitCrs);
 	namedWindow("OpenCVFeatureDetection", CV_WINDOW_AUTOSIZE);
-	namedWindow("OpenCVCorrespondenz", CV_WINDOW_AUTOSIZE);
-	namedWindow("OpenCVSummedFeatures", CV_WINDOW_AUTOSIZE);
+	if(this->isLearning){
+		namedWindow("OpenCVCorrespondenz", CV_WINDOW_AUTOSIZE);
+		namedWindow("OpenCVSummedFeatures", CV_WINDOW_AUTOSIZE);
+	}
+	if(this->isRecognise){
+		namedWindow("OpenCVRecognition", CV_WINDOW_AUTOSIZE);
+	}
 	LeaveCriticalSection (&cvInitCrs);
 
 	while(!bDone){	
@@ -372,15 +448,15 @@ DWORD MainThread::openCVHelpThreadProc(void)
 		Mat curMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
 		Mat hisMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
 
-
 		// Get data from float array to Matrix
 		EnterCriticalSection (&calcCrs);
 		BildData* curBildData = pIterator->getCurrentBildData();
 		BildData* hisBildData = pIterator->getHistoricalBildData();
 
 		ImageProcess::transFloatToMat3(curBildData->filteredData, feaMat, pDetector->balance, pDetector->contrast);
-		ImageProcess::transFloatToMat3(curBildData->ampData, curMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
-		ImageProcess::transFloatToMat3(hisBildData->ampData, hisMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
+		
+		
+		LeaveCriticalSection (&calcCrs);
 
 		// The Window for feature Detection
 		for(int i=0;i<pDetector->keypoints.size();i++){
@@ -388,65 +464,93 @@ DWORD MainThread::openCVHelpThreadProc(void)
 		}
 		imshow("OpenCVFeatureDetection", feaMat);
 
-		LeaveCriticalSection (&calcCrs);
 
-		// The correspondent window
-		Mat testImg = Mat(V_BILDSIZE, H_BILDSIZE*2, CV_8UC3);
-		Mat left = Mat(testImg, Range::all(), Range(0,H_BILDSIZE));
-		Mat right = Mat(testImg, Range::all(), Range(H_BILDSIZE,H_BILDSIZE*2));
-		hisMat.copyTo(left);
-		curMat.copyTo(right);
 
-		EnterCriticalSection (&calcCrs);
+		if(this->isLearning){
+			EnterCriticalSection (&calcCrs);
+			ImageProcess::transFloatToMat3(curBildData->ampData, curMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
+			ImageProcess::transFloatToMat3(hisBildData->ampData, hisMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
 
-		vector<PMDPoint> curFeatures = curBildData->features;
-		vector<PMDPoint> hisFeatures = hisBildData->features;
+			// The correspondent window
+			Mat testImg = Mat(V_BILDSIZE, H_BILDSIZE*2, CV_8UC3);
+			Mat left = Mat(testImg, Range::all(), Range(0,H_BILDSIZE));
+			Mat right = Mat(testImg, Range::all(), Range(H_BILDSIZE,H_BILDSIZE*2));
+			hisMat.copyTo(left);
+			curMat.copyTo(right);
 
-		vector<PMDPoint> oldResult = this->pLearning->hisAssPoints;
-		vector<PMDPoint> newResult = this->pLearning->curAssPoints;
+			vector<PMDPoint> curFeatures = curBildData->features;
+			vector<PMDPoint> hisFeatures = hisBildData->features;
 
-		for(int i=0;i<hisFeatures.size();i++){
-			// show the old features
-			circle(left, hisFeatures[i].index, 2, Scalar(0,255,0,0), -1);
-		}
+			vector<PMDPoint> oldResult = this->pLearning->hisAssPoints;
+			vector<PMDPoint> newResult = this->pLearning->curAssPoints;
 
-		for(int i=0;i<curFeatures.size();i++){
-			// show the current features
-			circle(right, curFeatures[i].index, 2, Scalar(0,0,255,0), -1);
-		}
+			LeaveCriticalSection (&calcCrs);
 
-		//if(hisFeatures.size()>0&&curFeatures.size()>0){
-		//	featureAssociate(hisFeatures, curFeatures, ASSOCIATESITA, oldIndexResult, newIndexResult);
-			for(int i=0;i<oldResult.size();i++){
-				Point2f trans(204,0);
-				//line(testImg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
-				line(testImg, oldResult[i].index, newResult[i].index+trans, Scalar(255,255,0,0));
+			for(int i=0;i<hisFeatures.size();i++){
+				// show the old features
+				circle(left, hisFeatures[i].index, 2, Scalar(0,255,0,0), -1);
 			}
-		//	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
-		//}
-		
-		imshow("OpenCVCorrespondenz", testImg);
 
-		LeaveCriticalSection (&calcCrs);
-
-
-		EnterCriticalSection (&calcCrs);
-		// The Summed Features Window
-		Mat graphImg;
-		curMat.copyTo(graphImg);
-		
-
-
-		for(int i=0;i<curFeatures.size();i++){
-			circle(graphImg, curFeatures[i].index, 2, Scalar(0,0,255), -1);
-			for(int j=i;j<curFeatures.size();j++){
-				line(graphImg, curFeatures[i].index, curFeatures[j].index, Scalar(0, 255, 255, 0));
+			for(int i=0;i<curFeatures.size();i++){
+				// show the current features
+				circle(right, curFeatures[i].index, 2, Scalar(0,0,255,0), -1);
 			}
-		}
-		
-		imshow("OpenCVSummedFeatures", graphImg);
 
-		LeaveCriticalSection (&calcCrs);
+			//if(hisFeatures.size()>0&&curFeatures.size()>0){
+			//	featureAssociate(hisFeatures, curFeatures, ASSOCIATESITA, oldIndexResult, newIndexResult);
+				for(int i=0;i<oldResult.size();i++){
+					Point2f trans(204,0);
+					//line(testImg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
+					line(testImg, oldResult[i].index, newResult[i].index+trans, Scalar(255,255,0,0));
+				}
+			//	cout<<"The number of useful features is: "<<oldResult.size()<<endl;
+			//}
+			
+			imshow("OpenCVCorrespondenz", testImg);
+
+			
+			EnterCriticalSection (&calcCrs);
+
+			// The Summed Features Window
+			Mat graphImg;
+			curMat.copyTo(graphImg);
+			
+			LeaveCriticalSection (&calcCrs);
+			
+			for(int i=0;i<curFeatures.size();i++){
+				circle(graphImg, curFeatures[i].index, 2, Scalar(0,0,255), -1);
+				for(int j=i;j<curFeatures.size();j++){
+					line(graphImg, curFeatures[i].index, curFeatures[j].index, Scalar(0, 255, 255, 0));
+				}
+			}
+			
+			imshow("OpenCVSummedFeatures", graphImg);
+
+			
+		}
+
+		if(this->isRecognise){
+			//EnterCriticalSection (&calcCrs);
+			Mat recMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
+			ImageProcess::transFloatToMat3(curBildData->ampData, recMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
+			
+			for(int i=0;i<this->pRecognition->segResult.size();i++){
+				Scalar color = scalarColorList[i];
+				for(int j=0;j<this->pRecognition->segResult[i].size();j++){
+					circle(recMat, this->pRecognition->segResult[i][j].index, 2, color, -1);
+						/*for(int k=j+1;k<this->pRecognition->segResult[i].size();k++){
+							line(recMat, this->pRecognition->segResult[i][j].index, this->pRecognition->segResult[i][k].index, Scalar(0,255,255,0),1);
+						}*/
+				}
+			}	
+					//circle(drawMat, Point2f(i*10+5, 5), 5, color, -1);
+
+			imshow("OpenCVRecognition", recMat);
+
+			
+			//LeaveCriticalSection (&calcCrs);
+			
+		}
 
 		char c = waitKey(10);
 		if(c == 27) break;
