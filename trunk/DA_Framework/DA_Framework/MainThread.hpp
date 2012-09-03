@@ -15,6 +15,7 @@
 #include "MyDataIO.hpp"
 #include "MyFeatureDetector.hpp"
 #include "OpenGLDraw.hpp"
+#include "PMDCamIO.hpp"
 #include "Recognition.hpp"
 
 using namespace std;
@@ -27,27 +28,32 @@ public:
 	// The Distance Filter
 	DistanceFilter *pDFilter;
 
-	// Point of Instance of Detector
+	// Pointer of Instance of Detector
 	MyFeatureDetector *pDetector;
 
-	// Point of Instance of Learning
+	// Pointer of Instance of Learning
 	Learning *pLearning;
 
-	// Point of Instance of FrameIterator
+	// Pointer of Instance of FrameIterator
 	FrameIterator *pIterator;
 
-	// Point of Instance of Recognition
+	// Pointer of Instance of Recognition
 	Recognition *pRecognition;
+
+	// Pointer of Instance of PMDCamera IO 
+	PMDCamIO *pPMDCamIO;
 
 	// Announcement of subthreads
 	DWORD offlineInputThreadProc(void);
+	DWORD onlineInputThreadProc(void);
 	DWORD openGLSceneThreadProc(void);
 	DWORD openGLResultThreadProc(void);
 	DWORD calculationThreadProc(void);
 	DWORD openCVHelpThreadProc(void);
 
 	// Static functions to satart the threads
-	static DWORD WINAPI beginInputThread(void *param);
+	static DWORD WINAPI beginOfflineInputThread(void *param);
+	static DWORD WINAPI beginOnlineInputThread(void *param);
 	static DWORD WINAPI beginOpenGLSceneThread(void *param);
 	static DWORD WINAPI beginOpenGLResultThread(void *param);
 	static DWORD WINAPI beginCalculationThread(void *param);
@@ -103,10 +109,6 @@ public:
 	BOOL isOffline;
 	// The input data stream path for the offline mode
 	char *INPUTPATH;
-	// The output path for the Online Data source
-	char *OUTPUTPATH;
-	// Just for the Online Mode: whether save the data in local drive
-	bool ISDATASAVED;
 
 	// Evaluation output path
 	char *EVAOUTPUTPATH;

@@ -420,17 +420,6 @@ Point3f Graph::getMiddelPoint(){
 	return midPoint;
 }
 
-void Graph::showWithOpenCV(const char *name){
-	//string windowName = "Object:";
-	//windowName.append(name);
-	//namedWindow(windowName.data(), CV_WINDOW_AUTOSIZE);
-
-	//Mat drawMat = Mat::zeros(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
-
-	//for(int i=0;i<this->nodeList.size();;i++){
-	//	circle(drawMat, nodeList[i], 2, Scalar(0,0,255,0), -1);
-	//}
-}
 void Graph::setColor(int colorIndex){
 	for(int i=0;i<this->nodeList.size();i++){
 		this->nodeList[i]->color = colorIndex;
@@ -443,19 +432,7 @@ void Graph::clearColor(){
 	}
 }
 
-bool Graph::isEqual(Graph *other){
-	// With abstruct epsilon
-	//float e = 0.002;
-	// With relative epsilon
-	float e = 0.017;
-	float rate = 0.95;
-	float error = 0;
-	NodePairs nodePairs;
-	Node *center;
-	return this->isEqualAdvance(other, e, rate, nodePairs, center, error);
-}
-
-bool Graph::isEqualAdvance(Graph *other, float e, float prop, int minParisCount, NodePairs &nodePairs){
+bool Graph::isEqual(Graph *other, NodePairs &nodePairs, float disProp, float countProp, float e){
 	if(this->nodeList.size()<3){
 		cout<<"The current graph has not enough points"<<endl;
 		return false;
@@ -464,10 +441,6 @@ bool Graph::isEqualAdvance(Graph *other, float e, float prop, int minParisCount,
 		cout<<"The compared graph has not enough points"<<endl;
 		return false;
 	}
-
-	// reset the timmer for each node, inoder to show the correspondenz nodes
-	//this->clearColor();
-	//other->clearColor();
 
 	NodePairs localNodePair;
 
@@ -478,9 +451,7 @@ bool Graph::isEqualAdvance(Graph *other, float e, float prop, int minParisCount,
 
 		bool isFound = false;
 		// create the minimal acceptable number of numbers for point p
-		//int minNodeSize = (p->neighbors.size() * prop)>=4?(p->neighbors.size()*prop):4;
-		int minNodeSize = (this->nodeList.size()*prop)>=4?(this->nodeList.size()*prop):4;
-		//int minNodeSize = 4;
+		int minNodeSize = (this->nodeList.size()*countProp)>=4?(this->nodeList.size()*countProp):4;
 
 		int bestNeighborCount = 0;
 		Node *bestP;
@@ -492,41 +463,8 @@ bool Graph::isEqualAdvance(Graph *other, float e, float prop, int minParisCount,
 			
 			// save the coorespondenz neighbors of p(i) and v(k)
 			NodePairs pair_i;
-			v->findCorresNeighbors(p, pair_i, e);
-			//cout<<pair_i.size()<<endl;
+			v->findCorresNeighbors(p, pair_i, disProp);
 
-			//pair_k.insert(pair<Node*, Node*>(p,v));
-			//
-			//// begin the loop of vi first, in order to keep the vi unique in Pairs Map
-			//Neighbors::iterator l;
-			//for(l=v->neighbors.begin();l!=v->neighbors.end();l++){
-			//	// Get the neighbor nodes of p
-			//	Node *vi = l->first;
-			//	float v_vi = l->second;
-			//	// Loop for all neighbor node of p
-			//	Neighbors::iterator j;
-			//	for(j=p->neighbors.begin();j!=p->neighbors.end();j++){
-			//		// Get the neighbor nodes of p
-			//		Node *pi = j->first;
-			//		float p_pi = j->second;
-
-			//		// if the edge has the same lenth
-			//		//if(fabs(p_pi - v_vi)< e){
-			//		// with relative epsilon
-			//		if(fabs(p_pi - v_vi)< e*p_pi){
-			//			// add the node pair to the Map
-			//			pair_k.insert(pair<Node*, Node*>(pi, vi));
-			//			break;
-			//		}
-			//	}
-			//	// if enough node pairs have been found, add p,v into the result NodePiar
-			//	if(pair_k.size()>minNodeSize){
-			//		localNodePair.insert(pair<Node*, Node*>(p,v));
-			//		isFound = true;
-			//		// break the loop of vi
-			//		break;
-			//	}
-			//}
 			if(pair_i.size() > bestNeighborCount){
 				bestP = p;
 				bestNeighborCount = pair_i.size();
@@ -539,156 +477,20 @@ bool Graph::isEqualAdvance(Graph *other, float e, float prop, int minParisCount,
 
 	}
 	// check the number of coorespondenz point pair
-	//if(localNodePair.size() >= minParisCount){
-		nodePairs.clear();
-		//nodePairs = localNodePair;
-	if(findTriangle(localNodePair, nodePairs, 0.008)){
+	nodePairs.clear();
 
+	if(findTriangle(localNodePair, nodePairs, e)){
 
-		//NodePairs::iterator it = nodePairs.begin();
-		//int i=1;
-		//for(;it!=nodePairs.end();it++, i++){
-		//	if(i>9){
-		//		i=0;
-		//	}
-		//	it->first->color = i;
-		//	it->second->color = i;
-		//}
 		return true;
 	}
 	cout<<"All nodes have been reached but no coorespondenz found!"<<endl;
 	return false;
 }
 
-bool Graph::isEqualAdvance(Graph *other, float e, float rate, NodePairs &nodePairs, Node *&center, float &error){
-	if(this->nodeList.size()<3){
-		cout<<"The current graph has not enough points"<<endl;
-		return false;
-	}
-	if(other->nodeList.size()<3){
-		cout<<"The compared graph has not enough points"<<endl;
-		return false;
-	}
-
-	// reset the timmer for each node, inoder to show the correspondenz nodes
-	this->clearColor();
-	other->clearColor();
-
-	
-	// save the best coorespondenz node pairs, where the first place save the node from other, and second for this
-	NodePairs maxPairs;
-	//Node *centerNode;
-
-	int minNodeSize = this->nodeList.size()<other->nodeList.size()?this->nodeList.size():other->nodeList.size();
-	int minPairsCount = (minNodeSize * rate)>=4?(minNodeSize * rate):4;
-
-	cout<<"The minimal allowed number of pointspaars is: "<<minPairsCount<<endl;
-
-	// Loop for all node in Other Graph
-	for(int i=0;i<other->nodeList.size();i++){
-		// choose one point from Other graph
-		Node *p = other->nodeList[i];
-		// Loop for all nodes in this Graph
-		for(int k=0;k<this->nodeList.size();k++){
-			Node *v = this->nodeList[k];
-			
-			// save the coorespondenz neighbors of p(i) and v(k)
-			NodePairs pair_k;
-			v->findCorresNeighbors(p, pair_k, e);
-
-			//pair_k.insert(pair<Node*, Node*>(p, v));
-
-			//// create temp error
-			//float tempError = 0;
-
-			//// begin the loop of vi first, in order to keep the vi unique in Pairs Map
-			//Neighbors::iterator l;
-			//for(l=v->neighbors.begin();l!=v->neighbors.end();l++){
-			//	// Get the neighbor nodes of p
-			//	Node *vi = l->first;
-			//	float v_vi = l->second;
-			//
-			//
-			//	// Loop for all neighbor node of p
-			//	Neighbors::iterator j;
-			//	for(j=p->neighbors.begin();j!=p->neighbors.end();j++){
-			//		// Get the neighbor nodes of p
-			//		Node *pi = j->first;
-			//		float p_pi = j->second;
-
-			//		
-			//		float diff = fabs(p_pi - v_vi);
-			//		// if the edge has the same lenth
-			//		//if(diff < e){
-			//		// with relative epsilon
-			//		if(diff < e*p_pi){
-			//			// add the node pair to the Map
-			//			pair_k.insert(pair<Node*, Node*>(pi, vi));
-			//			// collect the temp error
-			//			tempError += diff;
-			//			break;
-			//		}
-			//	}
-			//}
-			// if find a better correspondenz
-			int sizePairK = pair_k.size();
-			if(sizePairK>maxPairs.size()){
-				maxPairs.clear();
-				maxPairs = pair_k;
-				center = p;
-				// save the error for the selected point
-				//error = tempError;
-				//cout<<"The resault: "<<sizePairK<<"   "<<error/sizePairK<<endl;
-			}
-		}
-	}
-
-	
-
-	// check, whether the number of coorespondenz pairs is enough
-	if(maxPairs.size()>=minPairsCount){
-		// Mark correspondenz points
-		//NodePairs::iterator it = maxPairs.begin();
-		//for(;it!=maxPairs.end();it++){
-		//	it->first->timmer = -1;
-		//}
-		//centerNode->timmer = -2;
-
-		NodePairs::iterator it = maxPairs.begin();
-		int i=1;
-		for(;it!=maxPairs.end();it++, i++){
-			if(i>9){
-				i=0;
-			}
-			it->first->color = i;
-			it->second->color = i;
-		}
-		
-		// check the number of neighbors for all point, in order to make sure, that all point are in the same object
-		//int centerSize = center->neighbors.size();
-		//NodePairs::iterator it = maxPairs.begin();
-		//for(;it!=maxPairs.end();it++){
-		//	if(it->first->neighbors.size() != centerSize){
-		//		cout<<"Find the point at edge!"<<endl;
-		//		cout<<centerSize<<endl;
-		//		cout<<it->first->neighbors.size()<<endl;
-		//		return false;
-		//	}
-		//}
-
-		nodePairs = maxPairs;
-		return true;
-	} else {
-		cout<<"All nodes have been reached but no coorespondenz found!"<<endl;
-		return false;
-	}
-}
-
 bool Graph::findTriangle(NodePairs nodePairs, NodePairs &triangle, float e){
 	if(nodePairs.size() < 3){
 		return false;
 	}
-
 	//check the neighbors in nodePairs
 	NodePairs::iterator i = nodePairs.begin();
 	for(;i!=nodePairs.end();i++){
@@ -724,12 +526,6 @@ bool Graph::findTriangle(NodePairs nodePairs, NodePairs &triangle, float e){
 	}
 }
 
-//bool Graph::checkNeighbors(NodePairs &nodePairs){
-//	NodePairs::iterator it = nodePairs.begin();
-//	for(;it!=nodePairs.end();it++){
-//
-//	}
-//}
 
 	
 

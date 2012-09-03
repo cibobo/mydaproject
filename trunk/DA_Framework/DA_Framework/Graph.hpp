@@ -42,8 +42,12 @@ public:
 	bool deleteNeighbor(Node *node);
 	bool hasNeighbor(Node *other);
 
-	//Check all neighbors of both 'this' node and 'other' node 
-	//Save the nodepairs into the 'nodePairs', which their edge length is smaller than e 
+	/*
+	 * Check all neighbors of both 'this' node and 'other' node 
+	 * @param: other target node
+	 * @param: nodePairs save similar neighbors pairs from both this and other
+	 * @param: e the proportion of the comparision of the distance 
+	 */
 	void findCorresNeighbors(Node *other, NodePairs &nodePairs, float e);
 };
 
@@ -107,28 +111,26 @@ public:
 
 	//Update current graph with the new points and the rotation and traslation matrix
 	bool updateGraph(vector<Point3f> points, Mat R, Mat T, float dThreshold=0.004, int tThreashold=25);
-
-	void showWithOpenCV(const char *name);
 	
 	/*
 	 * Functions for the Graph Isomorphismus
+	 * @param: other the target graph of comparision
+	 * @param: nodePairs saving the pointer of associate Nodes, where the first place for the node in Graph 'other'
+	 * @param: disProp the distance threshold for the identical nodes
+	 * @param: countProp the proportion of input points, which should be recognized as correspondent neighbors, if two graphs are recognized as the same 
+	 * @param: e the distance threshold to check the number of neighbors of the selected nodePairs
 	 */
-	// The nodePairs saving the pointer of associate Nodes, where the first place for the node in Graph 'other'
-	bool isEqual(Graph *other);
-	bool isEqual1(Graph *other, float e, float rate);
-	bool isEqualAdvance(Graph *other, float e, float rate, NodePairs &nodePairs, Node *&center, float &error);
-
-	// Porp show the proportion of input points, which should be recognized as correspondent neighbors 
-	bool isEqualAdvance(Graph *other, float e, float prop, int minParisCount, NodePairs &nodePairs);
+	bool isEqual(Graph *other, NodePairs &nodePairs, float disProp=0.05, float countProp=0.5, float e=0.008);
+	// Helping functionf for the Graph Isomorphismus
+	//Select the nodes from nodePairs, which has at least 2 neighbors. Save the result into triangle 
 	bool findTriangle(NodePairs nodePairs, NodePairs &triangle, float e);
-	bool checkNeighbors(NodePairs &nodePairs);
 
 	Node *findNode(int index);
 	//find the index of the node in nodelist. If it doesn't exist, return -1, otherweise return the index
 	int findIndex(Node *node);
 
 	Point3f getMiddelPoint();
-
+	//set the color with the index in color list
 	void setColor(int colorIndex);
 	//set the color for all node to null
 	void clearColor();
