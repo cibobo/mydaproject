@@ -84,4 +84,5 @@ public:
 	// To controll whether the input data should be saved or not
 	CButton OutputSavedCheck;
 	afx_msg void OnBnClickedCheckOnlinesaved();
+	afx_msg void OnEnChangeEditOnlinepath();
 };

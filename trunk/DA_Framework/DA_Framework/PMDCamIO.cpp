@@ -7,7 +7,7 @@ PMDCamIO::PMDCamIO(){
 
 	frameCount = 0;
 	isDataSaved = false;
-	savedPath = "default";
+	savedPath = new char[150];
 }
 
 PMDCamIO::~PMDCamIO(){
