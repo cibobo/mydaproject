@@ -31,6 +31,6 @@ public:
 	BOOL isDataSaved;
 
 	//the path of the saved Data
-	const char *savedPath;
+	char *savedPath;
 
 };

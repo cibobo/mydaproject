@@ -173,6 +173,7 @@ BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
 	ON_BN_CLICKED(IDC_RADIO_RMODEL_LOAD, &CDA_GUIDlg::OnBnClickedRadioRmodelLoad)
 	ON_BN_CLICKED(IDC_RADIO_RMODEL_CREATE, &CDA_GUIDlg::OnBnClickedRadioRmodelCreate)
 	ON_BN_CLICKED(IDC_CHECK_ONLINESAVED, &CDA_GUIDlg::OnBnClickedCheckOnlinesaved)
+	ON_EN_CHANGE(IDC_EDIT_ONLINEPATH, &CDA_GUIDlg::OnEnChangeEditOnlinepath)
 END_MESSAGE_MAP()
 
 
@@ -282,14 +283,7 @@ HCURSOR CDA_GUIDlg::OnQueryDragIcon()
 //OnClick listener for the Run button
 void CDA_GUIDlg::OnBnClickedOk()
 {
-	//If the Online mode has been selected
-	if(pMainThread->isOnline && pMainThread->pPMDCamIO->isDataSaved){
-		CString str;
-		this->outputPathEditor.GetWindowTextA(str);
-		string path((LPCTSTR)str);
-		//strcpy(pMainThread->pPMDCamIO->savedPath, str);
-		pMainThread->pPMDCamIO->savedPath = path.data();
-	}
+
 	//If in Recognitions modul
 	if(pMainThread->isRecognise){
 		//If the test modul has been selected
@@ -413,6 +407,22 @@ void CDA_GUIDlg::OnEnChangeEditOfflinepath()
 	strcpy(pMainThread->INPUTPATH, str);
 }
 
+void CDA_GUIDlg::OnEnChangeEditOnlinepath()
+{
+	// TODO:  Falls dies ein RICHEDIT-Steuerelement ist, wird das Kontrollelement
+	// diese Benachrichtigung nicht senden, es sei denn, Sie setzen den CDialog::OnInitDialog() außer Kraft.
+	// Funktion und Aufruf CRichEditCtrl().SetEventMask()
+	// mit dem ENM_CHANGE-Flag ORed in der Eingabe.
+
+
+	CString str;
+	this->outputPathEditor.GetWindowTextA(str);
+	string path((LPCTSTR)str);
+	strcpy(pMainThread->pPMDCamIO->savedPath, str);
+		//pMainThread->pPMDCamIO->savedPath = path.data();
+
+}
+
 void CDA_GUIDlg::OnBnClickedRadioOffline()
 {
 	pMainThread->isOffline = true;
@@ -505,3 +515,5 @@ void CDA_GUIDlg::OnBnClickedCheckOnlinesaved()
 	pMainThread->pPMDCamIO->isDataSaved = this->OutputSavedCheck.GetCheck();
 	this->outputPathEditor.EnableWindow(pMainThread->pPMDCamIO->isDataSaved);
 }
+
+
