@@ -1,36 +1,95 @@
 \chapter{Implementierung}
 
 \begin{figure}[ftb]
-\label{HauptAblauf}
 \centering
 \includegraphics[scale=0.55]{Abbildungen/HauptAblauf.png}
 \caption{Ablaufdiagramm}
+\label{hAblauf}
 \end{figure}
 
-Unsere Implementierung kann in 4 Hauptmodule unterteilt werden:
+Die Implementierung kann in vier Hauptmodule unterteilt werden:
 
 \begin{itemize}
-\item Markenanalyse
-\item Objekteinlernen
-\item Objekterkennung und Verfolgung
-\item Bilder Steuerung
+\item Markenanalyse,
+\item Objekteinlernen,
+\item Objekterkennung und Verfolgung,
+\item Bilder Steuerung.
 \end{itemize}
 
-Die allgemeine Ablaufprozess des Programms findet man in Abbildung~\ref{HauptAblauf}. Das ganz Programm ist eine Schleife. In jedem Schritt wird die Information von PMD Kamera angesammelt und als Eingabe eingegeben. Nach Bewertung der neuen Eingabe bzw. der Rückkopplung von letztem Ablauf wird die entsprechende Bilddaten von Modul Bilder Steuerung für die weiteren Schritten ausgewählt. Der Modul Markenanalyse analysiert die eingegebene Bilddaten und versucht die Marken zu finden und zu verfolgen. Die ausgefundene Marken werden von entweder dem Objekteinlernen oder der Objekterkennung und Verfolgen benutzt, welche am Anfang des Programms durch Benutzer entschieden wird. In der Einlernensphase wird zuerst die Transformation des Objekts bestimmt und dann das charakteristische Graph des Objekts durch die Marken dargestellt. Wenn man ein Objekt wieder erkennen möchte, werden die Marken von neuem Objekt zu den vorhandenen charakteristischen Graphen verglichen, die nach dem Objekteinlernen im Speicher gespeichert werden. Das Ergebnis wird in einem OpenGL Fenster ausgemalt und außerdem,  als die Rückkopplung für den nächsten Schritt zurück zum Anfang der Schleife geschickt. Alle diese Module werden in folgenden Unterabschnitten genau erklären und ein ausführliches Ablaufdiagramm wird in Abbildung~\ref{GenauAblauf} gezeigt.   
+Der allgemeine Ablaufprozess des Programms ist in Abbildung~\ref{hAblauf}. Das ganze Programm ist eine Schleife, in jedem deren Schritt die Information der PMD Kamera angesammelt und als Eingabe genutzt wird. Nach Bewertung der neuen Eingabe bzw. der Rückkopplung vom letzten Ablauf werden die entsprechenden Bilddaten vom Modul {\itshape Bilder Steuerung} für die weiteren Schritte ausgewählt. Das Modul {\itshape Markenanalyse} analysiert die eingegebene Bilddaten und versucht die Marken zu finden und zu verfolgen. Die ausgefundenen Marken werden entweder von dem {\itshape Objekteinlernen} oder durch die {\itshape Objekterkennung und Verfolgung} benutzt, was am Anfang des Programms durch den Benutzer entschieden wird. In der Einlernensphase wird zuerst die Transformation des Objekts bestimmt und dann der charakteristische Graph des Objekts durch die Marken dargestellt. Wenn man ein Objekt wieder erkennen möchte, werden die Marken von neuem Objekt zu den vorhandenen charakteristischen Graphen verglichen, die nach dem Objekteinlernen im Speicher gespeichert werden. Das Ergebnis wird in einem OpenGL Fenster ausgezeigt und als Rückkopplung für den nächsten Schritt genutzt. Alle diese Module werden in den folgenden Unterabschnitten genau erklärt. Ein ausführliches Ablaufdiagramm wird in Abbildung~\ref{gAblauf} gezeigt.   
 
 \begin{figure}
-\label{GenauAblauf}
 \centering
 \includegraphics[scale=0.7]{Abbildungen/Ablaufsbild.png}
 \caption{Ausführliches Ablaufdiagramm}
+\label{gAblauf}
 \end{figure}
 
 \section{Markenanalyse}
+\label{MAna}
+\subsection{Bildvorverarbeitung}
+
+\subsubsection{Datenstruktur des Eingabebilds}
+Wie im Abschnitt \ref{PMDData} erklärt, liefert die PMD Kamera insgesamt vier verschiedenen Arten der Vermessungsdaten. Alle diese Daten eines Bildes werden in einer Instanz von Klasse \textbf{BildData} gespeichert. Dazwischen sind die Amplituden und 3D Koordinaten ganz wichtig und werden in verschiedenen Teilen des Programms verwendet: die Amplituden werden für die Markenerkennung und die 3D Koordinaten mit räumlicher Information werden später für die Korrespondenzuntersuchung und Schätzung der Lage des Objekts benutzt. Da die definierte Dimension und das definierte Intervall dieser zwei Arten der Daten sich von anderem unterscheidet, ist vor der weiteren Bildverarbeitung dieser Arbeit die Übereinstimmung beider Daten für jeden Pixel notwendig. Die Klasse \textbf{PMDPoint} wird nun definiert, um den Zweck zu erfüllen. Die Klassendiagramme beider Klassen werden in der Abbildung~\ref{BD} gezeigt.
+
+\begin{figure}[ftb]
+\centering
+\includegraphics[scale=1]{Abbildungen/BildData.png}
+\caption{Die Klassendiagramme für \textbf{BildData} und \textbf{PMDPoint}.}
+\label{BD}
+\end{figure}
+
+\subsubsection{Abstand Filter}
+Die Verbesserung der Ergebnisse durch die Segmentierung des fokussierten Objekts aus der Umgebung wurde im Abschnitt \ref{sbSeg} bemerkt. Deshalb soll am Anfang der Markenanalyse einen Abstand-Filter definiert werden. Der Abstand-Filter dieser Arbeit besteht aus zwei Teilen: der Teil der Initialisierung bzw. der Teil der Filterung. Zwischen der Initialisierung des Filters werden eine Menge der Tiefdaten der Eingabebilder mit vordefinierter Größe angesammelt, damit das durchschnittliche Tiefbild der Szene erzeugt werden kann. Der Pseudocode wird in Algorithmus~\ref{AFIni} gezeigt.
+
+\begin{algorithm}
+\caption{Initialisierung des Abstand-Filters}
+\label{AFIni}
+\begin{algorithmic}
+    \State Anzahl der notwendigen Eingabebilder: $N$
+    \State Tiefbild für die durchschnittliche Szene: $D$
+    \For {$i$ von $1$ bis $N$}
+    	\State $E \gets$ aktuelle \textbf{BildData}
+        \If {$D$ == NULL}
+            \State $D \gets E.3DKoordinaten.Z$ 
+        \Else
+        	\For {jedes Pixel $d_j$ von $D$}
+        		\State $d_j \gets \frac{1}{2}(d_j + e.3DKoordinaten_{j_z})$
+        	\EndFor
+        \EndIf
+    \EndFor
+\end{algorithmic}
+\end{algorithm}
+
+Durch Vergleich der in Initialisierungsphase erzeugten Szene und die aktuelle Tiefdaten der 3D Eingabe, können die neu in der Szene eingefügten Objekte aus den Hintergrund bestimmt werden. Wenn der Abstand zwischen einem Pixel und dem Hintergrund größer als der vordefinierte Schwellenwert ist, wird die Amplitude des gefilterten Bildes in diesem Pixel von originaler Amplitude übertragen. Sonst wird die Amplitude als null ersetzt. Die Anzahl der unterschiedlichen Bildpunkten wird gleichzeitig abgezählt, damit eine boolesche Ausgabe über die Verschiedenheit mit dem gefilterten Bild zusammen zurück gegeben werden kann. Der genaue Ablauf wird in Algorithmus~\ref{AFFilter} beschrieben. 
+
+\begin{algorithm}
+\caption{Filterungsphase des Abstand-Filters}
+\label{AFFilter}
+\begin{algorithmic}
+	\State Schwellenwert für Abstandsvergleich: $\epsilon$
+	\State Schwellenwert für Verschiedenheit: $\alpha$	
+	\State $E \gets$ aktuelle \textbf{BildData}
+	\For {jedes Pixel $d_i$ von $D$}
+		\If {$\|d_i - e.3DKoordinaten_{i_z} \| < \epsilon$}
+			\State $e.filteredAmplitude_i \gets 0$
+		\Else
+			\State $e.filteredAmplitude_i \gets e.Amplitude_i$
+		\EndIf
+	\EndFor
+	\State $q \gets \| \text{veränderten Pixeln} \| / \|E\|$
+	\If {$q < \alpha$}
+		\State \Return Falsch
+	\Else
+		\State \Return True, $E$
+	\EndIf
+\end{algorithmic} 
+\end{algorithm}
 
 \subsection{Markenerkennung}
 
 \subsubsection{Auswahl der Größe der Marken}
-Die Erkennungsergebnisse der Objekte werden von der Größe der Marken stark beeinflusst, deshalb ein Test über die Markengröße zuerst notwendig ist. Die Testmarken werden in weiße auf einem schwarzen Papier gedruckt. Es gibt insgesamt 7 verschiedenen Großstufen, und die Marken von jeder Stufe werden durch jeweils Quadrat und Kreis formuliert. Abbildung~\ref{MS1} zeigt die unterschiedliche Erkennungsergebnisse der Marken, wenn das Objekt am verschiedenen Positionen aber auf der gleichen Ebene liegt. Abbildung~\ref{MS2} zeigt den Einfluss auf den Ergebnisse von der Distanz zu der Kamera. Was deutlich ist, dass je näher das Objekt von der Kamera angebracht wird, desto kleinere die Größe der Marken benötigt.
+Die Erkennungsergebnisse der Objekte werden von der Größe der Marken stark beeinflusst, weshalb ein Test über die Markengröße vor der Implementierung notwendig ist. Die Testmarken werden als weiße Punkte auf einem schwarzen Papier gedruckt. Es gibt insgesamt 7 verschiedenen Größenstufen. Die Marken von jeder Stufe werden jeweils durch Quadrat und Kreis dargestellt. Abbildung~\ref{MS1} zeigt die unterschiedliche Erkennungsergebnisse der Marken, wenn das Objekt an verschiedenen Positionen aber auf der gleichen Höhenebene liegt. Abbildung~\ref{MS2} zeigt den Einfluss auf die Ergebnisse von der Distanz zu der Kamera. Was deutlich ist, dass je näher das Objekt zu der Kamera angebracht wird, desto kleinere Markengrößen werden benötigt.
 
 \begin{figure}
 \centering
@@ -46,11 +105,157 @@ Die Erkennungsergebnisse der Objekte werden von der Größe der Marken stark beein
 \label{MS2}
 \end{figure}
 
-\subsubsection{Kontrolle der Helligkeit}
+\subsubsection{STAR Detektor}
+Wegen der in Abschnitt \ref{AusAlgo} festgestellten Gründe wird der STAR Detektor (CenSurE Algorithmus) in dieser Arbeit als Erkennungsalgorithmus ausgewählt. Die Parameter des Detektors werden im Dokument von OpenCV aufgelistet \cite{SDO} und von ,,ButterCookies'' in OpenCV Adventure \cite{SDOA} weiter deutlicher erklärt. Der Parameter {\itshape maxSize} definiert die maximale Größe der Marken. {\itshape responseThreshold} ist ein Schwellenwert über die Antwort von approximierten Laplacian. Die erkannten Marken mit niedrigerer Antwort als diesen Schwellenwert werden dann eliminiert. Die Parameter {\itshape lineThresholdProjected} und {\itshape lineThresholdBinarized} stellen die Stärke der Linie-Suppression ein. Der letzte Parameter {\itshape suppressNonmaxSize} beschreibt die Größe des betrachteten Raums der Non-Maximal Suppression. In dieser Arbeit benutzt {\itshape responseThreshold} als den variablen Parameter, d.H. dessen Wert in jedem Schritt verändert wird.
+
+\subsubsection{Markenerkennung} 
+Algorithmus~\ref{ME} zeigt den Verlauf der Markenerkennung mit STAR Detektor. Der ganze Erkennungsprozess wird als eine Schleife mit vordefinierter maximaler Anzahl der Durchläufe dargestellt. In jedem Schleifenrumpf wird das Graustufenbild als Eingabe des STAR Detektors mit dem aktuellen Kontrast vor der Erkennung erzeugt. Nach der Erkennung schickt das Programm dann das aktuelle Graustufenbild und die Anzahl der erkannten Marken zu der Funktion \textbf{Kontraststeuerung} (sehen \ref{SHuK} und Algorithmus~\ref{KS}), und wird von ihr den neuen Kontrast bzw. ResponseThreshold für nächsten Durchlauf erhalten. 
+
+\begin{algorithm}
+\caption{Markenerkennung}
+\label{ME}
+\begin{algorithmic}
+	\State Eingabebild: $I$, maximale Schleife: $N$
+	\State $a \gets$ Anfangswert für Kontrast 
+	\State $r \gets$ Anfangswert für Responsethreshold
+	\State $b \gets$ feste Helligkeit  
+	\For {$i von 1 bis N$}
+		\State Eingabe für STAR Detektor: $H_i \gets aI+b$
+		\State Erkannten Marken: $P \gets CenSurE(H_i,r)$
+		\State Result $\gets$ Kontraststeuerung($H_i, a, r, \|P\|$)
+		\If {Result = False}
+			\State continue mit aktualisiertem Kontrast und Responsethreshold
+		\Else
+			\State break
+		\EndIf
+	\EndFor
+\end{algorithmic}
+\end{algorithm}
+
+\subsubsection{Steuerung der Helligkeit und des Kontrast}
+\label{SHuK}
+Die Helligkeit bzw. der Kontrast können die Ergebnisse der Markenerkennung stark beeinflussen. Eine viele bekannte Arbeit über radiometrische Kalibrierung wurde von Debevec und Malik in \cite{DM08} gemacht. Ihres Verfahren ist robust und präzise, aber benötigt viele Bilder von gleicher Szene mit verschiedenen Belichtungszeiten, damit alle Information der Szene für jeweils helleren Bereich bzw. dunkleren Bereich versammelt wird. Wegen der Beschränkung der Kamera kann diese Bedingung in unserer Arbeit leider nicht erfüllt werden. Außerdem ist das Verfahren von Debevec sehr rechenintensiv. Glücklicherweise sollen in der Markenerkennung unserer Arbeit aber nur die Bilddaten um Marken betrachtet werden. D.h. die sonstige Informationen des Bildes können einfach ignoriert werden. Durch diese Grundidee kann ein Algorithmus erzeugt werden, dessen Endbedingung durch Untersuchung der Anzahl der erkannten Marken eingestellt wird.
+\\
+\\
+Der formulierte Durchlauf wird im Algorithmus~\ref{KS} gefunden. Die Anzahl der erkannten Marken ist die erste Stufe der Prüfnorm von Kontraststeuerung. Wenn nicht genug Marken erkannt werden, wird die Strahlungsenergie des Graustufenbildes als die zweite Stufe der Prüfnorm überprüft. Für die zu große bzw. zu kleine Strahlungsenergie, verringert bzw. erhöht der Kontrast sich im erlaubten Intervall, was als Eingangsparameter vorher definiert wird. Wenn die Strahlungsenergie zufrieden ist aber noch nicht genug Marken gefunden sind, nimmt das ResponseThreshold ab, damit mehr Marken mit schwächeren Antworten erkannt werden können. Für die Gegenseite für die zu viele erkannten Marken, wird der Wert von ResponseThreshold vergrößert. Bei dieser Situation wird die Strahlungsenergie nicht mehr betrachtet, damit der Algorithmus zur der Konvergenz halten kann. Ein boolescher Wert wird von dem Algorithmus zurückgegeben, was zeigt, ob befriedigend viele Marken gefunden werden.
+
+\begin{algorithm}
+\caption{Kontraststeuerung($H, \&a, \&r, \|P\|$)}
+\label{KS}
+\begin{algorithmic}
+	\State Intervall der erlaubten Strahlungsenergie: $(E_{min}, E_{max})$
+	\State Intervall des erlaubten Kontrastes: $(A_{min}, A_{max})$
+	\State Intervall des erlaubten ResponseThreshold von STAR Detektor: $(R_{min}, R_{max})$
+	\State Intervall des Erwartens der Anzahl des bekannten Marken: $(P_{min}, P_{max})$
+	\State $e \gets$ aktuelle Strahlungsenergie von $H$
+	\If {$\|P\| < P_{min}$}
+		\If {$e < E_{min}$}
+			\State $a \gets a-0.5$
+			\If {$a < A_{min}$}
+				\State $a \gets A_{min}$
+				\State \Return False
+			\EndIf
+		\ElsIf {$e > E_{max}$}
+			\State $a \gets a+0.5$
+			\If {$a > A_{max}$}
+				\State $a \gets A_{max}$
+				\State \Return False
+			\EndIf
+		\Else 
+			\State $r \gets r-5$
+			\If {$r < R_{min}$}
+				\State \Return False
+			\EndIf
+		\EndIf
+	\ElsIf {$\|P\| > P_{max}$}
+		\If {$r > R_{max}$}
+			\State \Return False
+		\Else
+			\State $r \gets r+4$
+		\EndIf
+	\Else
+		\State \Return True
+	\EndIf
+\end{algorithmic}
+\end{algorithm}
+
+
 
 \subsection{Markenverfolgung}
+\subsubsection{Verbesserung der Singulärwertzerlegungsverfahren}
+Nach erfolgreicher Festlegung der Marken jedes Bildes sollen dann die Korrespondenzen der Marken von zwei nachfolgenden Bildern untersucht werden. Die Korrespondenzpunkte können durch das Verfahren der Singulärwertzerlegung von Scott und Higgnis \cite{SL91} bestimmt werden. Die genaue Beschreibung ihres Verfahrens wird im Schnitt~\ref{KdS} aufgeführt, und Algorithmus~\ref{alg1} gibt den Peseudocode des Verfahrens an. In dieser Arbeit werden vier Verbesserungen für das Verfahren von Scott und Higgnis gemacht, damit der die stabileren Ergebnisse erzeugt und die Qualität der Korrespondenzuntersuchung bewertet werden kann. 
 
-\section{Objekteinlernen}
+\textbf{Nebenbedingung für die Bestimmung der größten Elemente}
+\\
+In originalem Algorithmus werden die Punkte $I_i$ und $J_j$ als Korrespondenzpunkte erkannt, genau dann, wenn das Element $P_{ij}$ das größte Element von beide Zeile $i$ und Spalte $j$ ist. Aber manchmal liefert das größte Element nicht die beste Korrespondenz, insbesondere in den Fall, dass es große Transformation zwischen zwei betrachteten Bildern gibt. Die Lösung ist, eine weitere Beschränkung für die Untersuchung der größten Elemente einzusetzen. D.h. die größten Elemente werden nur akzeptiert, wenn sie gleichzeitig größer als ein eingegebener Schwellenwert $\epsilon$ sind. Der Schwellenwert $\epsilon$ wird in $[0,1]$ definiert. Je höher $\epsilon$ ist, desto ordentlicher sind die gefundenen Korrespondenzpunkte. In dem idealen Fall sind alle größten Elemente $P_{ij}$ gleich 1, z.B. wenn die beide betrachteten Bilder identisch sind. 
+
+\textbf{Erfolgreiche Behauptung}
+\\
+Wenigere Korrespondenzpunkte werden mit obiger stärkeren Nebenbedingung herausgefunden, was aber die weiteren Arbeitsschritte wenig beeinflusst, weil es zumindest nur 3 korrespondierenden Punktpaare benötigt, um die Orientierung zwischen zwei Bildern zu bestimmen. Trotzdem ist die Überprüfung der Anzahl der gefundenen Punktpaare notwendig, und deren Ergebnis wird als eine boolesche Ausgabe des Algorithmus zurückgegeben.
+
+\textbf{Qualitätsmanagement der Korrespondenz}
+\\
+Außer der binären Behauptung des Algorithmus ist die Bewertung der Korrespondenzqualität auch wichtig, damit die gute und stabile Bilderkette für Markenverfolgung ausgewählt werden kann. Das wurde aber leider von Scott und Higgnis in ihrer Arbeit nicht genannt. In der ersten Verbesserung wird die Größe der größten Elemente von Matrix $P$ mit einem Schwellenwert weiter beschränkt, um das bessere Korrespondenzergebnis zu erhalten. Deshalb zur Umkehr kann die Größe der größten Elemente von $P$ als die Messung der Korrespondenzqualität definiert werden. Dann wird die Summe aller größten Elemente $\sum P_{ij}$ in dieser Arbeit zur Bewertung der Korrespondenzuntersuchung verwendet. Hier wird kein arithmetische Mittel benutzt, weil die Anzahl der betrachteten Punkte, die als Eingaben in den Algorithmus eingegebene werden, auch ein wichtiger Faktor der Bewertung der Korrespondenz ist.
+
+\textbf{Die Auswahl von $\sigma$ mit Rückkopplung}
+\\
+Die Einheit des Abstands $\sigma$ ist der wesentliche Parameter des Singulärwertzerlegungsverfahrens. Das ungeeignete $\sigma$ erzeugt dann großes Chaos in Korrespondenzlösungen, was schon in \cite{SL91} mit Schaubildern vielmals gezeigt wird. Um die besten Lösungen zu finden, soll die Abstandseinheit nicht kleiner als die durchschnittlichen Distanz zwischen den Korrespondenzpunkten definiert werden. Es gibt zwei Schwierigkeiten für die Bestimmung des $\sigma$. Erstens sind die korrespondierenden Punktpaare vor dem Durchlauf des Algorithmus noch nicht bekannt, weshalb kann die Abstandseinheit nicht direkt berechnet sondern nur geschätzt werden. Zweitens ist die Auswahl einer festen Abstandseinheit schwierig und ineffizient, wenn sich die betrachteten Punkte oder Merkmale, z.B. in dieser Arbeit, uneingeschränkt bewegen können. Deshalb wird hier der Parameter $\sigma$ für jedes Bild mit der durchschnittlichen Distanz zwischen allen korrespondierenden Punktepaaren vorheriges Bildes festgelegt. Wegen der festen Bildwiederholfrequenz der Eingabebilder sind in theoretischen Fall die durchschnittlichen Abstand der Korrespondenzpunkte jedes Bildes gleich, wenn sich alle betrachteten Punkte gleichförmig bewegen. Aber für die schwach beschleunigenden Bewegungen der Merkmale kann das anpassende $\sigma$ trotzdem herausgefunden werden und die Korrespondenzlösungen sich stabil erzeugen lassen.
+\\
+\\
+Das verbesserte Algorithmus wird im Algorithmus~\ref{algSVD} gezeigt.
+
+\begin{algorithm}                     
+\caption{Bestimmung der korrespondierenden Punktpaare durch Singulärwertzerlegung}         
+\label{algSVD}                          
+\begin{algorithmic}
+	\State Korrespondierende Punktpaare: $Result$                    
+    \State Eingabebilder von jeweils Zeitpunkt $t_{i-1}$ und $t_{i}$: $I,J$
+    \State Aktuelle approximierte Abstandseinheit: $\sigma_{i}$
+	\State Schwellenwert für die Beschränkung der größten Elemente: $\epsilon$
+	\State Messung der Korrespondenzqualität: $mess$ 
+	\State Summe der Abstände der Korrespondenzpunkte: $sumDistance$
+    \For{$i=1 \to m$, $j=1 \to n$}
+    	\State $r_{ij} \gets Dis(I_i, J_j)$
+    	\State $G_{ij} \gets exp(-\frac{r_{ij}^2}{\sigma_i^2})$
+    \EndFor
+    \State $T,U \gets$ Singulärwertzerlegung von G
+    \State $E \gets m \times n$ Diagonalmatrix mit $E_{ii} = 1$
+    \State $P \gets TEU$
+    \State $minMN \gets Min(m, n)$
+    \For{$i=1 \to minMN$}
+    	\State $MaxSpalteIndex[i] \gets$ Index der Spalte des maximalen Elements an Reihe $i$.
+    	%\State $MaxSpalteIndex_i \gets Max$ 
+    \EndFor
+    \For{$i=1 \to minMN$}
+    	\If {$P_{iMaxSpalteIndex[i]}$ ist Maximum der Spalte $MaxSpalteIndex[i]$}
+    		\If {$P_{iMaxSpalteIndex[i]} > \epsilon$}
+    			\State $Result \gets$ Punktpaar($I_i, J_{MaxSpalteIndex[i]}$)
+    			\State $mess \gets mess + P_{iMaxSpalteIndex[i]}$
+    		\EndIf 
+    	\EndIf
+    \EndFor 
+    \For {Alle Punktpaare $(I_i, J_j) \in Result$}
+    	\State $sumDistance \gets sumDistance + DistanceOf(I_i,J_j)$
+    \EndFor
+    \State $\sigma_{i+1} \gets sumDistance / \| Result \|$
+    \If {$\| Result \| < 3$ }
+    	\State \Return False
+    \Else
+    	\State \Return True, $mess$
+    \EndIf
+\end{algorithmic}
+\end{algorithm}
+
+\subsection{Segmentierung}
+Bis jetzt sind alle erkannten Marken eine Bildes als eine Menge der Punkte zusammen betrachtet. Die Segmentierung soll dann durchgeführt werden, um die Marken für verschiedene Objekte zu verteilen. Die Hauptidee ist, dass eine Menge der Marken als die Merkmale von gleichem Objekt erkannt werden, genau dann, wenn die Abstände zwischen der Punkte der Menge viel kleiner als die Abstände von den Punkten zu den anderen Punkte anderer Menge sind. Die Problemstellung der Segmentierung ist gleich wie ein Clusting-Problem, deshalb wird hier in dieser Arbeit der Clusting-Algorithmus DBSCAN benutzt. Die Beschreibung des Verfahrens wird im Abschnitt \ref{Dbscan} gezeigt und der genaue Durchlauf wird von Algorithmus~\ref{algDBSCAN} erklärt.	Eine Liste der Punktmengen werden von DBSCAN ausgegeben, und jedes deren Element stimmt mit der Merkmalen eins Objekts überein. Da es zumindest 3 Punkte benötigt, die Lage des räumlichen Körper in 3D Raum zu bestimmen, werden die Punktmengen von Ausgabe der DBSCAN als Rausch erkannt, die weniger als 3 Punkte enthalten.
+
+\section{Objektlernen}
+Nach der erfolgreichen Markenanalyse werden eine Menge der Marken aus den Eingabebildern herausgefunden und sind weiterhin die Abhängigkeiten dieser Marken zwischen benachbarten Bilder bekannt. Die Menge der Marken wird danach für unterschiedlichen Objekte weiter verteilt. Im diesen Abschnitt wird es erklärt, wie ein charakteristisches Graph des Objekts mithilfe der erkannten Marken dargestellt werden kann. Diese Arbeit berücksichtigt im Objektlernen die vereinfachte Situation mit der Annahme, dass einmal nur ein Objekt in der Eingabebilder vorkommt. Deshalb wird die größten Punktmenge von Segmentierungsergebnis ausgewählt, die als die Eingabe der folgenden Arbeitsschritte eingestellt wird. 
+
+\subsection{Bestimmung der Orientierung}
+Um ein Objekt zu lernen, muss das Objekt mit Marken zuerst zu der Kamera gezeigt und sich langsame umdreht werden. Zwischen der Umdrehung werden dann die relativen Positionen der Marken an jeder Ebene bestimmt. Deshalb sollen die Lagen der bekannten Marken in diesem Ablauf rechtzeitig aktualisiert werden, was als eine Orientierungsproblem formuliert werden kann. In dieser Arbeit wird der Verfahren von \cite{H87} verwendet, um die Transformation der bekannten Marken zwischen nachfolgenden Bildern zu berechnen. Der genaue Durchlauf wird im Abschnitt \ref{QmE} aufgeführt. Zuerst sollen die Schwerpunkte der erkannten Marken herausgefunden werden (sehen Formel~\eqref{QuaSch}). Dann berechnet man die Vektoren, die von alle Marken zu ihren entsprechenden Schwerpunkte richten. Drittens wird die Korrelationsmatrix $H$ durch Formel~\eqref{QuaH} mit diesen Vektoren bestimmt werden. Die Hilfematrix $N$ in Formel~\eqref{QuaN} bestehlt aus den Elementen der Matrix $H$, und Ein von ihren Eigenvektoren ist genau die Einheitsquaternion für die Rotation, der den größten positiven Eigenwert entspricht. Die Rotationsmatrix bzw. die Translationsmatrix unter kartesischem Koordinatensystem werden durch jeweils die Formel~\eqref{QuaR} und \eqref{QTran}.
+
+Kalmanfilter
 
 \subsection{Markenanordnung}
 
