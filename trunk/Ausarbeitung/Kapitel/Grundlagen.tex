@@ -26,8 +26,8 @@ Der PMD Sensor heißt CamCube ist eine wichtige Komponente der TOF Kamera. Er lie
 %\graphicspath{}
 \begin{figure}[ftb]
 \centering
-\includegraphics[scale=0.6]{Abbildungen/PMDParam}
-\caption{Die grundlegende Parameter der PMD Kamera. \cite{pmde}}
+\includegraphics[scale=0.6]{Abbildungen/PMDParam2}
+\caption{Die grundlegende Parameter der PMD CamCube2. \cite{pmde}}
 \label{PMDParam}
 \end{figure}
 
@@ -70,6 +70,7 @@ Lange der Tiefdaten & 8 bit (unsigned char) & 11 bit \\ \hline
 \end{table}
 
 \subsection{Daten der PMD Kamera}
+\label{PMDData}
 Die PMD Kamera CamCube kann insgesamt 4 verschiedenen Vermessungsdaten ausgeben. Sie sind Amplitude, Intensität, Distanz und 3D Koordinaten. Die erste Zwei und letzte Zwei Typen der Daten können durch die Dimension in zwei Gruppen unterteilt werden. 
 
 \subsubsection{2D Daten}
@@ -78,7 +79,49 @@ Die Intensität bezieht sich auf Graustufen. Nach einer Abbildung können diese Gr
 \subsubsection{3D Daten}
 Die PMD Kamera liefert 3D Daten in zwei Formen: die reine Distanzinformation und die 3D Koordinaten. Die Distanzinformation ist die gemessene Distanz zwischen der Kamera und Objekt, was direkt durch die Formel \eqref{tof1} berechnet wird. Bezüglich dieser Distanzinformation und der 2D Daten der normalen Kamera werden die 3D Koordinaten innerhalb der PMD Kamera berechnet und können durch die Schnittstelle abgefragt werden. Die Abbildung~\ref{C3D} zeigt die Visualisierung einer Szene mit jeweils der 3D Koordinaten und Distanzinformation von PMD Kamera. Eine Transformation ist notwendig, wenn man direkt die Distanzinformation im kartesischen Koordinatensystem visualisieren möchte.
 
+\subsubsection{Auflösung und erkennbare Markengröße}
+Die Auflösung der PMD Kamera wurde schon im vorherigen Abschnitt angegeben, wofür man sich noch interessiert ist, wie genau die Objekte von der Kamera in der Praxis beobachtet werden können. D.h. wie groß ein Pixel von Kamera den Bereich in realer Welt beschreibt. Die Vorderansicht des Kamerasystems dieser Arbeit ist in Abbildung~\ref{MSF} links gezeigt.
+
 \begin{figure}[bft]
+\centering
+\includegraphics[scale=0.44]{Abbildungen/MarkerSizeForme}
+\caption{Die Vorderansicht(links) und die Draufsicht(rechts) des PMD Kamera Systems}
+\label{MSF}
+\end{figure}
+
+$\theta$ ist der halbe Sichtwinkel und wird hier als $20^\circ$ angenommen. $H$ zeigt den Abstand von der Kamera zum Boden, was in diesem System mit 3,2m festgelegt ist. Durch die Trigonometrie kann der Radius des Sichtbereiches auf dem Boden berechnet werden als:
+
+\[
+R = \tan \theta \cdot H =  0.36397 \cdot 3,2m = 1,16470m.
+\]
+
+Die halbe Seitenlänge des Sehnenquadrats $L$ (Sehen Abbildung~\ref{MSF} rechts) ist gleich:
+
+\[
+L = \cos 45^\circ \cdot R = 0,70711 \cdot 1,16470m = 0,82357m.
+\]
+
+Dann kann man der Flächeninhalt des Sichtbereiches auf dem Boden erhalten:
+
+\[
+S = 4 \cdot L^2 = 2,7131 m^2.
+\] 
+
+Das Ergebnis der Division von dem Flächeninhalt und der Auflösung beschreibt die Größe der Zelle auf dem Boden, die in Kamera als eigenes Pixel dargestellt wird.
+
+\[
+S_z = S / (204 \times 204) = 2,7131 m^2 / 41616 = 6,5194 \times 10^{-5} m^2 = 0,65194 cm^2
+\]
+
+Die Marken, die kleiner als $S_z$ sind, werden in der Kamera kleiner als ein Pixel abgebildet und sind natürlich schwer zu erkennen. D.h. $S_z$ definiert die minimale Größe der erkennbaren Marken. Die minimale Seitenlänge kann nun berechnet werden durch:
+
+\[
+L_z = \sqrt{S_z} = 0,80743 cm
+\]
+
+Die minimalen Größen der Marken für anderen zum Boden parallelen Ebenen können analog berechnet. Z.B. in der normalen Arbeitsebene dieser Arbeit, die zum Boden $1,1m$ entfernt, können die mindesten Quadrate mit Seitenlänge von $0,52987cm$ erkannt werden.
+
+\begin{figure}
 \centering
 \includegraphics[scale=0.45]{Abbildungen/Compare-3D-Dis}
 \caption{Die Visualisierung von 3D Koordinaten(link) und Distanzinformation(recht).}
@@ -86,8 +129,9 @@ Die PMD Kamera liefert 3D Daten in zwei Formen: die reine Distanzinformation und
 \end{figure}
 
 \section{Vorverarbeitung}
-\subsection{Schwellwert basierte Segmentierung}
-Um das bessere Erkennungsergebnis zu erhalten, sollen die wesentlichen Bereiche von der Umgebung getrennt werden. In unserer Arbeit wird eine Schwellwert basierte Segmentierung bezüglich der 3D Daten verwendet. Eine Schwellwert basierte Segmentierung kann als eine Abbildung $f$ vom originalen Bild $I$ zum Ergebnisbild $H$ definiert werden:
+\subsection{Schwellwert-basierte Segmentierung}
+\label{sbSeg}
+Um bessere Erkennungsergebnisse zu erhalten, sollen die wesentlichen Bereiche von der Umgebung getrennt werden. In dieser Arbeit wird eine Schwellwert-basierte Segmentierung bezüglich der 3D Daten verwendet. Eine Schwellwert-basierte Segmentierung kann als eine Abbildung $f$ vom originalen Bild $I$ zum Ergebnisbild $H$ definiert werden:
 
 \[
 f: I \xmapsto{} H
@@ -105,11 +149,11 @@ H_{ij} =
 
 wobei $\Theta$ der eingegebene Schwellwert ist.
  
-\subsection{Kontrollieren der Helligkeit und Kontrast}
-Außer der Umgebung beeinflussen die Helligkeit und der Kontrast die Qualität bzw. Stabilität der Markenerkennung. Deshalb ist die Optimierung dieser zwei Parameter in der Vorverarbeitungsphase notwendig. In dieser Arbeit wird ein Affine-Operator für jedem Punkt durchgeführt, um die geeignete Helligkeit bzw. den Kontrast zu bestimmen. Der Affine-Operator ist eine Abbildung von originalem Bild $I$ zum Ergebnisbild $H$ mit:
+\subsection{Steuerung der Helligkeit und Kontrast}
+Außer der Umgebung beeinflussen die Helligkeit und der Kontrast die Qualität bzw. Stabilität der Markenerkennung. Deshalb ist die Optimierung dieser zwei Parameter in der Vorverarbeitungsphase notwendig. In dieser Arbeit wird ein affiner Operator auf jedem Punkt durchgeführt, um die geeignete Helligkeit bzw. den Kontrast zu bestimmen. Der affine Operator ist eine Abbildung von Originalbild $I$ zum Ergebnisbild $H$ mit:
 
 \begin{equation}
-H_{ij} = a I_{ij} + b
+H_{ij} = a I_{ij} + b,
 \end{equation}
 
 wobei die Parameter $a \in R^+$ und $b \in R$ die Helligkeit und den Kontrast kontrollieren. Es gibt vier Möglichkeiten für die verschiedenen Zuordnungen dieser Parameter:
@@ -122,9 +166,10 @@ wobei die Parameter $a \in R^+$ und $b \in R$ die Helligkeit und den Kontrast ko
 \end{itemize}
 
 \section{Markenerkennung}
-Wie im Abschnitt \ref{mErkennung} beschrieben hat, sind viele Erkennungsalgorithmen in der Open Source Library OpenCV realisiert. Wegen vieler Benutzung von OpenCV, wird der Vergleich dieser Algorithmen häufig gemacht. Im folgenden Abschnitt wird Ein davon zitiert, um den geeigneten Algorithmus für unsere Arbeit auszuwählen.
+Wie im Abschnitt \ref{mErkennung} beschrieben, sind viele Erkennungsalgorithmen in der Open Source Library OpenCV realisiert. Wegen verbreiteter Benutzung von OpenCV, werden häufig Vergleiche dieser Algorithmen gemacht. Im folgenden Abschnitt wird auf einen Vergleich eingegangen, um den geeigneten Algorithmus für diese Arbeit auszuwählen.
      
 \subsection{Auswahl des Erkennungsalgorithmus}
+\label{AusAlgo}
 
 \begin{figure}[bft]
 \centering
@@ -140,139 +185,139 @@ Wie im Abschnitt \ref{mErkennung} beschrieben hat, sind viele Erkennungsalgorith
 \label{Nodf}
 \end{figure}
 
-Odessa hat in seinem Blog einen sehr gute Vergleich für alle Erkennungsalgorithmen von OpenCV durchgeführt \cite{O11}. Vier häufig benutzten Beispielbilder wurden betrachtet (s. Abb.~\ref{4Samp}).
+Odessa hat in seinem Blog einen sehr guten Vergleich für alle Erkennungsalgorithmen von OpenCV durchgeführt \cite{O11}. Vier häufig benutzte Beispielbilder wurden betrachtet (s. Abb.~\ref{4Samp}).
 \\
 \\
-Was besonders interessiert in seiner Arbeit ist der Vergleich über die Anzahl der betrachteten Punkte bzw. der durchschnittlichen Fehler. Wegen der verschiedenen Prinzipien erkennt der Algorithmus FAST viel mehr Merkmale als SURF und STAR. Den Unterschied sieht man deutlich in der Abbildung~\ref{Nodf}. Je mehr Punkte betrachtet werden, desto mehr Rauschen wird in das System gebracht, weil viele normale Pixel auch als Merkmale erkannt werden. Das ist offensichtlich ein negativer Einfluss für die weitere Analyse der Daten. Abbildung~\ref{Ate} zeigt den durchschnittlichen Fehler in Pixeln von den Punktpaaren, was durch gleichen Erkennungsalgorithmus von Bezugsbildern erkannt wird. Der Algorithmus STAR erzeugt deutlich weniger Fehler in der Erkennung, und das Ergebnis hängt auch leicht von der Eingabe ab. Wegen der niedrigeren Fehlerquote und besserer Konzentration an großen Merkmalen wie Klecks ist der STAR Algorithmus für die Erkennung der Objekte mit künstlichen Marken sehr geeignet.
+Was besonders interessiert in seiner Arbeit, ist der Vergleich über die Anzahl der betrachteten Punkte bzw. der durchschnittlichen Fehler. Wegen der verschiedenen Prinzipien erkennt der Algorithmus FAST viel mehr Merkmale als SURF und STAR(Name von CenSurE Algorithmus in OpenCV). Den Unterschied sieht man deutlich in der Abbildung~\ref{Nodf}. Je mehr Punkte betrachtet werden, desto mehr Rauschen wird in das System gebracht, weil viele normale Pixel auch als Merkmale erkannt werden. Das ist offensichtlich ein negativer Einfluss für die weitere Analyse der Daten. Abbildung~\ref{Ate} zeigt den durchschnittlichen Fehler in Pixeln von den Punktpaaren, was durch gleichen Erkennungsalgorithmus von Bezugsbildern erkannt wird. Der Algorithmus STAR erzeugt deutlich weniger Fehler in der Erkennung, und das Ergebnis hängt auch leicht von der Eingabe ab. Wegen der niedrigeren Fehlerquote und besserer Konzentration an großen kreisförmigen Merkmalen ist der STAR Algorithmus für die Erkennung der Objekte mit künstlichen Marken sehr geeignet.
 
 \begin{figure}[bft]
 \centering
 \includegraphics[scale=0.7]{Abbildungen/Average-tracking-error}
-\caption{Der durchschnittliche Fehler (in Pixeln) zwischen der assoziierten Punkte von zwei verfolgten Bildern. \cite{O11}}
+\caption{Der durchschnittliche Fehler (in Pixeln) zwischen den assoziierten Punkten von zweier folgendes Bilder. \cite{O11}}
 \label{Ate}
 \end{figure}
 
 \subsection{CenSurE Algorithmus}
-Der Algorithmus CenSurE (Center Surround Extrema) werden von Agrawal et al. am 2008 entwickelt \cite{AKB08}. Sie verbessern die SIFT bzw. SURT Verfahren durch Berücksichtigung aller Merkmale in allen Skalenraumen. Das Extremum durch den Skalen und Lagen werden ausgewählt, um die Merkmale zu bestimmen. Der Bi-level Filter wird hier statt Gaussian Filter verwendet, damit der Algorithmus in Echtzeit laufen kann, obwohl große Menge der Berechnung für allen Merkmale aller Skalenraume nötig sind. 
+Der Algorithmus CenSurE (Center Surround Extrema) wird von Agrawal et al. 2008 entwickelt \cite{AKB08}. Sie verbessern die SIFT bzw. SURF Verfahren durch Berücksichtigung aller Merkmale in allen Skalenräume. Das Extremum durch die Skalen und Lagen werden ausgewählt, um die Merkmale zu bestimmen. Der Bi-level Filter wird hier statt Gaussian Filter verwendet, damit der Algorithmus in Echtzeit laufen kann, obwohl große Menge der Berechnung für alle Merkmale aller Skalenräume nötig sind. 
 
 \subsubsection{Bi-level Filter}
-Der Bi-level Filter ist eine einfache Approximation des Laplacian-Operators durch der Multiplikation der Bilder mit 1 und -1. Die Abbildung~\ref{bi-level} zeigt die Progression des Bi-level Filters mit verschiedenen Symmetrischen Stufen. Der kreisförmige Filter an linker Seite der Abbildung~\ref{bi-level} kann den Laplacian-Operator beste approximieren, ist aber leider schwierig zu implementieren. Deshalb werden die Progressionen der Filter durch Polygone angenähert, damit die Berechnung vereinfacht werden kann. Zum Vergleich der übrigen Formen der Abbildung~\ref{bi-level} liefert der Filter mit Achtecke die beste Leistung und der Filter mit Rechtecke die kürzeste Laufzeit. Diese Polygon-Filter können durch die integralen Bilder einfach dargestellt werden.  
+Der Bi-level Filter ist eine einfache Approximation des Laplacian-Operators durch die Multiplikation der Bilder mit 1 und -1. Die Abbildung~\ref{bi-level} zeigt die Progression des Bi-level Filters mit verschiedenen Symmetrischen Stufen. Der kreisförmige Filter an linker Seite der Abbildung~\ref{bi-level} kann den Laplacian-Operator am Beste approximieren, ist aber leider schwierig zu implementieren. Deshalb werden die Progressionen der Filter durch Polygone angenähert, damit die Berechnung vereinfacht werden kann. Zum Vergleich der übrigen Formen der Abbildung~\ref{bi-level} liefert der Filter mit Achteck die beste Leistung und der Filter mit Rechtecke die kürzeste Laufzeit. Diese Polygon-Filter können durch die integralen Bilder einfach dargestellt werden.  
 
 \begin{figure}[bft]
 \centering
 \includegraphics[scale=0.6]{Abbildungen/Bi-level-filter2}
-\caption{Progression der Center-Surround Bi-level Filter. Der Kreis ist die ideale voll symmetrische Approximation der Laplacian. Die Filter daneben von link nach recht haben niedriger Symmetrie, brauchen aber  wenigere Zeit zu implementieren. \cite{AKB08}}
+\caption{Progression der Center-Surround Bi-level Filter. Der Kreis ist die ideale voll symmetrische Approximation der Laplacian. Die Filter daneben von links nach rechts haben niedriger Symmetrie, brauchen aber  weniger Zeit zur Berechnung. \cite{AKB08}}
 \label{bi-level}
 \end{figure}
 
 \subsubsection{Integrale Bilder}
-Ein integrales Bild $I$ ist eine mittlere Repräsentation des Bildes, was die Summe der Grauwerte von Bild $N$ mit Breite $x$ und Höhe $y$ enthält. 
+Ein integrales Bild $I$ ist eine mittlere Repräsentation eines Bildes, was die Summe der Grauwerte von Bild $N$ mit Breite $x$ und Höhe $y$ enthält. 
 
 \begin{equation}
 I(x,y) = \sum _{x'=0}^x \sum_{y'=0}^y N(x',y')
 \label{InteBild1}
 \end{equation}   
 
-Das integrales Bild ist rekursiv berechenbar und benötigt nur einmal Durchführung aller Pixeln des Bildes. Mithilfe des integralen Bildes kann die Intensität des beliebigen rechteckigen Bereiches einfach durch vier Additionen berechnet werden. Die Erweiterung des integralen Bildes wird für die Berechnung der Polygonen Filter benutzt. Die Kombination zweier verschiedenen schrägen integralen Bilder kann den für Polygone benötigten trapezförmigen Bereich einfach darstellen. Die mathematische Beschreibung des schrägen integralen Bildes ist:
+Das integrale Bild ist rekursiv berechenbar und benötigt nur einmal Durchführung aller Pixeln des Bildes. Mithilfe des integralen Bildes kann die Intensität des beliebigen rechteckigen Bereiches einfach durch vier Additionen berechnet werden. Die Erweiterung des integralen Bildes wird für die Berechnung der Polygonen Filter benutzt. Die Kombination zweier verschiedenen schrägen integralen Bilder kann den für Polygone benötigten trapezförmigen Bereich einfach darstellen. Die mathematische Beschreibung des schrägen integralen Bildes ist:
 
 \begin{equation}
-I_\alpha(x,y) = \sum_{y'=0}^y \sum_{x'=0}^{x+\alpha(y-y')} N(x',y')
+I_\alpha(x,y) = \sum_{y'=0}^y \sum_{x'=0}^{x+\alpha(y-y')} N(x',y'),
 \label{InteBild2}
 \end{equation}
 
-wobei $\alpha$ den schrägen Winkel erklärt. Wenn $\alpha=0$, ist die Formel \eqref{InteBild1} genau so wie die Formel \eqref{InteBild2}, und beschreibt ein standardes rechteckiges integrales Bild. Die im Abbildung~\ref{bi-level} gezeigte Achtecke-Filter und Sechsecke-Filter können mit jeweils 3 bzw. 2 Trapezen schnell aufgebaut werden.
+wobei $\alpha$ den schrägen Winkel erklärt und wenn es 0 gleicht, ist die Formel \eqref{InteBild1} genau so wie die Formel \eqref{InteBild2}, und beschreibt ein rechteckiges integrales Bild. Die in der Abbildung~\ref{bi-level} gezeigte Achtecke-Filter und Sechsecke-Filter können mit jeweils 3 bzw. 2 Trapezen schnell aufgebaut werden.
   
 \subsubsection{Non-maximal Suppression}
-Non-maximal Suppression ist eine Strategie, die das lokale Extremum finden kann. Die Response des Pixels wird unterdrückt, wenn es ein Pixel in seiner Nachbarschaft für Lage bzw. Skala gibt, dessen Response größer oder kleiner als das betrachtende Pixel ist. Die Pixeln mit entweder Maximum oder Minimum Response werden als Merkmale bekannt. Der Suchumfang wird in der Arbeit von Agrawal als 3x3x3 eingestellt, d.h. 8 Pixeln um dem betrachteten Pixel und jeweils 9 Pixeln im zwei benachbarten Skalenraumen, werden zusammen berücksichtigt. Die Pixeln mit höherer Response können zwischen der Transformation des Bildes stabiler wieder erkannt werden, deshalb nach der Non-maximal Suppression werden die ausgewählten Extremums noch mal durch einem Schwellwerte-Filter gefiltert, um die besten Merkmale zu bestimmen. 
+Non-maximal Suppression ist eine Strategie, die das lokale Extremum finden kann. Die Response des Pixels wird unterdrückt, wenn es ein Pixel in seiner Nachbarschaft für Lage bzw. Skala gibt, dessen Response größer oder kleiner als das betrachtende Pixel ist. Die Pixel mit entweder Maximum oder Minimum Response werden als Merkmale bekannt. Der Suchumfang wird in der Arbeit von Agrawal als 3x3x3 eingestellt, d.h. 8 Pixeln um dem betrachteten Pixel und jeweils 9 Pixeln im zwei benachbarten Skalenräumen, werden zusammen berücksichtigt. Die Pixel mit höherer Response können zwischen der Transformation des Bildes stabiler wieder erkannt werden, deshalb nach der Non-maximal Suppression werden die ausgewählten Extremums noch mal durch einem Schwellwerte-Filter gefiltert, um die besten Merkmale zu bestimmen. 
   
 \subsection{Kalman-Filter}
 
+Das Kalman-Filter basiert auf einem linearen, dynamischen System in einem diskretisierten Zeitraum. Die Zustandsgleichung des Systems wird häufig durch eine Differenzengleichung beschrieben. In vielen Fällen werden die Zustände nur durch einen voneinander getrennten Zeitpunkt bestimmt. Kalman hat den Sonderfall der linearen Abhängigkeit der Zustände untereinander betrachtet, und vereinfachte die Zustandsgleichung zur linearen Differenzengleichung.
+
 \subsubsection{Zustandsraummodellierung}
-Das Kalman-Filter ist basiert auf einem linearen dynamischen System auf diskretisiertem Zeitraum. Die Zustandsgleichung des Systems wird häufig durch eine Differenzengleichung beschrieben. In vielen Fällen werden die Zuständen nur durch einem voneinander getrennten Zeitpunkt bestimmt. Kalman hat den Sonderfall der lediglich linearen Abhängigkeit der Zustände untereinander betrachtet, und vereinfachte die Zustandsgleichung zur linearen Differenzengleichung:
+Der nächste Systemzustand kann basierend auf dem aktuellen Systemzustand durch:
 
 \begin{equation}
 X_k = F_{k-1} X_{k-1} + B_{k-1} u_{k-1} + w_{k-1} 
 \end{equation}
 
-Der Index $k$ bzw. $k-1$ beziehen sich auf dem Zeitpunkt $t_{k}$ und $t_{k-1}$, wobei $t_k = t_0 + k \Delta t$ und $t_0$ der Anfangszeitpunkt und $k$ eine natürliche Zahl von Interesse ist. Deshalb beschreibt der mehrdimensionale Vektor $X_k$ den Zustand des Systems am Zeitpunkt $t_k$. Die Matrix $F_{x-1}$ ist die Übergangsmatrix für die zeitlich aufeinanderfolgenden Zustände $X_k$ und $X_{k-1}$. Die Matrix $B_{k-1}$ und Kontrollvektor $u_{k-1}$ stellen den deterministischen Anteil der weiteren äußeren Einflüsse auf das System dar.  Die zufälligen, nicht erfassbaren Komponenten der äußeren Einflüssen werden durch der stochastischen Größe $w_{k-1}$ geschätzt, die einer Normalverteilung mit Mittelwert 0 und Kovarianz $Q_{k-1}$ folgt.
+schätzen. Der Index $k$ bzw. $k-1$ beziehen sich auf den Zeitpunkt $t_{k}$ und $t_{k-1}$, wobei $t_k = t_0 + k \Delta t$ und $t_0$ der Anfangszeitpunkt und $k$ eine natürliche Zahl von Interesse ist. Deshalb beschreibt der mehrdimensionale Vektor $X_k$ den Zustand des Systems zur Zeitpunkt $t_k$. Die Matrix $F_{x-1}$ ist die Übergangsmatrix für die zeitlich aufeinanderfolgenden Zustände $X_k$ und $X_{k-1}$. Die Matrix $B_{k-1}$ und Kontrollvektor $u_{k-1}$ stellen den deterministischen Anteil der weiteren äußeren Einflüsse auf das System dar.  Die zufälligen, nicht erfassbaren Komponenten der äußeren Einflüssen werden durch die stochastische Größe $w_{k-1}$ geschätzt, die einer Normalverteilung mit Mittelwert 0 und Kovarianz $Q_{k-1}$ folgt.
 
 \[
 w_{k-1} \sim N(0,Q_{k-1})
 \]
 
-Wegen dieser Zufallsvariable bilden die Menge aller Zustandsvektoren eine Markow-Kette, d.h. der Zustand zu einem Zeitpunkt $k$ hängt lediglich vom unmittelbaren zeitlichen Vorgänger an $k-1$ ab.
+Wegen dieser Zufallsvariable bilden die Menge aller Zustandsvektoren eine Markov-Kette, d.h. der Zustand zu einem Zeitpunkt $k$ hängt lediglich vom unmittelbaren zeitlichen Vorgänger an $k-1$ ab.
 \\
 \\
-Die Beobachtungen des Systems werden aus modellierbarer Verzerrung und unvorhersagbarem Messrauschen bestehlt.
+Die Beobachtungen des Systems werden aus modellierbarer Verzerrung und unvorhersagbarem Messrauschen bestanden:
 
 \begin{equation}
-Z_k = H_k X_k + v_k
+Z_k = H_k X_k + v_k.
 \end{equation} 
 
-$Z_k$ bezieht sich auf die Messung am Zeitpunkt $k$. Die Multiplikation von der Beobachtungsmatrix $H_k$ und Zustandsvektor $X_k$ beschreibt die linear Approximation der Verzerrung des Systems. Das Rauschen $v_k$ wird im Kalman-Filter als zeitlich unkorreliert und normalverteilt angenommen.
+$Z_k$ bezieht sich auf die Messung zum Zeitpunkt $k$. Die Multiplikation von der Beobachtungsmatrix $H_k$ und Zustandsvektor $X_k$ beschreibt die lineare Approximation der Verzerrung des Systems. Das Rauschen $v_k$ wird im Kalman-Filter als zeitlich unkorreliert und normalverteilt angenommen:
 
 \[
-v_k \sim N(0,R_k)
+v_k \sim N(0,R_k).
 \]
 
 \subsubsection{Das Kalman-Filter}
-Das Ziel eines Filters ist durch die Informationen einer Messreihe die Zustände besser schätzen zu können. Da die Rauschterme $w$ und $v$ für alle Zeit die Normalverteilung erfüllen, können die zeitdiskreten Zustände $X_k$ auch durch einer Normalverteilung mit dem Mittelwert $\hat{x}_k$ und der Kovarianz $\hat{P}_k$ ermessen werden.
+Das Ziel eines Filters ist, durch die Informationen einer Messreihe die Zustände besser schätzen zu können. Da die Rauschterme $w$ und $v$ für alle Zeit die Normalverteilung erfüllen, können die zeitdiskreten Zustände $X_k$ auch durch eine Normalverteilung mit dem Mittelwert $\hat{x}_k$ und der Kovarianz $\hat{P}_k$ ermessen werden.
 
 \[
 \hat{X}_k \sim N(\hat{x}_k , \hat{P}_k)
 \]
 
-Die Idee des Kalman-Filter ist, eine rekursive Formulierung aufzubauen, die aber nur die Schätzung vorheriges Zeitpunkts und aktuelle Messung benötigt, um die Schätzung des aktuellen Zeitpunkt zu bestimmen. Es gibt hauptsächlich zwei Phase im Kalman-Filter.
+Die Idee des Kalman-Filter ist, eine rekursive Formulierung aufzubauen, die aber nur die Schätzung eines vorherigen Zeitpunkts und die aktuelle Messung benötigt, um die Schätzung des aktuellen Zeitpunkt zu bestimmen. Es gibt hauptsächlich zwei Phasen im Kalman-Filter.
 
 \textbf{Prädiktion}
 \\
-In dem ersten Schritt dieser Phase wird eine vorangegangene Schätzung $X_{k|k-1}$ für aktuellen Zeitpunkt vorausgesagt.
+In dem ersten Schritt dieser Phase wird eine vorangegangene Schätzung $X_{k|k-1}$ für den aktuellen Zeitpunkt vorausgesagt.
 
 \begin{equation}
 \hat{x}_{k|k-1} = F_{k-1} \hat{x}_{k-1} + B_{k-1} u_{k-1}
 \end{equation}
 
-Die Indizierungsschreibweise $k|k-1$ bezieht sich auf der Bedingtheit zu den Zeitpunkten $k$ und $k-1$. Die Kovarianz gilt:
+Die Indizierungsschreibweise $k|k-1$ bezieht sich auf die Bedingtheit zu den Zeitpunkten $k$ und $k-1$. Für die Kovarianz gilt:
 
 \begin{equation}
-\hat{P}_{k|k-1} = F_{k-1} \hat{P}_{k-1} F_{k-1}^T + Q_{k-1}
+\hat{P}_{k|k-1} = F_{k-1} \hat{P}_{k-1} F_{k-1}^T + Q_{k-1}.
 \end{equation}
 
 \textbf{Korrektur}
 \\
-Die Vorhersagen von letztem Schritt werden hier durch die neue Messung korrigiert.
+Die Vorhersagen von letztem Schritt werden hier durch die neue Messung korrigiert:
 
 \begin{equation}
-\hat{x}_k = \hat{x}_{k|k-1} + \hat{K}_k \tilde{y}_k
+\hat{x}_k = \hat{x}_{k|k-1} + \hat{K}_k \tilde{y}_k,
 \end{equation}
-
-und 
-
+ 
 \begin{equation}
-\hat{P}_k = \hat{P}_{k|k-1} - \hat{K}_k S_k \hat{K}_k^T
+\hat{P}_k = \hat{P}_{k|k-1} - \hat{K}_k S_k \hat{K}_k^T.
 \end{equation}
 
-Die Hilfsgröße Innovation:
+Die Hilfsgröße der Innovation $\tilde{y}_k$ beschreibt, wie genau die aktuellen Messungen von der vorhergesagten Schätzungen mithilfe der Beobachtungsgleichung approximiert werden:
 
 \[
-\tilde{y}_k = Z_k - H_k \hat{x}_{k|k-1}
+\tilde{y}_k = Z_k - H_k \hat{x}_{k|k-1}.
 \]
 
-beschreibt, wie genau die vorhergesagten Schätzungen mithilfe der Beobachtungsgleichung den aktuellen Messungen approximieren. $S_k$ bezieht sich auf der Residualkovarianz, was gilt:
+$S_k$ bezieht sich auf die Residualkovarianz, wobei gilt:
 
 \[
 S_k = H_k \hat{P}_{k|k-1} H_k^T + R_k
 \]
 
-und $\hat{K}_k$ ist die zugehörige Kalman-Matrix.
+und $\hat{K}_k$ ist die zugehörige Kalman-Matrix:
 
 \[
-\hat{K}_k = \hat{P}_{k|k-1} H_k^T S_k^{-1}
+\hat{K}_k = \hat{P}_{k|k-1} H_k^T S_k^{-1}.
 \]
 
 \section{Registrierung}
 \subsection{Singulärwertzerlegung}
-Sei M eine komplexe $m \times n$ Matrix mit Rang r. Dann bezeichnet die Singulärwertzerlegung das Produkt:
+Sei M eine komplexe $m \times n$ Matrix mit Rang $r$. Dann bezeichnet die Singulärwertzerlegung das Produkt:
 
 \begin{equation}
 M = U \Sigma V^*
@@ -296,25 +341,26 @@ wobei $U$ eine Unitäre Matrix mit Größe $m \times m$ und $V^*$ die Adjungierte e
 mit $\sigma_1 \geq \cdots \geq \sigma_r > 0$, wobei $\sigma_i , i=1,\ldots , r$ als die Singulärwerte von $\Sigma$ genannt werden.
 
 \subsection{Korrespondenzuntersuchung durch Singulärwertzerlegung}
-Mithilfe der Singulärwertzerlegung haben Scott und Longuet-Higgins einen Algorithmus zur Bestimmung der assoziierenden Merkmale entwickelt. Seien $I$ und $J$ zwei nachfolgende Bilder und haben jeweils $m$ und $n$ Merkmale, die als $I_i (i=1,\ldots ,m)$ und $J_j (j=1,\ldots ,n$) bezeichnet werden. Dann wird eine $m \times n$ Matrix $G$ mit den Elementen
+\label{KdS}
+Mithilfe der Singulärwertzerlegung haben Scott und Longuet-Higgins einen Algorithmus zur Bestimmung der assoziierenden Merkmale entwickelt \cite{SL91}. Seien $I$ und $J$ zwei nachfolgende Bilder und haben jeweils $m$ und $n$ Merkmale, die als $I_i (i=1,\ldots ,m)$ und $J_j (j=1,\ldots ,n$) bezeichnet werden. Dann wird eine $m \times n$ Matrix $G$ mit den Elementen
 
 \[
 G_{ij} = exp(- \frac{r_{ij}^2}{2 \sigma^2})
 \]
 
-definiert, wobei $r_{ij}$ den Abstand zwischen Merkmale $I_i$ und $J_j$ beschreibt. $\sigma$ wird als einen Standard für Abstand definiert, wodurch das Vergrößern oder Verkleinern der Verschiebung des Objekts geschätzt werden kann. Der Wert von $G_{ij}$ nimmt durch die Erhöhung der Distanz von 1 bis 0 monoton ab. Der zweite Schritt des Algorithmus von Scott und Longuet-Higgins ist die Singulärwertzerlegung der Matrix $G$.
+definiert, wobei $r_{ij}$ den Abstand zwischen Merkmale $I_i$ und $J_j$ beschreibt. $\sigma$ wird als einen Standard für Abstand definiert, wodurch das Vergrößern oder Verkleinern der Verschiebung des Objekts geschätzt werden kann. Der Wert von $G_{ij}$ nimmt durch die Erhöhung der Distanz von 1 bis 0 monoton ab. Der zweite Schritt des Algorithmus von Scott und Longuet-Higgins ist die Singulärwertzerlegung der Matrix $G$:
 
 \[
-G = TDU
+G = TDU.
 \]
 
-wobei $T$ und $U$ die Unitäre Matrix mit jeweils Größe $m \times m$ und $n \times n$ sind, und $D$ eine Diagonalmatrix ist. Sei $E$ eine neue Matrix mit gleicher Größe von $D$, in der aber jedes diagonale Element als 1 ersetzt wird. Nach Austausch der Matrix $D$ durch Matrix $E$ erhält man eine neue orthogonale Matrix:
+wobei $T$ und $U$ die unitäre Matrix mit jeweils Größe $m \times m$ und $n \times n$ sind, und $D$ eine Diagonalmatrix ist. Sei $E$ eine neue Matrix mit gleicher Größe von $D$, in der aber jedes diagonale Element als 1 ersetzt wird. Nach Austausch der Matrix $D$ durch Matrix $E$ erhält man eine neue orthogonale Matrix:
 
 \[
 P = TEU
 \]
 
-Die Aufgabe des dritten Schritts ist das Element $P_{ij}$ zu finden, was gleichzeitig das Maximum der Reihe und Spalte ist. Wenn $P_{ij}$ diese Bedingung erfüllt, sagt man, dass es eine Eins zu Eins Korrespondenz zwischen den Merkmalen $I_i$ und $J_j$ gibt. Der ganze Algorithmus kann durch folgendem Pseudocode erklärt werden. 
+Die Aufgabe des dritten Schritts ist das Element $P_{ij}$ zu finden, was gleichzeitig das Maximum der Reihe und Spalte ist. Wenn $P_{ij}$ diese Bedingung erfüllt, sagt man, dass es eine Eins zu Eins Korrespondenz zwischen den Merkmalen $I_i$ und $J_j$ gibt. Der ganze Algorithmus ist in Algorithmus~\ref{alg1} aufgeführt, der durch die Eingabe von \cite{SL91} erzeugt wird. 
 
 \begin{algorithm}                      % enter the algorithm environment
 \caption{Bestimmung der Korrespondenz der Merkmalen von zwei Bildern}          % give the algorithm a caption
@@ -341,48 +387,51 @@ Die Aufgabe des dritten Schritts ist das Element $P_{ij}$ zu finden, was gleichz
 \end{algorithm}
 
 
-\section{Schätzung der Transformation}
+\section{Bestimmung der Transformation}
 
 \subsection{Quaternion}
 %Das Quaternion
-Ein Quaternion besteht aus einem Vektor mit 4 Elementen, wobei ein Element ein Skalar bezeichnet und die anderen drei eine Richtung im 3D Raum beschreiben. Quaternionen können aber auch als eine Erweiterung der komplexen Zahlen betrachtet werden, deren Imaginärteil nach drei neuer Zahlen $i$, $j$ und $k$ entwickelt werden. Eine Normalform der Quaternion findet man im unten:
+Ein Quaternion besteht aus einem Vektor mit 4 Elementen, wobei ein Element ein Skalar bezeichnet und die anderen drei eine Richtung im 3D Raum beschreiben. Quaternionen können aber auch als eine Erweiterung der komplexen Zahlen betrachtet werden, deren Imaginärteil nach drei neuen Zahlen $i$, $j$ und $k$ entwickelt wird. Eine Normalform der Quaternion ist gegeben durch:
 
 \[
-q = q_0 + i q_x + j q_y + k q_z
+q = q_0 + i q_x + j q_y + k q_z,
 \]
 
-$i$, $j$ und $k$ erfüllen die sogenannte Hamilton-Regeln:
+wobei $i$, $j$ und $k$ die sogenannte Hamilton-Regeln erfüllen:
 
 \[
-i^2 = j^2 = k^2 = i j k = -1 
+i^2 = j^2 = k^2 = i j k = -1, 
 \]
 \[
-ij = k, \quad jk = i, \quad ki = j 
+ij = k, \quad jk = i, \quad ki = j, 
 \]
 \[
-ji = -k, \quad kj = -i, \quad ik = -j
+ji = -k, \quad kj = -i, \quad ik = -j,
 \] 
 
-Ein andere Form mit getrennten Realteil und Imaginärteil wird im Folgenden definiert:
+Eine andere Form mit getrennten Realteil und Imaginärteil wird definiert durch:
 
 \begin{equation}
 \label{QForm2}
-q = (q_0, \vec{q})
+q = (q_0, \vec{q}),
 \end{equation}
 
-wobei $q_0 \in \mathbb{R}$ ein Skalar und $\vec{q} \in \mathbb{R}^3$ ein Vektor ist. Sei $r$ ein andere Quaternion mit:
+wobei $q_0 \in \mathbb{R}$ ein Skalar und $\vec{q} \in \mathbb{R}^3$ ein Vektor ist. 
+\\
+\\
+Sei $r$ ein anderes Quaternion mit:
 
 \[
-r = r_0 + i r_x + j r_y + k r_z
+r = r_0 + i r_x + j r_y + k r_z.
 \]
 
-Analog zum Vektoren im $\mathbb{R}^4$ wird das Skalarprodukt zwischen zwei Quaternion definiert als:
+Analog zu Vektoren im $\mathbb{R}^4$ wird das Skalarprodukt zwischen zwei Quaternion definiert als:
 
 \[
-\langle q, r \rangle := q \cdot r := q_0 r_0 + q_x r_x + q_y r_y + q_z r_z
+\langle q, r \rangle := q \cdot r := q_0 r_0 + q_x r_x + q_y r_y + q_z r_z.
 \]
 
-Weiterhin kann die Quaternionmultiplikation mithilfe der Form \eqref{QForm2} berechnet als:
+Weiterhin kann die Quaternionmultiplikation mithilfe \eqref{QForm2} berechnet werden als:
 
 \begin{align}
 qr & = (q_0 r_0 - \vec{q} \cdot \vec{r} , \quad q_0 \vec{r} + \vec{q} r_0 + \vec{q} \times \vec{r}) \\
@@ -390,10 +439,10 @@ qr & = (q_0 r_0 - \vec{q} \cdot \vec{r} , \quad q_0 \vec{r} + \vec{q} r_0 + \vec
 & = (q_0 r_0 - q_x r_x - q_y r_y - q_z r_z) \nonumber \\
 & + i ( q_0 r_x + q_x r_0 + q_y r_z - q_z r_y ) \nonumber \\
 & + j ( q_0 r_y - q_x r_x + q_y r_0 + q_z r_z ) \nonumber \\
-& + k ( q_0 r_z + q_x r_y - q_y r_x + q_z r_0 )
+& + k ( q_0 r_z + q_x r_y - q_y r_x + q_z r_0 ).
 \end{align} 
 
-Die rechte Multiplikation von $r$ in Formel \eqref{QMulti} kann aber auch zum einen links multiplizierten Matrix umschrieben werden.
+Die rechte Multiplikation von $r$ in Formel \eqref{QMulti} kann aber auch zu einer links multiplizierten Matrix umgeschrieben werden:
 
 \begin{equation}
 qr = 
@@ -403,31 +452,31 @@ r_x & r_0 & r_z & -r_y \\
 r_y & -r_z & r_0 & r_x \\
 r_z & r_y & -r_x & r_0
 \end{pmatrix}
- = \mathbf{R} q
+ = \mathbf{R} q.
 \end{equation}
 
 Das konjugierte Quaternion von $q$ ist definiert als:
 
 \[
-\overline{q} = q_0 - i q_x - j q_y - k q_z
+\overline{q} = q_0 - i q_x - j q_y - k q_z.
 \]
 
-Das Produkt eines Quaternion und dessen Konjugierte ist eine nicht negative reelle Zahl.
+Das Produkt eines Quaternion und dessen Konjugierte ist eine nicht negative reelle Zahl:
 
 \[
-q \cdot \overline{q} = q_0^2 + q_x^2 + q_y^2 + q_z^2 
+q \cdot \overline{q} = q_0^2 + q_x^2 + q_y^2 + q_z^2. 
 \]
 
 Mithilfe des konjugierten Quaternion kann man die Länge des Quaternion $|q|$ definieren:
 
 \[
-|q| = \sqrt{q \cdot \overline{q}}
+|q| = \sqrt{q \cdot \overline{q}}.
 \]
 
 Ist die Länge eines Quaternion gleich 1, nennt man das Quaternion ein Einheitsquaternion. Für ein Einheitsquaternion gilt:
 
 \[
-q \cdot \overline{q} = 1 \iff \overline{q} = q^{-1}
+q \cdot \overline{q} = 1 \iff \overline{q} = q^{-1}.
 \]
 
 D.h. die Inverse und Konjugierte sind identisch. Für jedes Einheitsquaternion $q \neq \pm 1$ gibt es eine entsprechende Polardarstellung:
@@ -443,58 +492,60 @@ mit $\alpha = \arccos (q_0) \in (0,\pi)$ und $v = \frac{1}{\sin \alpha} (i q_x +
 Die Drehungen im dreidimensionalen Raum können durch die Einheitsquaternionen sehr gut beschriebt werden. Eine Abbildung der Rotation $\rho_q$ kann in folgender Form definiert werden:
 
 \[
-\rho_q : x \rightarrow q x \overline{q}
+\rho_q : x \rightarrow q x \overline{q},
 \] 
 
-wobei $q$ ein Einheitsquaternion und $\overline{q}$ dessen Konjugierte ist. Mithilfe der Polardarstellung \eqref{polarQ} kann die Abbildung $\rho_q$ sich auf eine Drehung im $\mathbb{R}^3$ um die Achse $\mathit{v}$ mit Winkel $2\alpha \in (0, 2\pi)$ beziehen. Die entsprechende orthogonalen Matrix von $q$ ist
+wobei $q$ ein Einheitsquaternion und $\overline{q}$ dessen Konjugierte ist. Mithilfe der Polardarstellung \eqref{polarQ} kann die Abbildung $\rho_q$ sich auf eine Drehung im $\mathbb{R}^3$ um die Achse $\mathit{v}$ mit Winkel $2\alpha \in (0, 2\pi)$ beziehen. Die entsprechende orthogonale Matrix von $q$ ist
 
 \begin{equation}
+\label{QuaR}
 R =
 \begin{pmatrix}
 q_0^2 + q_x^2 - q_y^2 - q_z^2 & 2q_x q_y - 2q_0 q_z           & 2q_x q_z + 2q_0 q_y \\
 2q_x q_y + 2q_0 q_z           & q_0^2 - q_x^2 + q_y^2 - q_z^2 & 2q_y q_z - 2q_0 q_z \\
-2q_x q_z - 2q_0 q_y           & 2q_y q_z + 2q_0 q_z           & q_0^2 - q_x^2 - q_y^2 + q_z^2
+2q_x q_z - 2q_0 q_y           & 2q_y q_z + 2q_0 q_z           & q_0^2 - q_x^2 - q_y^2 + q_z^2,
 \end{pmatrix}
 \end{equation} 
 
 was zur Drehgruppe SO(3) gehört und eine Drehung in der Matrixform repräsentiert.
 
 \subsection{Orientierung mit Einheitsquaternion}
-Das Verfahren für die Orientierung der Objekte mithilfe der Quaternionen wurde erst von Horn im 1987 veröffentlicht \cite{H87}. Seien $D$ und $M$ zwei Punktmengen mit gleicher Größe $n$. Dann kann die Transformation zwischen den Punkten von zwei Menge formuliert werden als:
+\label{QmE}
+Das Verfahren für die Orientierung der Objekte mithilfe der Quaternionen wurde von Horn im 1987 veröffentlicht \cite{H87}. Seien $D$ und $M$ zwei Punktmengen mit gleicher Größe $n$. Dann kann die Transformation zwischen den Punkten von zwei Mengen formuliert werden als:
 
 \begin{equation}
-d_i = \mathbf{R} m_i + \mathbf{T} + e_i
+d_i = \mathbf{R} m_i + \mathbf{T} + e_i,
 \end{equation}
 
 wobei $d_i$ und $m_i$ die i-ten Punkte der Punktmengen $D$ bzw. $M$ bezeichnen. $\mathbf{R}$ ist die Rotationsmatrix und $\mathbf{T}$ ist die Translationsmatrix. $e_i$ beschreibt den Fehler für die Transformation, und kann umformuliert werden als:
 
 \begin{equation}
 \label{QError}
-e_i = d_i - \mathbf{R} m_i + \mathbf{T}
+e_i = d_i - \mathbf{R} m_i + \mathbf{T}.
 \end{equation}
 
-
-Das Ziel des Verfahrens ist, eine Rotations- bzw. Transformationsmatrix mit minimalem Fehler zu finden, dadurch wird die Summer des Quadrats von $e_i$ betrachtet.
+Das Ziel des Verfahrens ist, eine Rotations- bzw. Transformationsmatrix mit minimalem Fehler zu finden, dadurch wird die Summe des Quadrats von $e_i$ betrachtet:
 
 \begin{equation}
-\sum_{i=1}^n \| e_i \|^2 = \sum_{i=1}^n \| d_i - \mathbf{R} m_i + \mathbf{T} \|^2 
+\sum_{i=1}^n \| e_i \|^2 = \sum_{i=1}^n \| d_i - \mathbf{R} m_i + \mathbf{T} \|^2. 
 \end{equation} 
 
-Seien $\overline{d}$ und $\overline{m}$ die Schwerpunkte jeweils der Punktmenge $D$ und $M$. Dann gilt
+Seien $\overline{d}$ und $\overline{m}$ jeweils die Schwerpunkte der Punktmengen $D$ und $M$. Dann gilt
 
-\[
+\begin{equation}
+\label{QuaSch}
 \overline{d} = \frac{1}{n} \sum_{i=1}^n d_i 
-\quad \quad
-\overline{m} = \frac{1}{n} \sum_{i=1}^n m_i
-\]
+\quad , \quad
+\overline{m} = \frac{1}{n} \sum_{i=1}^n m_i.
+\end{equation}
 
 Der Abstand von jedem Punkt zum Schwerpunkt wird berechnet als:
 
-\[
+\begin{equation}
 d_i' = d_i - \overline{d}
-\quad \quad
-m_i' = m_i - \overline{m}
-\]
+\quad , \quad
+m_i' = m_i - \overline{m}.
+\end{equation}
 
 und die Summe der Abstände erfüllt natürlich
 
@@ -502,13 +553,13 @@ und die Summe der Abstände erfüllt natürlich
 \label{QDis}
 \sum_{i=1}^n d_i' = 0
 \quad und \quad
-\sum_{i=1}^n m_i' = 0
+\sum_{i=1}^n m_i' = 0.
 \end{equation}
 
 Dann kann der Fehler in Formel \eqref{QError} mit den Abständen zum Schwerpunkt $\overline{d}$ und $\overline{m}$ umgeschrieben werden:
 
 \begin{equation}
-e_i = d_i' - \mathbf{R} m_i' + \mathbf{T}'
+e_i = d_i' - \mathbf{R} m_i' + \mathbf{T}',
 \end{equation}
 
 wobei $\mathbf{T}'$ als 
@@ -527,43 +578,43 @@ definiert wird. Analog kann die Summe des Quadrats des Fehlers neu formuliert we
 + n \| \mathbf{T}' \|^2
 \end{align}
 
-Wegen \eqref{QDis} ist der zweite Term gleich 0. Der dritte Term kann nicht negativ sein und wird 0, wenn der gesamte Fehler minimiert wird. D.h.:
+Wegen \eqref{QDis} ist der zweite Term gleich 0. Der dritte Term kann nicht negativ und wird auch 0 sein, wenn der gesamte Fehler minimiert wird. D.h.:
 
 \begin{align}
 \label{QTran}
 & \mathbf{T}' = \mathbf{T} - \overline{d} + \mathbf{R} \overline{m} = 0 \nonumber \\
-\Rightarrow & \mathbf{T} = \overline{d} + \mathbf{R} \overline{m}
+\Rightarrow & \mathbf{T} = \overline{d} + \mathbf{R} \overline{m}.
 \end{align}
 
-Die Formel \eqref{QTran} berechnet direkt die Transformationsmatrix durch die Rotationsmatrix und die Schwerpunkte der beiden Punktmengen. Der erste Term von \eqref{QError2} kann zu
+Die Formel \eqref{QTran} berechnet direkt die Translationsmatrix durch die Rotationsmatrix und die Schwerpunkte der beiden Punktmengen. Der erste Term von \eqref{QError2} kann zu
 
 \begin{equation}
 \sum_{i=1}^n \| d_i' - \mathbf{R} m_i' \|^2 = \sum_{i=1}^n (d_i'^t d_i' + m_i'^t m_i' - 2 d_i'^t \mathbf{R} m_i')
 \end{equation}
 
-weiter formuliert werden. Dann wird die Minimierung des Fehlers durch die Bestimmung des Maximum der Summe
+weiter formuliert werden. Dann wird die Minimierung des Fehlers durch die Bestimmung des Maximums der Summe
 
 \begin{equation}
 \sum_{i=1}^n d_i'^t \mathbf{R} m_i'
 \end{equation}
 
-erreicht. Durch Ersetzen der Rotationsmatrix mit Quaternion wird das maximierte Problem umformuliert als:
+erreicht. Durch Ersetzen der Rotationsmatrix mit Quaternion $q$ wird das maximierte Problem umformuliert als:
 
-\[
-\sum_{i=1}^n (q m_i'' \overline{q}) \cdot d_i''
-\]
+\begin{equation}
+\sum_{i=1}^n (q m_i'' \overline{q}) \cdot d_i'',
+\end{equation}
 
-wobei $m_i'' = (0, m_{i,x}', m_{i,y}', m_{i,z}')$ und $d_i'' = (0, d_{i,x}', d_{i,y}', d_{i,z}')$ die erweiterte Quaternion für Punkte $m_i'$ bzw. $d_i'$ sind.
+wobei $\overline{q}$ das konjugierte Quaternion von $q$ ist, $m_i'' = (0, m_{i,x}', m_{i,y}', m_{i,z}')$ und $d_i'' = (0, d_{i,x}', d_{i,y}', d_{i,z}')$ die erweiterte Quaternion für Punkte $m_i'$ bzw. $d_i'$ sind.
 Dann gilt:
 
 \begin{align}
 \label{qmdq}
 \sum_{i=1}^n (q m_i'' \overline{q}) \cdot d_i''
 & = \sum_{i=1}^n (q m_i'' \overline{q}) \cdot ( d_i'' q \overline{q}) \nonumber \\
-& = \sum_{i=1}^n (q m_i'') \cdot (d_i'' q)
+& = \sum_{i=1}^n (q m_i'') \cdot (d_i'' q).
 \end{align}
 
-Die beide Multiplikationen in Klammer können als Formel \eqref{QMulti} zum Produkt von einem Quaternion und einer Matrix umschrieben werden.
+Die beiden Multiplikationen in Klammen können als Formel \eqref{QMulti} zum Produkt von einem Quaternion und einer Matrix umschrieben werden:
 
 \[
 q m_i'' = 
@@ -586,10 +637,10 @@ d_{i,x}' & 0 & -d_{i,z}' & d_{i,y}' \\
 d_{i,y}' & d_{i,z}' & 0 & -d_{i,x}' \\
 d_{i,z}' & -d_{i,y}' & d_{i,x}' & 0
 \end{pmatrix}
- = \mathbf{D}_i q
+ = \mathbf{D}_i q.
 \]
 
-Dann kann \eqref{qmdq} weiter ableitet werden:
+Dann kann \eqref{qmdq} weiter abgeleitet werden:
 
 \begin{align}
 \label{qNq}
@@ -597,36 +648,38 @@ Dann kann \eqref{qmdq} weiter ableitet werden:
  & = \sum_{i=1}^n q^t \mathbf{M}_i^t \mathbf{D}_i q \nonumber \\
  & = q^t \Big( \sum_{i=1}^n \mathbf{M}_i^t \mathbf{D}_i \Big) q \nonumber \\
  & = q^t \Big( \sum_{i=1}^n \mathbf{N}_i \Big) q \nonumber \\
- & = q^t \mathbf{N} q
+ & = q^t \mathbf{N} q,
 \end{align}
  
-wobei $\mathbf{N}_i = \mathbf{M}_i^t \mathbf{D}_i$ ist, und $\mathbf{N}$ die Summe von $\mathbf{N}_i$ beschreibt. Sei $\mathbf{H}$ die Summe der Kreuzprodukten des Punktpaars von Punktmengen $D$ und $M$.
+wobei $\mathbf{N}_i = \mathbf{M}_i^t \mathbf{D}_i$ ist, und $\mathbf{N}$ die Summe von $\mathbf{N}_i$ beschreibt. Sei $\mathbf{H}$ die Summe der Kreuzprodukte des Punktpaars von Punktmengen $D$ und $M$:
 
-\[
-\mathbf{H} = \sum_{i=1}^n m_i d_i^t
-\]
+\begin{equation}
+\label{QuaH}
+\mathbf{H} = \sum_{i=1}^n m_i d_i^t.
+\end{equation}
 
 Es ist deutlich, dass die Größe der Matrix $\mathbf{H}$ 3 $\times$ 3 ist, deshalb kann $\mathbf{H}$ auch als
 
-\[
+\begin{equation}
 \mathbf{H} = 
 \begin{pmatrix}
 S_{xx} & S_{xy} &S_{xz} \\
 S_{yx} & S_{yy} &S_{yz} \\
 S_{zx} & S_{zy} &S_{zz} 
 \end{pmatrix}
-\]  
+\end{equation}  
   
 geschrieben werden, wobei
 
 \[
-S_{xx} = \sum_{i=1}^n m_{i,x}' d_{i,x}' \quad
-S_{xy} = \sum_{i=1}^n m_{i,x}' d_{i,y}' 
+S_{xx} = \sum_{i=1}^n m_{i,x}' d_{i,x}' \quad ,\quad
+S_{xy} = \sum_{i=1}^n m_{i,x}' d_{i,y}' \quad , \quad \cdots
 \]
 
-usw. Dann kann die Matrix $\mathbf{N}$ im \eqref{qNq} durch die Elemente von $\mathbf{H}$ dargestellt werden als:
+Dann kann die Matrix $\mathbf{N}$ im \eqref{qNq} durch die Elemente von $\mathbf{H}$ dargestellt werden als:
 
 \begin{equation}
+\label{QuaN}
 \mathbf{N} = 
 \begin{pmatrix}
 S_{xx} + S_{yy} + S_{zz} & S_{yz} - S_{zy} & S_{zx} - S_{xz} & S_{xy} - S_{yx} \\
@@ -636,22 +689,25 @@ S_{xy} - S_{yx} & S_{zx} + S_{xz} & S_{yz} + S_{zy} & -S_{xx} - S_{yy} + S_{zz}
 \end{pmatrix}
 \end{equation}
 
-Nach dem Beweis von Horn \cite{H87} wird die Formel \eqref{qNq} Maximum, genau dann wenn $q$ der zu dem maximalen positiven Eigenwert der Matrix $\mathbf{N}$ entsprechende Eigenvektor ist. 
+Nach dem Beweis von Horn \cite{H87} wird die Formel \eqref{qNq} maximal, genau dann, wenn $q$ der zu dem maximalen positiven Eigenwert der Matrix $\mathbf{N}$ entsprechende Eigenvektor ist. 
 
 \section{Objekterkennung}
 
 \subsection{DBSCAN}
-DBSCAN, kurz von dem englischen Name Density-Based Spatial CLustering of Applications with Noise, ist ein auf Dichte basierter Data-Mining-Algorithmus. Die Hauptidee des Algorithmus hängt stark von dem Begriff ,,Dichteverbundenheit'' ab, was durch folgenden Definitionen erklärt wird.
+\label{Dbscan}
+DBSCAN, kurz von dem englischen Namen ,,Density-Based Spatial CLustering of Applications with Noise, ist ein auf Dichte basierter Data-Mining-Algorithmus'' \cite{E96}. Die Hauptidee des Algorithmus hängt stark von dem Begriff ,,Dichteverbundenheit'' ab, was durch folgende Definitionen erklärt wird.
 \\
 \\
 Seien $D$ eine Punktmenge im Raum $\mathbb{R}^n$ und $Dist(p,q)$ eine darauf definierte Distanzfunktion. $\epsilon$ und MinPts sind zwei Eingaben des Algorithmus.
 
 \begin{definition}
-\textsf{$\epsilon$-Umgebung} $N_{\epsilon}(p)$ ist eine Menge der Punkte um $p$, die erfüllt
+\textsf{$\epsilon$-Umgebung} $N_{\epsilon}(p)$ ist eine Menge der Punkte um $p$, die 
 \[
 N_{\epsilon}(p) = \{ q \in D | Dist(p,q) \geq \epsilon \}
 \]
 \end{definition}
+
+erfüllt.
 
 \begin{definition}
 Ein Punkt $p$ ist \textsf{direkt Dichte-erreichbar} zum Punkt $q$, g.d.w:
@@ -666,24 +722,24 @@ Ein Punkt $p$ ist \textsf{Dichte-erreichbar} zum Punkt $q$, g.d.w es eine Kette 
 \end{definition}
 
 \begin{definition}
-Zwei Punkte $p$ und $q$ heißt \textsf{Dichte-verbunden}, g.d.w es ein Punkt $o$ gibt, wobei $p$ und $q$ jeweils zum $o$ \textsf{Dichte-erreichbar} sind.
+Zwei Punkte $p$ und $q$ heißt \textsf{Dichte-verbunden}, g.d.w es einen Punkt $o$ gibt, wobei $p$ und $q$ jeweils zu $o$ \textsf{Dichte-erreichbar} sind.
 \end{definition}
 
-Mithilfe dieser Definitionen der Beziehung zwischen dem Punkten kann man jetzt eine einzige Definition des Clusters ausgeben.
+Mithilfe dieser Definitionen der Beziehung zwischen den Punkten kann man eine einzige Definition des Clusters ausgeben.
 
 \begin{definition}
 Sei $C$ eine nicht leere Teilmenge von $D$. Dann heißt $C$ ein Cluster, wenn die folgenden zwei Bedingungen erfüllt werden:
 \begin{align*}
-1) \quad & \text{für $\forall p, q \in D$, wenn $p \in C$ und $q$ ist \textsf{Dichte-erreichbar} zum $p$, dann gilt } q \in C \nonumber \\
-2) \quad & \text{für $\forall p, q \in C$, $p$ ist \textsf{Dichte-verbunden} zum $q$} \nonumber
+1) \quad & \text{für $\forall p, q \in D$, wenn $p \in C$ und $q$ ist \textsf{Dichte-erreichbar} zum $p$, dann gilt } q \in C, \nonumber \\
+2) \quad & \text{für $\forall p, q \in C$, $p$ ist \textsf{Dichte-verbunden} zu $q$.} \nonumber
 \end{align*}
 \end{definition}
 
-Dann können alle Punkte von $D$ in drei verschiedene Type zusammengefasst werden.
+Dann können alle Punkte von $D$ in drei verschiedene Typen zusammengefasst werden.
 
 \begin{itemize}
-\item Kernpunkt: Der Punkt, die Größe dessen $\epsilon$-Umgebung größer als MinPts ist.
-\item Grenzpunkt: Der Punkt, dessen $\epsilon$-Umgebung nicht genug groß ($<$MinPts), aber zu anderen Punkten Dichte-erreichbar ist.
+\item Kernpunkt: Der Punkt, dessen $\epsilon$-Umgebung größer als MinPts ist.
+\item Grenzpunkt: Der Punkt, dessen $\epsilon$-Umgebung nicht groß genug ($<$MinPts), aber zu anderen Punkten Dichte-erreichbar ist.
 \item Geräusch: Der Punkt, der zu keinem Cluster gehört.  
 \end{itemize}
 
@@ -694,10 +750,10 @@ Dann können alle Punkte von $D$ in drei verschiedene Type zusammengefasst werden
 \label{DBSCAN}
 \end{figure}
 
-Abbildung~\ref{DBSCAN} zeigt ein Beispiel für alle diesen drei Typen des Punkts, wobei die Kernpunkte mit Rot, Grenzpunkte mit Gelb und Geräusch mit Blau beschrieben werden. Die Kreise zeigen die $\epsilon$-Umgebungen für die Punkte an ihrem Ursprüngen.
+Abbildung~\ref{DBSCAN} zeigt ein Beispiel für alle diesen drei Typen eines Punkts, wobei die Kernpunkte mit Rot, Grenzpunkte mit Gelb und Rauschen mit Blau dargestellt werden. Die Kreise zeigen die $\epsilon$-Umgebungen für die Punkte an ihren Ursprüngen.
 \\
 \\
-Das Algorithmus durchläuft für jeden Punkt von Punktmenge $D$ und die Lösung hängt von der Reihenfolge der Punkte nicht ab. Ein Kernpunkt soll zuerst gefunden werden, und dann die andere Punkte in ihrer $\epsilon$-Umgebung betrachtet werden. Zwei $\epsilon$-Umgebung werden verknüpft, wenn sie mindesten einen identische Punkt haben. Der genaue Ablauf des DBSCAN-Algorithmus findet man unten.
+Der Algorithmus durchläuft für jeden Punkt von Punktmenge $D$ und die Lösung hängt von der Reihenfolge der Punkte nicht ab. Ein Kernpunkt soll zuerst gefunden werden, und dann die andere Punkte in ihrer $\epsilon$-Umgebung betrachtet werden. Zwei $\epsilon$-Umgebung werden verknüpft, wenn sie mindesten einen identische Punkt haben. Der genaue Ablauf des DBSCAN-Algorithmus ist in Algorithmus~\ref{algDBSCAN} ausgegeben.
 
 \begin{algorithm}                      % enter the algorithm environment
 \caption{DBSCAN}          % give the algorithm a caption
@@ -733,7 +789,7 @@ Das Algorithmus durchläuft für jeden Punkt von Punktmenge $D$ und die Lösung hän
 \end{algorithm}
 
 \subsection{Teilgraph Isomorphismus}
-Die Objekterkennung bzw. Objektverfolgung werden vom Vergleich der Modellgraphen und Eingabegraphen realisiert. Ein für unsere Arbeit hilfreicher Algorithmus wurde von Rhijn und Mulder entwickelt \cite{AJ05}. Um das Problem von Graph Isomorphismus zu vereinfachen, werden nur ein Teilgraph $S_{min}$ von Modellgraphen betrachtet. $S_{min}$ soll ein vollständiges Graph sein und ein Modellgraph eindeutig bestimmen können. Zuerst wird ein Punkt $p_i$ von Eingabegraph ausgewählt und die Distanzen von dem zum allen seinen Nachbarn berechnet. Alle diese Kantenlänge werden mit den Kanten von Modellgraph verglichen, damit ein Kandidatenpunkt $v_k$ in Modellgraph gefunden werden kann, der genug identischen Kanten mit ausgewähltem Punkt $p_i$ hat. Zweite sollen drei Nachbarn von $p_i$ gefunden werden, die mit $p_i$ zusammen ein vollständiges Graph (Pyramid) darstellen können. Wenn ein Teilgraph von Modellgraph zum obigem vollständigen Graph assoziiert, wird endlich ein Teilgraph Isomorphismus zwischen den Eingabegraph und Modellgraph gefunden. Der Algorithm~\ref{isoAlgo} gibt eine genauere Beschreibung des Algorithmus von Rhijn und Mulder aus.
+Die Objekterkennung bzw. Objektverfolgung wird durch dem Vergleich der Modellgraphen und Eingabegraphen realisiert. Ein für diese Arbeit hilfreicher Algorithmus wurde von Rhijn und Mulder entwickelt \cite{AJ05}. Um das Problem des Graphisomorphismus zu vereinfachen, werden nur ein Teilgraph $S_{min}$ von Modellgraphen betrachtet. $S_{min}$ soll ein vollständiger Graph sein und einen Modellgraphen eindeutig bestimmen können. Zuerst wird ein Punkt $p_i$ vom Eingabegraph ausgewählt und die Distanzen von diesem zu allen seinen Nachbarn berechnet. Alle diese Kantenlängen werden mit den Kanten der Modellgraphen verglichen, damit ein Kandidatenpunkt $v_k$ im Modellgraph gefunden werden kann, der genug Kanten mit dem ausgewählten Punkt $p_i$ identisch hat. Zweitens sollen drei Nachbarn von $p_i$ gefunden werden, die mit $p_i$ zusammen einen vollständigen Graphen (Pyramide) darstellen können. Wenn ein Teilgraph von Modellgraphen zum obigen vollständigen Graph assoziiert wird, ist ein Teilgraph Isomorphismus zwischen den Eingabegraphen und Modellgraphen gefunden. Der Algorithm~\ref{isoAlgo} gibt eine genauere Beschreibung des Algorithmus von Rhijn und Mulder an.
 
 \begin{algorithm}
 \caption{Teilgraph Isomorphismus}

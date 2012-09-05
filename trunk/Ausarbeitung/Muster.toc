@@ -27,42 +27,51 @@
 \contentsline {subsection}{\numberline {3.1.2}Daten der PMD Kamera}{15}{subsection.3.1.2}
 \contentsline {subsubsection}{\numberline {3.1.2.1}2D Daten}{15}{subsubsection.3.1.2.1}
 \contentsline {subsubsection}{\numberline {3.1.2.2}3D Daten}{16}{subsubsection.3.1.2.2}
-\contentsline {section}{\numberline {3.2}Vorverarbeitung}{16}{section.3.2}
-\contentsline {subsection}{\numberline {3.2.1}Schwellwert basierte Segmentierung}{16}{subsection.3.2.1}
-\contentsline {subsection}{\numberline {3.2.2}Kontrollieren der Helligkeit und Kontrast}{17}{subsection.3.2.2}
-\contentsline {section}{\numberline {3.3}Markenerkennung}{17}{section.3.3}
-\contentsline {subsection}{\numberline {3.3.1}Auswahl des Erkennungsalgorithmus}{18}{subsection.3.3.1}
-\contentsline {subsection}{\numberline {3.3.2}CenSurE Algorithmus}{19}{subsection.3.3.2}
+\contentsline {subsubsection}{\numberline {3.1.2.3}Aufl\"osung und erkennbare Markengr\"o\IeC {\ss }e}{16}{subsubsection.3.1.2.3}
+\contentsline {section}{\numberline {3.2}Vorverarbeitung}{17}{section.3.2}
+\contentsline {subsection}{\numberline {3.2.1}Schwellwert-basierte Segmentierung}{17}{subsection.3.2.1}
+\contentsline {subsection}{\numberline {3.2.2}Steuerung der Helligkeit und Kontrast}{18}{subsection.3.2.2}
+\contentsline {section}{\numberline {3.3}Markenerkennung}{19}{section.3.3}
+\contentsline {subsection}{\numberline {3.3.1}Auswahl des Erkennungsalgorithmus}{19}{subsection.3.3.1}
+\contentsline {subsection}{\numberline {3.3.2}CenSurE Algorithmus}{20}{subsection.3.3.2}
 \contentsline {subsubsection}{\numberline {3.3.2.1}Bi-level Filter}{20}{subsubsection.3.3.2.1}
-\contentsline {subsubsection}{\numberline {3.3.2.2}Integrale Bilder}{20}{subsubsection.3.3.2.2}
-\contentsline {subsubsection}{\numberline {3.3.2.3}Non-maximal Suppression}{21}{subsubsection.3.3.2.3}
-\contentsline {subsection}{\numberline {3.3.3}Kalman-Filter}{21}{subsection.3.3.3}
-\contentsline {subsubsection}{\numberline {3.3.3.1}Zustandsraummodellierung}{21}{subsubsection.3.3.3.1}
-\contentsline {subsubsection}{\numberline {3.3.3.2}Das Kalman-Filter}{22}{subsubsection.3.3.3.2}
-\contentsline {section}{\numberline {3.4}Registrierung}{23}{section.3.4}
-\contentsline {subsection}{\numberline {3.4.1}Singul\"arwertzerlegung}{23}{subsection.3.4.1}
-\contentsline {subsection}{\numberline {3.4.2}Korrespondenzuntersuchung durch Singul\"arwertzerlegung}{24}{subsection.3.4.2}
-\contentsline {section}{\numberline {3.5}Sch\"atzung der Transformation}{25}{section.3.5}
-\contentsline {subsection}{\numberline {3.5.1}Quaternion}{25}{subsection.3.5.1}
-\contentsline {subsection}{\numberline {3.5.2}Beschreibung der Drehungen im Dreidimensionalen Raum mit Quaternionen}{27}{subsection.3.5.2}
-\contentsline {subsection}{\numberline {3.5.3}Orientierung mit Einheitsquaternion}{27}{subsection.3.5.3}
-\contentsline {section}{\numberline {3.6}Objekterkennung}{31}{section.3.6}
-\contentsline {subsection}{\numberline {3.6.1}DBSCAN}{31}{subsection.3.6.1}
-\contentsline {subsection}{\numberline {3.6.2}Teilgraph Isomorphismus}{33}{subsection.3.6.2}
-\contentsline {chapter}{\numberline {4}Implementierung}{35}{chapter.4}
-\contentsline {section}{\numberline {4.1}Markenanalyse}{36}{section.4.1}
-\contentsline {subsection}{\numberline {4.1.1}Markenerkennung}{36}{subsection.4.1.1}
-\contentsline {subsubsection}{\numberline {4.1.1.1}Auswahl der Gr\"o\IeC {\ss }e der Marken}{36}{subsubsection.4.1.1.1}
-\contentsline {subsubsection}{\numberline {4.1.1.2}Kontrolle der Helligkeit}{39}{subsubsection.4.1.1.2}
-\contentsline {subsection}{\numberline {4.1.2}Markenverfolgung}{39}{subsection.4.1.2}
-\contentsline {section}{\numberline {4.2}Objekteinlernen}{39}{section.4.2}
-\contentsline {subsection}{\numberline {4.2.1}Markenanordnung}{39}{subsection.4.2.1}
-\contentsline {subsection}{\numberline {4.2.2}Kanteneinf\"ugung}{39}{subsection.4.2.2}
-\contentsline {subsection}{\numberline {4.2.3}Speichern des Strukturgraph}{39}{subsection.4.2.3}
-\contentsline {section}{\numberline {4.3}Objekterkennung und Verfolgung}{39}{section.4.3}
-\contentsline {subsection}{\numberline {4.3.1}Vergleichung der Objekte}{39}{subsection.4.3.1}
-\contentsline {subsection}{\numberline {4.3.2}Bestimmung der Orientierung}{39}{subsection.4.3.2}
-\contentsline {section}{\numberline {4.4}Bilder Steuerung}{39}{section.4.4}
-\contentsline {chapter}{\numberline {5}Experimentelle Auswertung}{40}{chapter.5}
-\contentsline {chapter}{\numberline {6}Schlusswort}{41}{chapter.6}
-\contentsline {chapter}{{Literaturverzeichnis}}{43}{appendix*.2}
+\contentsline {subsubsection}{\numberline {3.3.2.2}Integrale Bilder}{21}{subsubsection.3.3.2.2}
+\contentsline {subsubsection}{\numberline {3.3.2.3}Non-maximal Suppression}{22}{subsubsection.3.3.2.3}
+\contentsline {subsection}{\numberline {3.3.3}Kalman-Filter}{23}{subsection.3.3.3}
+\contentsline {subsubsection}{\numberline {3.3.3.1}Zustandsraummodellierung}{23}{subsubsection.3.3.3.1}
+\contentsline {subsubsection}{\numberline {3.3.3.2}Das Kalman-Filter}{24}{subsubsection.3.3.3.2}
+\contentsline {section}{\numberline {3.4}Registrierung}{25}{section.3.4}
+\contentsline {subsection}{\numberline {3.4.1}Singul\"arwertzerlegung}{25}{subsection.3.4.1}
+\contentsline {subsection}{\numberline {3.4.2}Korrespondenzuntersuchung durch Singul\"arwertzerlegung}{25}{subsection.3.4.2}
+\contentsline {section}{\numberline {3.5}Bestimmung der Transformation}{27}{section.3.5}
+\contentsline {subsection}{\numberline {3.5.1}Quaternion}{27}{subsection.3.5.1}
+\contentsline {subsection}{\numberline {3.5.2}Beschreibung der Drehungen im Dreidimensionalen Raum mit Quaternionen}{28}{subsection.3.5.2}
+\contentsline {subsection}{\numberline {3.5.3}Orientierung mit Einheitsquaternion}{29}{subsection.3.5.3}
+\contentsline {section}{\numberline {3.6}Objekterkennung}{32}{section.3.6}
+\contentsline {subsection}{\numberline {3.6.1}DBSCAN}{32}{subsection.3.6.1}
+\contentsline {subsection}{\numberline {3.6.2}Teilgraph Isomorphismus}{35}{subsection.3.6.2}
+\contentsline {chapter}{\numberline {4}Implementierung}{37}{chapter.4}
+\contentsline {section}{\numberline {4.1}Markenanalyse}{38}{section.4.1}
+\contentsline {subsection}{\numberline {4.1.1}Bildvorverarbeitung}{38}{subsection.4.1.1}
+\contentsline {subsubsection}{\numberline {4.1.1.1}Datenstruktur des Eingabebilds}{38}{subsubsection.4.1.1.1}
+\contentsline {subsubsection}{\numberline {4.1.1.2}Abstand Filter}{38}{subsubsection.4.1.1.2}
+\contentsline {subsection}{\numberline {4.1.2}Markenerkennung}{40}{subsection.4.1.2}
+\contentsline {subsubsection}{\numberline {4.1.2.1}Auswahl der Gr\"o\IeC {\ss }e der Marken}{40}{subsubsection.4.1.2.1}
+\contentsline {subsubsection}{\numberline {4.1.2.2}STAR Detektor}{41}{subsubsection.4.1.2.2}
+\contentsline {subsubsection}{\numberline {4.1.2.3}Markenerkennung}{43}{subsubsection.4.1.2.3}
+\contentsline {subsubsection}{\numberline {4.1.2.4}Steuerung der Helligkeit und des Kontrast}{43}{subsubsection.4.1.2.4}
+\contentsline {subsection}{\numberline {4.1.3}Markenverfolgung}{44}{subsection.4.1.3}
+\contentsline {subsubsection}{\numberline {4.1.3.1}Verbesserung der Singul\"arwertzerlegungsverfahren}{44}{subsubsection.4.1.3.1}
+\contentsline {subsection}{\numberline {4.1.4}Segmentierung}{47}{subsection.4.1.4}
+\contentsline {section}{\numberline {4.2}Objektlernen}{47}{section.4.2}
+\contentsline {subsection}{\numberline {4.2.1}Bestimmung der Orientierung}{47}{subsection.4.2.1}
+\contentsline {subsection}{\numberline {4.2.2}Markenanordnung}{49}{subsection.4.2.2}
+\contentsline {subsection}{\numberline {4.2.3}Kanteneinf\"ugung}{49}{subsection.4.2.3}
+\contentsline {subsection}{\numberline {4.2.4}Speichern des Strukturgraph}{49}{subsection.4.2.4}
+\contentsline {section}{\numberline {4.3}Objekterkennung und Verfolgung}{49}{section.4.3}
+\contentsline {subsection}{\numberline {4.3.1}Vergleichung der Objekte}{49}{subsection.4.3.1}
+\contentsline {subsection}{\numberline {4.3.2}Bestimmung der Orientierung}{49}{subsection.4.3.2}
+\contentsline {section}{\numberline {4.4}Bilder Steuerung}{49}{section.4.4}
+\contentsline {chapter}{\numberline {5}Experimentelle Auswertung}{50}{chapter.5}
+\contentsline {chapter}{\numberline {6}Schlusswort}{51}{chapter.6}
+\contentsline {chapter}{{Literaturverzeichnis}}{53}{appendix*.2}
