@@ -197,6 +197,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Configurator.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\DA_Framework.cpp"
 				>
 			</File>
@@ -276,10 +280,6 @@
 					/>
 				</FileConfiguration>
 			</File>
-			<File
-				RelativePath=".\TinyParser.cpp"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Headerdateien"
@@ -288,6 +288,10 @@
 			>
 			<File
 				RelativePath=".\BildData.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Configurator.hpp"
 				>
 			</File>
 			<File
@@ -356,10 +360,6 @@
 			</File>
 			<File
 				RelativePath=".\stdafx.h"
-				>
-			</File>
-			<File
-				RelativePath=".\TinyParser.hpp"
 				>
 			</File>
 		</Filter>

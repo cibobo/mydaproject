@@ -3,7 +3,8 @@
 
 #pragma once
 
-#include "MainThread.hpp"
+#include "Configurator.hpp"
+//#include "MainThread.hpp"
 #include "afxcmn.h"
 #include "afxwin.h"
 
@@ -36,6 +37,8 @@ public:
 	// An Instance of Class MainThread, which include all necessary parameters of visualization
 	MainThread *pMainThread;
 
+	// Configurator for the Parameters' value, which have been saved in a Configuration TXT File
+	Configurator *pConfigurator;
 
 	afx_msg void OnBnClickedOk();
 	afx_msg void OnBnClickedCancel();

@@ -115,6 +115,21 @@ void Recognition::loadModels(std::vector<string> names){
 		this->loadModels();
 	}
 }
+
+void Recognition::loadModels(string names){
+	int findPos;
+	vector<string> namesVec;
+	//find the names, which are separated with ','
+	while((findPos=names.find(','))!=string::npos){
+		namesVec.push_back(names.substr(0, findPos));
+		names.erase(names.begin(), names.begin()+findPos+1);
+	}
+	if(names.size()>0){
+		namesVec.push_back(names);
+	}
+	//Load models with these names
+	this->loadModels(namesVec);
+}
 /***************************************************************
  *
  * At first only one object will be focused
