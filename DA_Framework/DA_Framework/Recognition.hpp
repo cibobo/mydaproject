@@ -51,6 +51,7 @@ public:
 
 	void loadModels();
 	void loadModels(vector<string> names);
+	void loadModels(string names);
 
 	// Main functionf for the Recognition
 	void objectRecognition(vector<PMDPoint> inputPoints);

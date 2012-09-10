@@ -56,7 +56,7 @@ BEGIN
     EDITTEXT        IDC_EDIT_ONLINEPATH,725,60,72,14,ES_AUTOHSCROLL
     LTEXT           "Load Direction: ./data/",IDC_STATIC,641,90,74,8
     EDITTEXT        IDC_EDIT_OFFLINEPATH,715,87,82,14,ES_AUTOHSCROLL
-    GROUPBOX        "Visualisierung",IDC_STATIC,617,141,189,76
+    GROUPBOX        "Visualisation",IDC_STATIC,617,141,189,76
     CONTROL         "Open real-time Observing Window",IDC_CHECK_VISUAL1,
                     "Button",BS_AUTOCHECKBOX | WS_TABSTOP,631,158,125,10
     CONTROL         "Open Result Window",IDC_CHECK_VISUAL2,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,631,179,83,10

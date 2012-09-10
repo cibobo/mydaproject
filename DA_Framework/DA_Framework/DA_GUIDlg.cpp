@@ -52,6 +52,9 @@ CDA_GUIDlg::CDA_GUIDlg(CWnd* pParent /*=NULL*/)
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 	// create a instance for MainThread
 	pMainThread = new MainThread();
+	// create a instance for Configurator
+	pConfigurator = new Configurator(this->pMainThread);
+
 }
 
 void CDA_GUIDlg::DoDataExchange(CDataExchange* pDX)
@@ -206,18 +209,23 @@ BOOL CDA_GUIDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// Großes Symbol verwenden
 	SetIcon(m_hIcon, FALSE);		// Kleines Symbol verwenden
 
+	// Read from Configuration File
+	this->pConfigurator->readConfigurationFile();
+
 	// Init Framerate Slider
 	this->framerateSlider.SetRangeMin(FRAMERATE_MIN, false);
 	this->framerateSlider.SetRangeMax(FRAMERATE_MAX, false);
 
 	// Init Input Path with the default Data Source
-	this->inputPathEditor.SetWindowTextA(CString("Eva2Boxes"));
+	//this->inputPathEditor.SetWindowTextA(CString("Eva2Boxes"));
+	this->inputPathEditor.SetWindowTextA(CString(this->pMainThread->INPUTPATH));
 
 	// Init SaveButton. The defaut status is disable
 	this->SaveButton.EnableWindow(false);
 
 	// Init LoadingNameEdit. The defaut status is disable, if the load modul is not selected
-	this->LoadingNameEdit.SetWindowTextA("Box_all2,Box_all4");
+	//this->LoadingNameEdit.SetWindowTextA("Box_all2,Box_all4");
+	this->LoadingNameEdit.SetWindowTextA(CString(this->pConfigurator->modelNames.data()));
 	if(!this->pMainThread->pRecognition->isLoad){
 		this->LoadingNameEdit.EnableWindow(false);
 	}

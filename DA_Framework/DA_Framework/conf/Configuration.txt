@@ -1,0 +1,116 @@
+#----Feature Detector----#
+# Maximal allowed Features
+65
+# Minimal allowed Features
+42
+# maximal Execute Loops
+30
+# Beginning Brightness
+200
+# Beginning Contrast
+10
+##---CenSurE Parameters---##
+# Maximal Size:
+8
+# Beginning Response Threshold
+70
+# Line Threshold Projected
+5
+# Line Threshold Binarized
+6
+# Non Maximal Suppression Size
+1
+##---Brightness Control---##
+# Minimal Radiant Energy
+300000
+# Maximal Radiant Energy
+450000
+# Minimal Contrast
+2
+# Maximal Contrast
+18
+# Minimal Response Threshold
+40
+# Maximal Response Threshold
+130
+##---Plane Features Conbiantion---##
+# Maximal allowed Distance
+5
+# Minimal allowed Neighbors
+2
+#----Learning----#
+# isLearning
+1
+##---Spatial Features Segmentation---##
+# Maximal allowed Distance
+0.18
+# Minimal allowed Neighbors
+1
+##---Features Association---##
+# Beginning associated Variance 
+0.02
+# Minimal associated Rate
+0.76
+##---Kalman Filter---##
+# Translation
+1
+# Rotation
+0
+##---Graph Update---##
+# Distance Threshold
+0.004
+# Lifetime Threshold
+25
+##---Frame Control---##
+# Distance Threhold for Quality
+0.005
+# Minimal acceptable associated Rate
+0.35
+# Length of Data Buffer
+2
+# Maximal allowed jumping features
+5
+##---Saving Object---##
+# Save Direction
+#----Recognition----#
+#isRecognition
+0
+##---Recognition's Model---##
+# is Using test models
+1
+# is Load model from VTK file
+0
+# Models' names
+Box_all4,Box_all2
+# is Create a new model
+0
+##---Graph Isomorphismus---##
+# Accept Proportion of Distance
+0.05
+# Accept Proportion of similar Nodes
+0.5
+# Distance Threshold
+0.008
+#----Input Mode----#
+# is online
+0
+# is offline
+1
+# load direction
+Eva2Boxes
+# framerate
+30
+#----Visualisation----#
+# is Open real-time Ovservin Window
+1
+# is Open Result Window
+1
+# is Open help OpenCV Windows
+1
+#----Distance Filter----#
+# Threshold Vlaue
+0.1
+# Threshold Proportion
+0.08
+# Creating Frames
+20
