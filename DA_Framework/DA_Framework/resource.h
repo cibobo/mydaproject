@@ -17,7 +17,6 @@
 #define IDC_RADIO3                      1003
 #define IDC_RADIO_ONLINE                1003
 #define IDC_CHECK1                      1004
-#define IDC_CHECK_                      1004
 #define IDC_CHECK_ONLINESAVED           1004
 #define IDC_EDIT1                       1005
 #define IDC_EDIT_ONLINEPATH             1005
@@ -88,6 +87,7 @@
 #define IDC_CHECK_TFILTER               1043
 #define IDC_CHECK6                      1044
 #define IDC_CHECK_RFILTER               1044
+#define IDC_RADIO_EVA_SAVED             1046
 #define IDC_EDIT_GUPDATE_DT             1047
 #define IDC_EDIT_GUPDATE_TT             1048
 #define IDC_EDIT_FC_DTHRESHOLD          1049
@@ -99,6 +99,10 @@
 #define IDC_EDIT_FC_MJFEATURES          1054
 #define IDC_EDIT_GISO_NPRO              1055
 #define IDC_EDIT_GISO_DT                1056
+#define IDC_RADIO_EVA_SAVEN             1057
+#define IDC_EDIT_MODELNAMES2            1058
+#define IDC_EDIT_EVAFNAME               1058
+#define IDC_CHECK_EVA                   1059
 
 // Next default values for new objects
 // 
@@ -106,7 +110,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        129
 #define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1059
+#define _APS_NEXT_CONTROL_VALUE         1060
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif
