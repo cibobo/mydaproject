@@ -31,6 +31,7 @@ public:
 	RecognitionResult(NodePairs nodePair, Node *center, float weight,int objIndex);
 	~RecognitionResult(){};
 
+	// Mark the node in Model as a special color
 	void mark();
 	void markColorful();
 
@@ -38,6 +39,16 @@ public:
 	Node* center;
 	float weight;
 	int modelIndex;
+
+	// Parameter for the Association to the Segementation
+	//Current Points
+	vector<PMDPoint> nodes;
+	//Life Time
+	int lifeTime;
+	//Threshold to evaluate the Association of the current result and the segementation
+	float lastSumP;
+	//Whether the points is updated 
+	bool isFind;
 };
 
 
@@ -65,6 +76,13 @@ public:
 	// Update the position of the objects
 	void updateObjectPosition(int index, NodePairs resultPair);
 
+	/**
+	 * Update the Reuslt List for more than one Objects
+	 *
+	 * Every element of the MutiResultList should be tracking with the current markers. 
+	 **/
+	void updateMultiResultList();
+
 	//void drawGraphWithOpenGL();
 
 	int findBestResult();
@@ -85,8 +103,10 @@ public:
 	int maxListLength;
 	int timmer;
 	
-	// to save the recognition's results
+	// To save the recognition's results for one Object
 	vector<RecognitionResult> resultList;
+	// To save the recognitions' results for more than one objects
+	vector<RecognitionResult> multiResultList;
 	map<int, map<int,RecognitionResult>> resultMap;
 
 	// Parameter for the Graph Isomorphismus

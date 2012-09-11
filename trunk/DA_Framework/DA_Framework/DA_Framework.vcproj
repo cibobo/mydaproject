@@ -213,6 +213,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Evaluator.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\FrameIterator.cpp"
 				>
 			</File>
@@ -304,6 +308,10 @@
 			</File>
 			<File
 				RelativePath=".\DistanceFilter.hpp"
+				>
+			</File>
+			<File
+				RelativePath=".\Evaluator.hpp"
 				>
 			</File>
 			<File

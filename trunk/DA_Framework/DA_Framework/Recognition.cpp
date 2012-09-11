@@ -7,12 +7,16 @@
 RecognitionResult::RecognitionResult(){
 	weight = 0;
 	modelIndex = -1;
+	lifeTime = 0;
+	lastSumP = 3;
+	isFind = true;
 }
 
 RecognitionResult::RecognitionResult(RecognitionResult::NodePairs nodePair, float weight, int modelIndex){
 	this->nodePair = nodePair;
 	this->weight = weight;
 	this->modelIndex = modelIndex;
+	lifeTime = 0;
 }
 
 RecognitionResult::RecognitionResult(RecognitionResult::NodePairs nodePair, Node *center, float weight, int modelIndex){
@@ -20,6 +24,7 @@ RecognitionResult::RecognitionResult(RecognitionResult::NodePairs nodePair, Node
 	this->center = center;
 	this->weight = weight;
 	this->modelIndex = modelIndex;
+	lifeTime = 0;
 }
 
 void RecognitionResult::mark(){
@@ -141,105 +146,267 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 	this->segResult.clear();
 	ImageProcess::DBSCANPMDPoint(this->segResult, inputPoints, this->spatialCombiEps, this->spatialCombiMinPts);
 
+	updateMultiResultList();
+
 	bool compResult = false;
 	//if(caliResult.size()>0 && caliResult[0].size()>0){
 	// loop for all possible objekt
 	this->graphList.clear();
-	for(int j=0;j<this->segResult.size();j++){
-		if(this->segResult[j].size()>0){
-			RecognitionResult *resultArray = new RecognitionResult[modelList.size()];
-			
-			vector<Point3f> point3D;
-			vector<Point2f> point2D;
-			ImageProcess::decPMDPointVector(this->segResult[j], point3D, point2D);
 
-			Graph *graph = new Graph();
-			graph->createCompleteGraph(point3D);
-			this->graphList.push_back(graph);
+	// If there is just one Objet
+	//if(segResult.size() == 1){
+	//	if(this->segResult[0].size()>0){
+	//		vector<Point3f> point3D;
+	//		vector<Point2f> point2D;
+	//		ImageProcess::decPMDPointVector(this->segResult[0], point3D, point2D);
 
-			// create the new map for the static date
-			NodePairs resultPair;
-			for(int i=0;i<this->modelList.size();i++){
-				// reset the color
-				modelList[i]->setColor(i);
+	//		Graph *graph = new Graph();
+	//		graph->createCompleteGraph(point3D);
+	//		this->graphList.push_back(graph);
 
-				compResult = graph->isEqual(modelList[i], resultPair, 
-											this->distanceProportion, 
-											this->nodesCountProportion,
-											this->distanceThreshold);
-				if(compResult){
-					cout<<"Find the Object! "<<i<<endl;
-					//int appear = this->Statistic[0].find(i)->second.appear(timmer);
-					//cout<<"The appearence rate is: "<<float(appear)/timmer<<endl;
+	//		// create the new map for the static date
+	//		NodePairs resultPair;
+	//		for(int i=0;i<this->modelList.size();i++){
+	//			// reset the color
+	//			modelList[i]->setColor(i);
 
-					// show the result
+	//			compResult = graph->isEqual(modelList[i], resultPair, 
+	//										this->distanceProportion, 
+	//										this->nodesCountProportion,
+	//										this->distanceThreshold);
+	//			if(compResult){
+	//				cout<<"Find the Object! "<<i<<endl;
+	//				updateResultList(i, resultPair);
+	//			}
+	//		}
+	//	}
+	//	int maxIndex = this->findBestResult();
+	//	cout<<"The max Index: "<<maxIndex<<endl;
+	//	if(maxIndex != -1){
+	//		graphList[0]->setColor(resultList[maxIndex].modelIndex);
+	//		this->resultList[maxIndex].mark();
+	//		// transformate the object
+	//		updateObjectPosition(resultList[maxIndex].modelIndex, resultList[maxIndex].nodePair);
+	//	}
+	//} else {
+		for(int j=0;j<this->multiResultList.size();j++){
+			if(this->multiResultList[j].nodes.size() > 0 && this->multiResultList[j].isFind){
+				vector<Point3f> point3D;
+				vector<Point2f> point2D;
+				ImageProcess::decPMDPointVector(this->multiResultList[j].nodes, point3D, point2D);
 
-					
-					
-					if(this->segResult.size() == 1){
-						// for just one Object
-						updateResultList(i, resultPair);
-					//updateObjectPosition(i, resultPair);
-					} else {
-						// more than 2 objects
-						resultArray[i].nodePair = resultPair;
-						resultArray[i].weight++;
-					}
-					
-				}
+				Graph *graph = new Graph();
+				graph->createCompleteGraph(point3D);
+				this->graphList.push_back(graph);
 
-			}
+				// create the new map for the static date
+				NodePairs resultPair;
+				for(int i=0;i<this->modelList.size();i++){
+					// reset the color
+					modelList[i]->setColor(i);
 
-
-			//int maxIndex = this->findBestResult(j);
-			//cout<<"The max Index: "<<maxIndex<<endl;
-			//if(maxIndex != -1){
-			//	this->graphList[j]->setColor(maxIndex);
-
-			//	//this->resultMap[j][maxIndex].markColorful();
-			//	this->resultMap[j][maxIndex].mark();
-			//	// transformate the object
-			//	updateObjectPosition(resultMap[j][maxIndex].modelIndex, resultMap[j][maxIndex].nodePair);
-			//	// set the color of the graph
-			//	
-			//}
-
-
-			if(this->segResult.size() == 1){
-				// for just one object
-				int maxIndex = this->findBestResult();
-				cout<<"The max Index: "<<maxIndex<<endl;
-				if(maxIndex != -1){
-					graphList[j]->setColor(resultList[maxIndex].modelIndex);
-					this->resultList[maxIndex].mark();
-					// transformate the object
-					updateObjectPosition(resultList[maxIndex].modelIndex, resultList[maxIndex].nodePair);
-				}
-			} else {
-				// for more objects
-				bool isfind = false;
-				for(int i=0;i<modelList.size();i++){
-					if(resultArray[i].weight > 0){
-						graphList[j]->setColor(i);
-						resultArray[i].mark();
-						updateObjectPosition(i, resultArray[i].nodePair);
-						break;
+					compResult = graph->isEqual(modelList[i], resultPair, 
+												this->distanceProportion, 
+												this->nodesCountProportion,
+												this->distanceThreshold);
+					if(compResult){
+						cout<<"Find the Object! "<<i<<endl;
+						//Update result list. Using size of the ResultPair as the weight
+						if(resultPair.size() > multiResultList[j].weight){
+							multiResultList[j].modelIndex = i;
+							multiResultList[j].nodePair = resultPair;
+							multiResultList[j].weight = resultPair.size();
+						}
 					}
 				}
-			}
-			delete []resultArray;
+				if(multiResultList[j].modelIndex != -1){
+					multiResultList[j].mark();
+					updateObjectPosition(multiResultList[j].modelIndex, multiResultList[j].nodePair);
 
-			// show the appearence rate
-			//cout<<"The appearance rate are:"<<endl;
-			//for(int i=0;i<Statistic[0].size();i++){
-			//	cout<<Statistic[0].find(i)->second.getAppearanceRate(timmer)<<"   ";
-			//	//cout<<Statistic[0].find(i)->second.maxContinueFrames<<"   ";
-			//}
-			//cout<<endl;
+					graph->setColor(multiResultList[j].modelIndex);					
+				}
+						
+			}
 		}
-	}
+	//}
+
+	//for(int j=0;j<this->segResult.size();j++){
+	//	if(this->segResult[j].size()>0){
+	//		RecognitionResult *resultArray = new RecognitionResult[modelList.size()];
+	//		
+	//		vector<Point3f> point3D;
+	//		vector<Point2f> point2D;
+	//		ImageProcess::decPMDPointVector(this->segResult[j], point3D, point2D);
+
+	//		Graph *graph = new Graph();
+	//		graph->createCompleteGraph(point3D);
+	//		this->graphList.push_back(graph);
+
+	//		// create the new map for the static date
+	//		NodePairs resultPair;
+	//		for(int i=0;i<this->modelList.size();i++){
+	//			// reset the color
+	//			modelList[i]->setColor(i);
+
+	//			compResult = graph->isEqual(modelList[i], resultPair, 
+	//										this->distanceProportion, 
+	//										this->nodesCountProportion,
+	//										this->distanceThreshold);
+	//			if(compResult){
+	//				cout<<"Find the Object! "<<i<<endl;
+	//				//int appear = this->Statistic[0].find(i)->second.appear(timmer);
+	//				//cout<<"The appearence rate is: "<<float(appear)/timmer<<endl;
+
+	//				// show the result
+
+	//				
+	//				
+	//				if(this->segResult.size() == 1){
+	//					// for just one Object
+	//					updateResultList(i, resultPair);
+	//				//updateObjectPosition(i, resultPair);
+	//				} else {
+	//					// more than 2 objects
+	//					resultArray[i].nodePair = resultPair;
+	//					resultArray[i].weight++;
+	//				}
+	//				
+	//			}
+
+	//		}
+
+
+	//		//int maxIndex = this->findBestResult(j);
+	//		//cout<<"The max Index: "<<maxIndex<<endl;
+	//		//if(maxIndex != -1){
+	//		//	this->graphList[j]->setColor(maxIndex);
+
+	//		//	//this->resultMap[j][maxIndex].markColorful();
+	//		//	this->resultMap[j][maxIndex].mark();
+	//		//	// transformate the object
+	//		//	updateObjectPosition(resultMap[j][maxIndex].modelIndex, resultMap[j][maxIndex].nodePair);
+	//		//	// set the color of the graph
+	//		//	
+	//		//}
+
+
+	//		if(this->segResult.size() == 1){
+	//			// for just one object
+	//			int maxIndex = this->findBestResult();
+	//			cout<<"The max Index: "<<maxIndex<<endl;
+	//			if(maxIndex != -1){
+	//				graphList[j]->setColor(resultList[maxIndex].modelIndex);
+	//				this->resultList[maxIndex].mark();
+	//				// transformate the object
+	//				updateObjectPosition(resultList[maxIndex].modelIndex, resultList[maxIndex].nodePair);
+	//			}
+	//		} else {
+	//			// for more objects
+	//			bool isfind = false;
+	//			for(int i=0;i<modelList.size();i++){
+	//				if(resultArray[i].weight > 0){
+	//					graphList[j]->setColor(i);
+	//					resultArray[i].mark();
+	//					updateObjectPosition(i, resultArray[i].nodePair);
+	//					break;
+	//				}
+	//			}
+	//		}
+	//		delete []resultArray;
+
+	//		// show the appearence rate
+	//		//cout<<"The appearance rate are:"<<endl;
+	//		//for(int i=0;i<Statistic[0].size();i++){
+	//		//	cout<<Statistic[0].find(i)->second.getAppearanceRate(timmer)<<"   ";
+	//		//	//cout<<Statistic[0].find(i)->second.maxContinueFrames<<"   ";
+	//		//}
+	//		//cout<<endl;
+	//	}
+	//}
 }
 
+
+void Recognition::updateMultiResultList(){
+	float sigma = 0.02;
+	float assRate = 0.76;
+	//Copy of the Segmentation
+	vector<vector<PMDPoint>> tempSegResult = this->segResult;
+
+	namedWindow("OpenCVCorrespondenz", CV_WINDOW_AUTOSIZE);
+	Mat testImg = Mat(V_BILDSIZE, H_BILDSIZE*2, CV_8UC3);
+	Mat left = Mat(testImg, Range::all(), Range(0,H_BILDSIZE));
+	Mat right = Mat(testImg, Range::all(), Range(H_BILDSIZE,H_BILDSIZE*2));
+
+	//Set all result as not found
+	for(int j=0;j<multiResultList.size();j++){
+		multiResultList[j].isFind = false;
+	}
+
+	//Loop for all segmentations
+	for(int i=0;i<tempSegResult.size();i++){
+		bool isUsed = false;
+		//Loop for all existing Result
+		for(int j=0;j<this->multiResultList.size();j++){
+			vector<PMDPoint> tempNew, tempOld;
+			float avrDis, disPE, sumP;
+			//Find the Association between the segmentation and the nodes saved in Result
+			ImageProcess::featureAssociatePMD(multiResultList[j].nodes, tempSegResult[i], sigma, assRate,
+				tempOld, tempNew, avrDis, disPE, sumP);
+
+			//If a besser Association has been found
+			if(sumP>multiResultList[j].lastSumP){
+
+				//Test OpenCV Draw
+				Scalar color = scalarColorList[j];
+				for(int k=0;k<multiResultList[j].nodes.size();k++){
+					circle(left, multiResultList[j].nodes[k].index, 2, color, -1);
+				}
+				for(int k=0;k<tempSegResult[i].size();k++){
+					circle(right, tempSegResult[i][k].index, 2, color, -1);
+				}
+				for(int k=0;k<tempOld.size();k++){
+					Point2f trans(204,0);
+					line(testImg, tempOld[k].index, tempNew[k].index+trans, color);
+				}
+				//End Test
+
+				//Update the Result
+				multiResultList[j].isFind = true;
+				multiResultList[j].lastSumP = sumP;
+				multiResultList[j].nodes = tempSegResult[i];
+				multiResultList[j].lifeTime++;
+				isUsed = true;
+			}
+		}
+		//Delete the associated segmentation
+		if(isUsed){
+			tempSegResult.erase(tempSegResult.begin()+i);
+			i--;
+		}
+	}
+
+	imshow("OpenCVCorrespondenz", testImg);
+	char c = waitKey(10);
+	
+	//Update the life time of the Results, and delete the unused Result, which may match to the objet, that will be no more appeared.
+	for(int j=0;j<multiResultList.size();j++){
+		multiResultList[j].lifeTime -= 2;
+		if(multiResultList[j].lifeTime < 0){
+			multiResultList.erase(multiResultList.begin()+j);
+			j--;
+		} else {
+			//Reset the Threshold of the Association
+			multiResultList[j].lastSumP = 3;
+		}
+	}
+	
+	//Add the rest Segementations als the new Result into the ResultList
+	for(int i=0;i<tempSegResult.size();i++){
+		RecognitionResult newResult = RecognitionResult();
+		newResult.nodes = tempSegResult[i];
+		this->multiResultList.push_back(newResult);
+	}
+}
 
 void Recognition::updateResultList(int index, NodePairs resultPair, Node *center){
 	// The proportion of object and neighbors
