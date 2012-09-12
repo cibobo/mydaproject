@@ -231,7 +231,7 @@ wobei $\alpha$ den schrägen Winkel erklärt und wenn es 0 gleicht, ist die Formel
 Non-maximal Suppression ist eine Strategie, die das lokale Extremum finden kann. Die Response des Pixels wird unterdrückt, wenn es ein Pixel in seiner Nachbarschaft für Lage bzw. Skala gibt, dessen Response größer oder kleiner als das betrachtende Pixel ist. Die Pixel mit entweder Maximum oder Minimum Response werden als Merkmale bekannt. Der Suchumfang wird in der Arbeit von Agrawal als 3x3x3 eingestellt, d.h. 8 Pixeln um dem betrachteten Pixel und jeweils 9 Pixeln im zwei benachbarten Skalenräumen, werden zusammen berücksichtigt. Die Pixel mit höherer Response können zwischen der Transformation des Bildes stabiler wieder erkannt werden, deshalb nach der Non-maximal Suppression werden die ausgewählten Extremums noch mal durch einem Schwellwerte-Filter gefiltert, um die besten Merkmale zu bestimmen. 
   
 \subsection{Kalman-Filter}
-
+\label{KF}
 Das Kalman-Filter basiert auf einem linearen, dynamischen System in einem diskretisierten Zeitraum. Die Zustandsgleichung des Systems wird häufig durch eine Differenzengleichung beschrieben. In vielen Fällen werden die Zustände nur durch einen voneinander getrennten Zeitpunkt bestimmt. Kalman hat den Sonderfall der linearen Abhängigkeit der Zustände untereinander betrachtet, und vereinfachte die Zustandsgleichung zur linearen Differenzengleichung.
 
 \subsubsection{Zustandsraummodellierung}
