@@ -100,7 +100,7 @@ Die Erkennungsergebnisse der Objekte werden von der Größe der Marken stark beein
 
 \begin{figure}
 \centering
-\includegraphics[scale=0.9]{Abbildungen/MarkerSize2.png}
+\includegraphics[scale=0.75]{Abbildungen/MarkerSize2.png}
 \caption{Die Erkennungsergebnisse der Marken für unterschiedliche Distanz zu der Kamera. Auf der ersten Reihe liegen die Graustufenbilder mit roten erkannten Marken; Die entsprechende 3D Bilder auf der zweiten Reihe zeigen die vertikalen Positionen des Objekts.}
 \label{MS2}
 \end{figure}
@@ -184,19 +184,23 @@ Der formulierte Durchlauf wird im Algorithmus~\ref{KS} gefunden. Die Anzahl der 
 \subsection{Markenverfolgung}
 \subsubsection{Verbesserung der Singulärwertzerlegungsverfahren}
 Nach erfolgreicher Festlegung der Marken jedes Bildes sollen dann die Korrespondenzen der Marken von zwei nachfolgenden Bildern untersucht werden. Die Korrespondenzpunkte können durch das Verfahren der Singulärwertzerlegung von Scott und Higgnis \cite{SL91} bestimmt werden. Die genaue Beschreibung ihres Verfahrens wird im Schnitt~\ref{KdS} aufgeführt, und Algorithmus~\ref{alg1} gibt den Peseudocode des Verfahrens an. In dieser Arbeit werden vier Verbesserungen für das Verfahren von Scott und Higgnis gemacht, damit der die stabileren Ergebnisse erzeugt und die Qualität der Korrespondenzuntersuchung bewertet werden kann. 
-
+\\
+\\
 \textbf{Nebenbedingung für die Bestimmung der größten Elemente}
 \\
 In originalem Algorithmus werden die Punkte $I_i$ und $J_j$ als Korrespondenzpunkte erkannt, genau dann, wenn das Element $P_{ij}$ das größte Element von beide Zeile $i$ und Spalte $j$ ist. Aber manchmal liefert das größte Element nicht die beste Korrespondenz, insbesondere in den Fall, dass es große Transformation zwischen zwei betrachteten Bildern gibt. Die Lösung ist, eine weitere Beschränkung für die Untersuchung der größten Elemente einzusetzen. D.h. die größten Elemente werden nur akzeptiert, wenn sie gleichzeitig größer als ein eingegebener Schwellenwert $\epsilon$ sind. Der Schwellenwert $\epsilon$ wird in $[0,1]$ definiert. Je höher $\epsilon$ ist, desto ordentlicher sind die gefundenen Korrespondenzpunkte. In dem idealen Fall sind alle größten Elemente $P_{ij}$ gleich 1, z.B. wenn die beide betrachteten Bilder identisch sind. 
-
+\\
+\\
 \textbf{Erfolgreiche Behauptung}
 \\
 Wenigere Korrespondenzpunkte werden mit obiger stärkeren Nebenbedingung herausgefunden, was aber die weiteren Arbeitsschritte wenig beeinflusst, weil es zumindest nur 3 korrespondierenden Punktpaare benötigt, um die Orientierung zwischen zwei Bildern zu bestimmen. Trotzdem ist die Überprüfung der Anzahl der gefundenen Punktpaare notwendig, und deren Ergebnis wird als eine boolesche Ausgabe des Algorithmus zurückgegeben.
-
+\\
+\\
 \textbf{Qualitätsmanagement der Korrespondenz}
 \\
 Außer der binären Behauptung des Algorithmus ist die Bewertung der Korrespondenzqualität auch wichtig, damit die gute und stabile Bilderkette für Markenverfolgung ausgewählt werden kann. Das wurde aber leider von Scott und Higgnis in ihrer Arbeit nicht genannt. In der ersten Verbesserung wird die Größe der größten Elemente von Matrix $P$ mit einem Schwellenwert weiter beschränkt, um das bessere Korrespondenzergebnis zu erhalten. Deshalb zur Umkehr kann die Größe der größten Elemente von $P$ als die Messung der Korrespondenzqualität definiert werden. Dann wird die Summe aller größten Elemente $\sum P_{ij}$ in dieser Arbeit zur Bewertung der Korrespondenzuntersuchung verwendet. Hier wird kein arithmetische Mittel benutzt, weil die Anzahl der betrachteten Punkte, die als Eingaben in den Algorithmus eingegebene werden, auch ein wichtiger Faktor der Bewertung der Korrespondenz ist.
-
+\\
+\\
 \textbf{Die Auswahl von $\sigma$ mit Rückkopplung}
 \\
 Die Einheit des Abstands $\sigma$ ist der wesentliche Parameter des Singulärwertzerlegungsverfahrens. Das ungeeignete $\sigma$ erzeugt dann großes Chaos in Korrespondenzlösungen, was schon in \cite{SL91} mit Schaubildern vielmals gezeigt wird. Um die besten Lösungen zu finden, soll die Abstandseinheit nicht kleiner als die durchschnittlichen Distanz zwischen den Korrespondenzpunkten definiert werden. Es gibt zwei Schwierigkeiten für die Bestimmung des $\sigma$. Erstens sind die korrespondierenden Punktpaare vor dem Durchlauf des Algorithmus noch nicht bekannt, weshalb kann die Abstandseinheit nicht direkt berechnet sondern nur geschätzt werden. Zweitens ist die Auswahl einer festen Abstandseinheit schwierig und ineffizient, wenn sich die betrachteten Punkte oder Merkmale, z.B. in dieser Arbeit, uneingeschränkt bewegen können. Deshalb wird hier der Parameter $\sigma$ für jedes Bild mit der durchschnittlichen Distanz zwischen allen korrespondierenden Punktepaaren vorheriges Bildes festgelegt. Wegen der festen Bildwiederholfrequenz der Eingabebilder sind in theoretischen Fall die durchschnittlichen Abstand der Korrespondenzpunkte jedes Bildes gleich, wenn sich alle betrachteten Punkte gleichförmig bewegen. Aber für die schwach beschleunigenden Bewegungen der Merkmale kann das anpassende $\sigma$ trotzdem herausgefunden werden und die Korrespondenzlösungen sich stabil erzeugen lassen.
@@ -253,15 +257,69 @@ Bis jetzt sind alle erkannten Marken eine Bildes als eine Menge der Punkte zusam
 Nach der erfolgreichen Markenanalyse werden eine Menge der Marken aus den Eingabebildern herausgefunden und sind weiterhin die Abhängigkeiten dieser Marken zwischen benachbarten Bilder bekannt. Die Menge der Marken wird danach für unterschiedlichen Objekte weiter verteilt. Im diesen Abschnitt wird es erklärt, wie ein charakteristisches Graph des Objekts mithilfe der erkannten Marken dargestellt werden kann. Diese Arbeit berücksichtigt im Objektlernen die vereinfachte Situation mit der Annahme, dass einmal nur ein Objekt in der Eingabebilder vorkommt. Deshalb wird die größten Punktmenge von Segmentierungsergebnis ausgewählt, die als die Eingabe der folgenden Arbeitsschritte eingestellt wird. 
 
 \subsection{Bestimmung der Orientierung}
-Um ein Objekt zu lernen, muss das Objekt mit Marken zuerst zu der Kamera gezeigt und sich langsame umdreht werden. Zwischen der Umdrehung werden dann die relativen Positionen der Marken an jeder Ebene bestimmt. Deshalb sollen die Lagen der bekannten Marken in diesem Ablauf rechtzeitig aktualisiert werden, was als eine Orientierungsproblem formuliert werden kann. In dieser Arbeit wird der Verfahren von \cite{H87} verwendet, um die Transformation der bekannten Marken zwischen nachfolgenden Bildern zu berechnen. Der genaue Durchlauf wird im Abschnitt \ref{QmE} aufgeführt. Zuerst sollen die Schwerpunkte der erkannten Marken herausgefunden werden (sehen Formel~\eqref{QuaSch}). Dann berechnet man die Vektoren, die von alle Marken zu ihren entsprechenden Schwerpunkte richten. Drittens wird die Korrelationsmatrix $H$ durch Formel~\eqref{QuaH} mit diesen Vektoren bestimmt werden. Die Hilfematrix $N$ in Formel~\eqref{QuaN} bestehlt aus den Elementen der Matrix $H$, und Ein von ihren Eigenvektoren ist genau die Einheitsquaternion für die Rotation, der den größten positiven Eigenwert entspricht. Die Rotationsmatrix bzw. die Translationsmatrix unter kartesischem Koordinatensystem werden durch jeweils die Formel~\eqref{QuaR} und \eqref{QTran}.
+\label{BdO}
+Um ein Objekt zu lernen, muss das Objekt mit Marken zuerst zu der Kamera gezeigt und sich langsame umdreht werden. Zwischen der Umdrehung werden dann die relativen Positionen der Marken an jeder Ebene bestimmt. Deshalb sollen die Lagen der bekannten Marken in diesem Ablauf rechtzeitig aktualisiert werden, was als eine Orientierungsproblem formuliert werden kann. In dieser Arbeit wird der Verfahren von \cite{H87} verwendet, um die Transformation der bekannten Marken zwischen nachfolgenden Bildern zu berechnen. Der genaue Durchlauf wird im Abschnitt \ref{QmE} aufgeführt. Zuerst sollen die Schwerpunkte der erkannten Marken herausgefunden werden (sehen Formel~\eqref{QuaSch}). Dann berechnet man die Vektoren, die von alle Marken zu ihren entsprechenden Schwerpunkte richten. Drittens wird die Korrelationsmatrix $H$ durch Formel~\eqref{QuaH} mit diesen Vektoren bestimmt werden. Die Hilfematrix $N$ in Formel~\eqref{QuaN} bestehlt aus den Elementen der Matrix $H$, und Ein von ihren Eigenvektoren ist genau die Einheitsquaternion für die Rotation, der den größten positiven Eigenwert entspricht. Die Rotationsmatrix bzw. die Translationsmatrix unter kartesischem Koordinatensystem werden durch jeweils die Formel~\eqref{QuaR} und \eqref{QTran} berechnet.
+\\
+\\
+Die Lage des Objekts von jedem Bild hängt nur von der Lage des Objekt von vorherigem Bild ab. Wegen der kontinuierlichen Bestimmung der Orientierung des Objekts während des Lernens, wird großes Verschieben erzeugt, obwohl nur winziger Fehler zwischen jedem zwei Bildern vorkommt. In dieser Arbeit wird das Kalman-Filter über die Translation des Schwerpunkts von Objekt benutzt, um die kumulative negative Wirkung jedes Schritts zu verdecken. Die Grundlage des Kalma-Filters wird im Abschnitt~\ref{KF} aufgeführt. Die Übergangsmatrix des Schwerpunkts des Objekts im 3D Raum kann definiert als:
 
-Kalmanfilter
+\[
+F = 
+\begin{pmatrix}
+1 & 0 & 0 & 1 & 0 & 0 \\
+0 & 1 & 0 & 0 & 1 & 0 \\
+0 & 0 & 1 & 0 & 0 & 1 \\
+0 & 0 & 0 & 1 & 0 & 0 \\
+0 & 0 & 0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 0 & 0 & 1
+\end{pmatrix},
+\] 
+
+was die Lage und Geschwindigkeit der Bewegung gleichzeitig betrachtet. Die Beobachtungsmatrix ist die Einheitsmatrix mit Größe 3$\times$3, weil der Schwerpunkt des Objekts als Eingabe zur Korrektorsphase eingegeben wird. OpenCV liefert eine komplette Implementierung über Kalman-Filter, was hier in dieser Arbeit direkt verwendet wird.
 
 \subsection{Markenanordnung}
 
-\subsection{Kanteneinfügung}
+\subsection{Darstellung des Strukturgraphen}
+Das Ziel des Lernens ist, dass ein Strukturgraph für jedes eingegebenen Objekt erzeugt wird, welche als die Charakteristiken für Wiedererkennung verwendet werden können. Um das Ziel zu erreichen, sollen die Strukturgraphen stabil sein und genug charakteristische Information des Objekts enthalten. Die Stabilität bedeutet, dass gleichen Strukturgraphen für ein Objekt während viel mal Lernen dargestellt werden sollen. Die Information, die in Wiedererkennung benötigt wird, wird von der Positionen der Marken bzw. der Abstände dazwischen liefert. Die Verfahren der Bestimmungen der charakteristische Marken und Kanten werden in folgenden Abschnitten diskutiert.
 
-\subsection{Speichern des Strukturgraph}
+\subsubsection{Bestimmung der stabilen Knoten}
+Nach der Markenerkennung werden viele Marken aus dem Bild erkannt, die aber viel Rauschen enthalten. Das Rauschen wird von den falschen erkannten Merkmalen des Objekt bzw. der Umgebung oder den schlechten Korrespondenzpunkten verursacht. Deshalb benötigt das Programm eine Strategie für die Auswahl der gültigen Marken. In dieser Arbeit wird die Auswahl auf den Erscheinungshäufigkeiten basiert, d.h. nur die Marken, die vielmals vorgekommen sind, werden zu den gültigen Marken erkannt und in den Strukturgraph eingefügt. Außer der Beschränkung der Anzahl der Erscheinungen soll aber auch der Begriff von ,,Identität'' zweier Marken in unterschiedlichen Bildern definiert werden. Zwei Marken von verschiedenen Bildern sind identisch, genau dann, wenn der Abstand von einer Marke zu dem Punkt, der von anderer Marke nach Transformation erzeugt wird, kleiner als einen vorgegebenen Schwellenwert ist. Die Transformation umfasst die Rotation- bzw. Translationsmatrix, die mit dem Verfahren vom Abschnitt~\ref{BdO} bestimmt werden. 
+
+\subsubsection{Kanteneinfügung}
+Die ungerichteten Kanten von Strukturgraph speichern die Abstände zwischen den Knoten des Graphen, was die wichtigste Eigenschaft für die Wiedererkennung ist. Die Knoten, die gleichzeitig beobachtet werden können, werden in einem vollständigen Graph mit den anderen verbunden. Wenn irgendwann ein neuer Knoten in den Graphen eingefügt wird, verbindet der mit allen vorhandenen Knoten des Graphen. Der analoge Durchlauf wird während der Entfernung eines ungültigen Knotens aus dem Graphen auch durchgeführt.
+
+\begin{algorithm}                     
+\caption{GraphUpdate($Punkte$ $P$, $Mat$ $R$, $Mat$ $T$)}         
+\label{algAG}                          
+\begin{algorithmic}
+\State Schwellenwert des Abstand: $\epsilon$
+\State Minimale Lebenszeit des stabilen Knoten: $minT$
+\State Aktueller Graph: $G$
+\State $G_{temp} \gets createCompleteGraph(P)$
+\For {jeder Knoten $v_i \in G$}
+	\State $v_i \gets R v_i + T$
+\EndFor
+\For {jeder Knoten $v_i \in G$}
+	\For {jeder Knoten $v_{temp_j} \in G_{temp}$}
+		\If {$DistanceOf(v_i, v_{temp_j}) < \epsilon$}
+			\State $v_i.Lifetime \gets v_i.Lifetime+2$
+			\If {$v_i.Lifetime > minT$}
+				\State $v_i.isFixed \gets True$
+			\EndIf
+			\State Verbinden allen mit $v_{temp_j}$ verbundenen Knoten in $G_{temp}$ mit $v_i$
+			\State Entfernen $v_{temp_j}$ aus $G_{temp}$
+		\EndIf
+	\EndFor
+	\If {Keiner entsprechende Knoten für $v_i$ aus $G_{temp}$ gefunden wird}
+		\State $v_i.Lifetime \gets v_i.Lifetime-1$
+		\If {$v_i.Lifetime<0$ und $!v_i.isFixed$}
+			\State Entfernen $v_i$ aus $G$
+		\EndIf
+	\EndIf
+\EndFor
+\State Fügen allen übrigen Knoten von $G_{temp}$ in $G$
+\end{algorithmic}
+\end{algorithm}
 
 \section{Objekterkennung und Verfolgung}
 

@@ -66,12 +66,13 @@
 \BOOKMARK [1][]{section.4.2}{Objektlernen}{chapter.4}% 66
 \BOOKMARK [2][]{subsection.4.2.1}{Bestimmung der Orientierung}{section.4.2}% 67
 \BOOKMARK [2][]{subsection.4.2.2}{Markenanordnung}{section.4.2}% 68
-\BOOKMARK [2][]{subsection.4.2.3}{Kanteneinf\374gung}{section.4.2}% 69
-\BOOKMARK [2][]{subsection.4.2.4}{Speichern des Strukturgraph}{section.4.2}% 70
-\BOOKMARK [1][]{section.4.3}{Objekterkennung und Verfolgung}{chapter.4}% 71
-\BOOKMARK [2][]{subsection.4.3.1}{Vergleichung der Objekte}{section.4.3}% 72
-\BOOKMARK [2][]{subsection.4.3.2}{Bestimmung der Orientierung}{section.4.3}% 73
-\BOOKMARK [1][]{section.4.4}{Bilder Steuerung}{chapter.4}% 74
-\BOOKMARK [0][]{chapter.5}{Experimentelle Auswertung}{}% 75
-\BOOKMARK [0][]{chapter.6}{Schlusswort}{}% 76
-\BOOKMARK [0][]{appendix*.2}{Literaturverzeichnis}{}% 77
+\BOOKMARK [2][]{subsection.4.2.3}{Darstellung des Strukturgraphen}{section.4.2}% 69
+\BOOKMARK [3][]{subsubsection.4.2.3.1}{Bestimmung der stabilen Knoten}{subsection.4.2.3}% 70
+\BOOKMARK [3][]{subsubsection.4.2.3.2}{Kanteneinf\374gung}{subsection.4.2.3}% 71
+\BOOKMARK [1][]{section.4.3}{Objekterkennung und Verfolgung}{chapter.4}% 72
+\BOOKMARK [2][]{subsection.4.3.1}{Vergleichung der Objekte}{section.4.3}% 73
+\BOOKMARK [2][]{subsection.4.3.2}{Bestimmung der Orientierung}{section.4.3}% 74
+\BOOKMARK [1][]{section.4.4}{Bilder Steuerung}{chapter.4}% 75
+\BOOKMARK [0][]{chapter.5}{Experimentelle Auswertung}{}% 76
+\BOOKMARK [0][]{chapter.6}{Schlusswort}{}% 77
+\BOOKMARK [0][]{appendix*.2}{Literaturverzeichnis}{}% 78
