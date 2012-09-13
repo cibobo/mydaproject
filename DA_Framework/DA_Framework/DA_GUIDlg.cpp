@@ -150,6 +150,7 @@ void CDA_GUIDlg::DoDataExchange(CDataExchange* pDX)
 
 	DDX_Control(pDX, IDC_EDIT_MODELNAMES, LoadingNameEdit);
 	DDX_Control(pDX, IDC_CHECK_ONLINESAVED, OutputSavedCheck);
+	DDX_Control(pDX, IDOK, RunButton);
 }
 
 BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
@@ -291,36 +292,44 @@ HCURSOR CDA_GUIDlg::OnQueryDragIcon()
 //OnClick listener for the Run button
 void CDA_GUIDlg::OnBnClickedOk()
 {
+	if(pMainThread->bDone){
+		pMainThread->bDone = false;
 
-	//If in Recognitions modul
-	if(pMainThread->isRecognise){
-		//If the test modul has been selected
-		if(pMainThread->pRecognition->isTest){
-			pMainThread->pRecognition->loadModels();
-		}
+		//If in Recognitions modul
+		if(pMainThread->isRecognise){
+			//If the test modul has been selected
+			if(pMainThread->pRecognition->isTest){
+				pMainThread->pRecognition->loadModels();
+			}
 
-		//If the load modul has been selected
-		if(pMainThread->pRecognition->isLoad){
-			vector<string> namesVec;
-			//Get the models' names
-			CString str;
-			this->LoadingNameEdit.GetWindowTextA(str);
-			string names((LPCTSTR)str);
-			int findPos;
-			//find the names, which are separated with ','
-			while((findPos=names.find(','))!=string::npos){
-				namesVec.push_back(names.substr(0, findPos));
-				names.erase(names.begin(), names.begin()+findPos+1);
+			//If the load modul has been selected
+			if(pMainThread->pRecognition->isLoad){
+				vector<string> namesVec;
+				//Get the models' names
+				CString str;
+				this->LoadingNameEdit.GetWindowTextA(str);
+				string names((LPCTSTR)str);
+				int findPos;
+				//find the names, which are separated with ','
+				while((findPos=names.find(','))!=string::npos){
+					namesVec.push_back(names.substr(0, findPos));
+					names.erase(names.begin(), names.begin()+findPos+1);
+				}
+				if(names.size()>0){
+					namesVec.push_back(names);
+				}
+				//Load models with these names
+				pMainThread->pRecognition->loadModels(namesVec);
 			}
-			if(names.size()>0){
-				namesVec.push_back(names);
-			}
-			//Load models with these names
-			pMainThread->pRecognition->loadModels(namesVec);
 		}
+		pMainThread->run();
+		//Set the Button to Stop
+		this->RunButton.SetWindowTextA("Stop");
+	} else {
+		pMainThread->bDone = true;
+		this->RunButton.SetWindowTextA("Run");
 	}
 
-	pMainThread->run();
 	//Update the Dialog data
 	UpdateData(true);
 }

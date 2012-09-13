@@ -11,6 +11,13 @@ Evaluator::Evaluator(const char *path){
 	this->createPath(path);
 }
 
+Evaluator::Evaluator(const char *path, const char *fileName){
+	this->defaultRootPath = "./evaluation";
+	this->createPath(path);
+	this->createCSVFile(fileName);
+}
+
+
 void Evaluator::createPath(const char *subPath){
 	string path = string(this->defaultRootPath);
 	path.append("/");
@@ -70,4 +77,16 @@ void Evaluator::saveCSVData(const char* fileName, vector<float> data){
 		*(f)<<data[i]<<" ";
 	}
 	*(f)<<endl;
+}
+
+void Evaluator::beginCSVLine(){
+	this->evaLineData.clear();
+}
+
+void Evaluator::pushCSVData(float value){
+	this->evaLineData.push_back(value);
+}
+
+void Evaluator::endCSVLine(){
+	this->saveCSVData(this->evaLineData);
 }

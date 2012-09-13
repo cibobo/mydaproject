@@ -23,7 +23,7 @@ MainThread::MainThread(){
 	pObjViewContext = new OpenGLContext;
 
 
-	bDone = false;
+	bDone = true;
 	isPause = false;
 	isDataUsed = false;
 
@@ -167,9 +167,7 @@ DWORD MainThread::calculationThreadProc(void){
 		if(isDiff){
 			pDetector->setDetectedData(currentBildData);
 			pDetector->usingSTAR();
-			pDetector->createPMDFeatures();
-
-			
+			pDetector->createPMDFeatures();	
 		}
 
 		if(this->isLearning){

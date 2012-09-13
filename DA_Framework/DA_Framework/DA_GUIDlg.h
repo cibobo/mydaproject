@@ -88,4 +88,6 @@ public:
 	CButton OutputSavedCheck;
 	afx_msg void OnBnClickedCheckOnlinesaved();
 	afx_msg void OnEnChangeEditOnlinepath();
+	// The Button to run and stop the programm
+	CButton RunButton;
 };
