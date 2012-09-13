@@ -59,6 +59,8 @@
 #define FRAMERATE_MAX 300
 
 
+//Whether the Evaluator is active
+#define EVALUATION
 
 
 #ifdef _UNICODE

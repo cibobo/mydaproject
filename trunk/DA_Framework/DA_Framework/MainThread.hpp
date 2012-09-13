@@ -8,6 +8,7 @@
 #include <list>
 
 //#include "BildData.hpp"
+#include "Evaluator.hpp"
 #include "DistanceFilter.hpp"
 #include "FrameIterator.hpp"
 //#include "ImageProcess.hpp"
