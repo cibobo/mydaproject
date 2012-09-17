@@ -21,6 +21,8 @@ public:
 
 	// Create the saving path of the evaluation's data
 	void createPath(const char *subPath);
+	// Create the saving path with the current date
+	void createPathWithDate();
 	// Create the saving path with the current time
 	void createPathWithTime();
 	// Create a csv File with the user defined name
@@ -31,6 +33,10 @@ public:
 	void saveCSVData(vector<float> data);
 	// Save the data into the user defined csv File
 	void saveCSVData(const char* fileName, vector<float> data);
+	// Write the decription title
+	void writeCSVTitle(const char* title);
+	// Write the decription title
+	void writeCSVTitle(const char* fileName, const char* title);
 
 	// Begin to saving the data in a new line of the CSV file
 	void beginCSVLine();

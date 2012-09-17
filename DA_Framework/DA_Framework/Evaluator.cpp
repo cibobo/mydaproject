@@ -3,7 +3,8 @@
 
 Evaluator::Evaluator(){
 	this->defaultRootPath = "./evaluation";
-	this->createPathWithTime();
+	//this->createPathWithTime();
+	this->createPathWithDate();
 }
 
 Evaluator::Evaluator(const char *path){
@@ -19,11 +20,20 @@ Evaluator::Evaluator(const char *path, const char *fileName){
 
 
 void Evaluator::createPath(const char *subPath){
+	CreateDirectory(subPath, NULL);
 	string path = string(this->defaultRootPath);
 	path.append("/");
 	path.append(subPath);
 	CreateDirectory(path.data(), NULL);
 	this->defaultSavePath = path;
+}
+
+void Evaluator::createPathWithDate(){
+	time_t curTime;
+	time(&curTime);
+	string subPath = ctime(&curTime);
+	subPath = subPath.substr(0,10);
+	createPath(subPath.data());
 }
 
 void Evaluator::createPathWithTime(){
@@ -77,6 +87,18 @@ void Evaluator::saveCSVData(const char* fileName, vector<float> data){
 		*(f)<<data[i]<<" ";
 	}
 	*(f)<<endl;
+}
+
+void Evaluator::writeCSVTitle(const char *title){
+	ofstream *f  = (this->dataFiles.begin())->second;
+	*(f)<<"#Description#"<<endl;
+	*(f)<<"#"<<title<<"#"<<endl;
+}
+
+void Evaluator::writeCSVTitle(const char* fileName, const char* title){
+	ofstream *f = this->dataFiles[fileName];
+	*(f)<<"#Description#"<<endl;
+	*(f)<<"#"<<title<<"#"<<endl;
 }
 
 void Evaluator::beginCSVLine(){

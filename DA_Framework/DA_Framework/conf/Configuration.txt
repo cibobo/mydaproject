@@ -97,14 +97,14 @@ Box_all4,Box_all2
 # is offline
 1
 # load direction
-EvaMarkerSize
+Eva3DRotation
 # framerate
 30
 #----Visualisation----#
 # is Open real-time Ovservin Window
-1
+0
 # is Open Result Window
-1
+0
 # is Open help OpenCV Windows
 1
 #----Distance Filter----#
