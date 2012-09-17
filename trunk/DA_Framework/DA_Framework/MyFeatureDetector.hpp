@@ -18,6 +18,7 @@ public:
 	void createPMDFeatures();
 
 
+	double energie;
 	Mat detectedMat;
 	BildData *detectedData;
 	vector<KeyPoint> keypoints;

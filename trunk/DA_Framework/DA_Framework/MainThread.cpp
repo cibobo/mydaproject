@@ -128,19 +128,44 @@ void MainThread::run(){
 }
 
 DWORD MainThread::calculationThreadProc(void){
-	//DWORD InputThreadID, OpenGLThreadID, OpenCVThreadID;
-	//if(this->isOffline){
-	//	CreateThread(NULL, 0, this->beginInputThread, (void*)this, 0, &InputThreadID);
-	//} 
-
-	//if(this->isObservingWindowVisible){
-	//	CreateThread(NULL, 0, this->beginOpenGLSceneThread, (void*)this, 0, &OpenGLThreadID);
-	//}
-
 	EnterCriticalSection (&glInitCrs);
 	EnterCriticalSection (&cvInitCrs);
 	LeaveCriticalSection (&cvInitCrs);
 	LeaveCriticalSection (&glInitCrs);
+
+#ifdef EVALUATION
+	string EVA_RootPath = string("2012.09.17");
+	EVA_RootPath.append("/");
+	EVA_RootPath.append(this->INPUTPATH);
+	//const char *EVA_RootPath = "2012.09.17/EmptyBox";
+
+	Evaluator *pEvaluator = new Evaluator(EVA_RootPath.data());
+
+	//DFilter
+#ifdef EVA_DFILTER
+#ifdef NO_DFILTER
+	const char *dFilterFileName = "Without Distance Filter";
+#else 
+	const char *dFilterFileName = "With Distance Filter";
+#endif
+	pEvaluator->createCSVFile(dFilterFileName);
+	pEvaluator->writeCSVTitle(dFilterFileName, "FrameIndex, x, y, z, Features, Sammed Features");
+#endif
+
+	//Brightness Control
+#ifdef EVA_CBRIGHTNESS
+	const char *brightnessFileName = "Without Brightness Control";
+	pEvaluator->createCSVFile(brightnessFileName);
+	pEvaluator->writeCSVTitle(brightnessFileName, "FrameIndex, x, y, z, Features, Sammed Features, End Contrast, End Energie");
+#endif
+
+	//Association
+#ifdef EVA_ASSOCIATION
+	const char *associationFileName = "With alternative Variance";
+	pEvaluator->createCSVFile(associationFileName);
+	pEvaluator->writeCSVTitle(associationFileName, "FrameIndex, x, y, z, Features, Sammed Features, Correspondenz Pairs, Association Variance");
+#endif
+#endif
 
 	while(!bDone){
 
@@ -161,8 +186,15 @@ DWORD MainThread::calculationThreadProc(void){
 		// Gaussian Filter
 		ImageProcess::filterDepthDate(currentBildData->threeDData, 0.3);
 
+#ifndef NO_DFILTER
 		// Distance Filter
 		bool isDiff = this->pDFilter->Filte(currentBildData, currentBildData->filteredData);
+#else
+		// For the evalutation, close the DistanceFilter
+		bool isDiff = true;
+		memcpy(currentBildData->filteredData, currentBildData->ampData, sizeof(float)*H_BILDSIZE*V_BILDSIZE);
+#endif
+
 
 		if(isDiff){
 			pDetector->setDetectedData(currentBildData);
@@ -191,6 +223,34 @@ DWORD MainThread::calculationThreadProc(void){
 		if(this->isRecognise){
 			pRecognition->objectRecognition(pDetector->PMDFeatures);
 		}
+
+		//Code of the Evaluation
+#ifdef EVALUATION
+		vector<float> evaData;
+		evaData.push_back(this->pIterator->frameIndex);
+		Point3f midPoint = this->pLearning->pObject->getMiddelPoint();
+		evaData.push_back(midPoint.x);
+		evaData.push_back(midPoint.y);
+		evaData.push_back(midPoint.z);
+		evaData.push_back(this->pDetector->PMDFeatures.size());
+		evaData.push_back(this->pLearning->curBildData->features.size());
+
+#ifdef EVA_DFILTER
+		pEvaluator->saveCSVData(dFilterFileName, evaData);
+#endif
+
+#ifdef EVA_CBRIGHTNESS
+		evaData.push_back(this->pDetector->contrast);
+		evaData.push_back(this->pDetector->energie);
+		pEvaluator->saveCSVData(brightnessFileName, evaData); 
+#endif
+
+#ifdef EVA_ASSOCIATION
+		evaData.push_back(this->pLearning->curAssPoints.size());
+		evaData.push_back(this->pLearning->associateVariance);
+		pEvaluator->saveCSVData(associationFileName, evaData);
+#endif
+#endif
 
 		this->isDataUsed = true;
 		LeaveCriticalSection (&calcCrs);
@@ -440,6 +500,7 @@ DWORD MainThread::openCVHelpThreadProc(void)
 	LeaveCriticalSection (&cvInitCrs);
 
 	while(!bDone){	
+		
 		// Create Matrix to save the RGB images for both current and historical frames
 		//Matrix for Feature Detection
 		Mat feaMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
@@ -447,20 +508,22 @@ DWORD MainThread::openCVHelpThreadProc(void)
 		Mat hisMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
 
 		// Get data from float array to Matrix
-		EnterCriticalSection (&calcCrs);
+		
 		BildData* curBildData = pIterator->getCurrentBildData();
 		BildData* hisBildData = pIterator->getHistoricalBildData();
 
+		EnterCriticalSection (&calcCrs);
 		ImageProcess::transFloatToMat3(curBildData->filteredData, feaMat, pDetector->balance, pDetector->contrast);
-		
-		
-		LeaveCriticalSection (&calcCrs);
+		vector<KeyPoint> keyPoints = pDetector->keypoints;
 
+		LeaveCriticalSection (&calcCrs);
+		
 		// The Window for feature Detection
-		for(int i=0;i<pDetector->keypoints.size();i++){
-			circle(feaMat, pDetector->keypoints[i].pt, 1, Scalar(0,0,255,0), -1);
+		for(int i=0;i<keyPoints.size();i++){
+			circle(feaMat, keyPoints[i].pt, 1, Scalar(0,0,255,0), -1);
 		}
 		imshow("OpenCVFeatureDetection", feaMat);
+		
 
 
 

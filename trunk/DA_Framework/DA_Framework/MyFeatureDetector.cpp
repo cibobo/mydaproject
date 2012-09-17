@@ -30,6 +30,8 @@ MyFeatureDetector::MyFeatureDetector(){
 	planeCombiMinPts = 2;
 
 	detectedMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC1);
+
+	energie = 0;
 }
 
 void MyFeatureDetector::usingSTAR(){
@@ -61,7 +63,6 @@ void MyFeatureDetector::setDetectedData(BildData *data){
 }
 
 int MyFeatureDetector::brightnessControllSTAR(){
-	double energie = 0;
 	//if lesser than 7 features have been found
 	if(keypoints.size() < MINFEATURECOUNT){
 		//calculate the Energy of the frame
