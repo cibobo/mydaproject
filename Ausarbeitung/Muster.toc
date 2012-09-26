@@ -66,13 +66,23 @@
 \contentsline {section}{\numberline {4.2}Objektlernen}{48}{section.4.2}
 \contentsline {subsection}{\numberline {4.2.1}Bestimmung der Orientierung}{48}{subsection.4.2.1}
 \contentsline {subsection}{\numberline {4.2.2}Markenanordnung}{49}{subsection.4.2.2}
-\contentsline {subsection}{\numberline {4.2.3}Darstellung des Strukturgraphen}{49}{subsection.4.2.3}
-\contentsline {subsubsection}{\numberline {4.2.3.1}Bestimmung der stabilen Knoten}{49}{subsubsection.4.2.3.1}
-\contentsline {subsubsection}{\numberline {4.2.3.2}Kanteneinf\"ugung}{50}{subsubsection.4.2.3.2}
-\contentsline {section}{\numberline {4.3}Objekterkennung und Verfolgung}{51}{section.4.3}
-\contentsline {subsection}{\numberline {4.3.1}Vergleichung der Objekte}{51}{subsection.4.3.1}
-\contentsline {subsection}{\numberline {4.3.2}Bestimmung der Orientierung}{51}{subsection.4.3.2}
-\contentsline {section}{\numberline {4.4}Bilder Steuerung}{51}{section.4.4}
-\contentsline {chapter}{\numberline {5}Experimentelle Auswertung}{52}{chapter.5}
-\contentsline {chapter}{\numberline {6}Schlusswort}{53}{chapter.6}
-\contentsline {chapter}{{Literaturverzeichnis}}{55}{appendix*.2}
+\contentsline {subsection}{\numberline {4.2.3}Darstellung des Strukturgraphen}{50}{subsection.4.2.3}
+\contentsline {subsubsection}{\numberline {4.2.3.1}Bestimmung der stabilen Knoten}{50}{subsubsection.4.2.3.1}
+\contentsline {subsubsection}{\numberline {4.2.3.2}Kanteneinf\"ugung}{51}{subsubsection.4.2.3.2}
+\contentsline {section}{\numberline {4.3}Zugriff des Strukturgraphen von Datei}{52}{section.4.3}
+\contentsline {section}{\numberline {4.4}Objekterkennung und Verfolgung}{53}{section.4.4}
+\contentsline {subsection}{\numberline {4.4.1}Kandidaten der Objekterkennung}{53}{subsection.4.4.1}
+\contentsline {subsection}{\numberline {4.4.2}Objekterkennung}{54}{subsection.4.4.2}
+\contentsline {subsection}{\numberline {4.4.3}Bestimmung der Orientierung}{56}{subsection.4.4.3}
+\contentsline {section}{\numberline {4.5}Bildersteuerung}{57}{section.4.5}
+\contentsline {chapter}{\numberline {5}Experimentelle Auswertung}{59}{chapter.5}
+\contentsline {section}{\numberline {5.1}Teilweise Evaluation}{59}{section.5.1}
+\contentsline {subsection}{\numberline {5.1.1}Abstand Filter}{59}{subsection.5.1.1}
+\contentsline {subsection}{\numberline {5.1.2}Helligkeitssteuerung}{59}{subsection.5.1.2}
+\contentsline {subsection}{\numberline {5.1.3}Verbesserung der Singul\"arwertzerlegungsverfahren}{59}{subsection.5.1.3}
+\contentsline {subsection}{\numberline {5.1.4}Aktualisierung des Strukturgraphen}{59}{subsection.5.1.4}
+\contentsline {subsection}{\numberline {5.1.5}Teilgraph-Isomorphismus}{59}{subsection.5.1.5}
+\contentsline {subsection}{\numberline {5.1.6}Bildersteuerung}{59}{subsection.5.1.6}
+\contentsline {section}{\numberline {5.2}Globale Evaluation}{59}{section.5.2}
+\contentsline {chapter}{\numberline {6}Schlusswort}{61}{chapter.6}
+\contentsline {chapter}{{Literaturverzeichnis}}{63}{appendix*.2}

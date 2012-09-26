@@ -182,6 +182,7 @@ Der formulierte Durchlauf wird im Algorithmus~\ref{KS} gefunden. Die Anzahl der 
 
 
 \subsection{Markenverfolgung}
+\label{MV}
 \subsubsection{Verbesserung der Singulärwertzerlegungsverfahren}
 Nach erfolgreicher Festlegung der Marken jedes Bildes sollen dann die Korrespondenzen der Marken von zwei nachfolgenden Bildern untersucht werden. Die Korrespondenzpunkte können durch das Verfahren der Singulärwertzerlegung von Scott und Higgnis \cite{SL91} bestimmt werden. Die genaue Beschreibung ihres Verfahrens wird im Schnitt~\ref{KdS} aufgeführt, und Algorithmus~\ref{alg1} gibt den Peseudocode des Verfahrens an. In dieser Arbeit werden vier Verbesserungen für das Verfahren von Scott und Higgnis gemacht, damit der die stabileren Ergebnisse erzeugt und die Qualität der Korrespondenzuntersuchung bewertet werden kann. 
 \\
@@ -209,7 +210,7 @@ Die Einheit des Abstands $\sigma$ ist der wesentliche Parameter des Singulärwert
 Das verbesserte Algorithmus wird im Algorithmus~\ref{algSVD} gezeigt.
 
 \begin{algorithm}                     
-\caption{Bestimmung der korrespondierenden Punktpaare durch Singulärwertzerlegung}         
+\caption{Korrespondenzuntersuchung}         
 \label{algSVD}                          
 \begin{algorithmic}
 	\State Korrespondierende Punktpaare: $Result$                    
@@ -251,17 +252,20 @@ Das verbesserte Algorithmus wird im Algorithmus~\ref{algSVD} gezeigt.
 \end{algorithm}
 
 \subsection{Segmentierung}
-Bis jetzt sind alle erkannten Marken eine Bildes als eine Menge der Punkte zusammen betrachtet. Die Segmentierung soll dann durchgeführt werden, um die Marken für verschiedene Objekte zu verteilen. Die Hauptidee ist, dass eine Menge der Marken als die Merkmale von gleichem Objekt erkannt werden, genau dann, wenn die Abstände zwischen der Punkte der Menge viel kleiner als die Abstände von den Punkten zu den anderen Punkte anderer Menge sind. Die Problemstellung der Segmentierung ist gleich wie ein Clusting-Problem, deshalb wird hier in dieser Arbeit der Clusting-Algorithmus DBSCAN benutzt. Die Beschreibung des Verfahrens wird im Abschnitt \ref{Dbscan} gezeigt und der genaue Durchlauf wird von Algorithmus~\ref{algDBSCAN} erklärt.	Eine Liste der Punktmengen werden von DBSCAN ausgegeben, und jedes deren Element stimmt mit der Merkmalen eins Objekts überein. Da es zumindest 3 Punkte benötigt, die Lage des räumlichen Körper in 3D Raum zu bestimmen, werden die Punktmengen von Ausgabe der DBSCAN als Rausch erkannt, die weniger als 3 Punkte enthalten.
+\label{Seg}
+Bis jetzt sind alle erkannten Marken eines Bildes als eine Menge der Punkte zusammen betrachtet, die dann segmentiert werden soll, um die Marken für verschiedene Objekte zu verteilen. Die Hauptidee ist, dass die Marken als die Merkmale von gleichem Objekt erkannt werden, genau dann, wenn die Abstände zwischen diesen Marken viel kleiner als die Abstände von ihr zu den anderen erkannten Marken sind. Die Problemstellung der Segmentierung ist gleich wie ein Clusting-Problem, deshalb wird in dieser Arbeit der Clusting-Algorithmus DBSCAN für die Segmentierung benutzt. Die Beschreibung des Verfahrens wird im Abschnitt \ref{Dbscan} gezeigt und der genaue Durchlauf wird von Algorithmus~\ref{algDBSCAN} erklärt.	Eine Liste der Punktmengen werden von DBSCAN ausgegeben, und jedes deren Element stimmt mit der Merkmalen eines Objekts überein. Da es zumindest 3 Punkte benötigt, um die Lage des räumlichen Körpers im 3D Raum zu bestimmen, werden die Punktmengen von Ausgabe der DBSCAN als Rauschen erkannt, die weniger als 3 Punkte enthalten.
 
 \section{Objektlernen}
-Nach der erfolgreichen Markenanalyse werden eine Menge der Marken aus den Eingabebildern herausgefunden und sind weiterhin die Abhängigkeiten dieser Marken zwischen benachbarten Bilder bekannt. Die Menge der Marken wird danach für unterschiedlichen Objekte weiter verteilt. Im diesen Abschnitt wird es erklärt, wie ein charakteristisches Graph des Objekts mithilfe der erkannten Marken dargestellt werden kann. Diese Arbeit berücksichtigt im Objektlernen die vereinfachte Situation mit der Annahme, dass einmal nur ein Objekt in der Eingabebilder vorkommt. Deshalb wird die größten Punktmenge von Segmentierungsergebnis ausgewählt, die als die Eingabe der folgenden Arbeitsschritte eingestellt wird. 
+\label{OL}
+Nach der erfolgreichen Markenanalyse werden eine Menge der Marken aus den Eingabebildern herausgefunden. Weiterhin sind die Abhängigkeiten dieser Marken zwischen benachbarten Bildern auch bekannt. Durch die Segmentierung werden diese Marken danach für unterschiedlichen Objekte weiter verteilt. Im diesen Abschnitt wird es erklärt, wie ein charakteristischer Graph des Objekts mithilfe der erkannten Marken dargestellt werden kann. In dieser Arbeit wird im Objektlernen die vereinfachte Situation berücksichtigt, dass einmal nur ein Objekt in den Eingabebildern vorkommt. Deshalb wird nur die größten Punktmenge von Segmentierungsergebnis für Objektlernen ausgewählt, die als die Eingabe der folgenden Arbeitsschritte eingestellt wird. 
 
 \subsection{Bestimmung der Orientierung}
 \label{BdO}
-Um ein Objekt zu lernen, muss das Objekt mit Marken zuerst zu der Kamera gezeigt und sich langsame umdreht werden. Zwischen der Umdrehung werden dann die relativen Positionen der Marken an jeder Ebene bestimmt. Deshalb sollen die Lagen der bekannten Marken in diesem Ablauf rechtzeitig aktualisiert werden, was als eine Orientierungsproblem formuliert werden kann. In dieser Arbeit wird der Verfahren von \cite{H87} verwendet, um die Transformation der bekannten Marken zwischen nachfolgenden Bildern zu berechnen. Der genaue Durchlauf wird im Abschnitt \ref{QmE} aufgeführt. Zuerst sollen die Schwerpunkte der erkannten Marken herausgefunden werden (sehen Formel~\eqref{QuaSch}). Dann berechnet man die Vektoren, die von alle Marken zu ihren entsprechenden Schwerpunkte richten. Drittens wird die Korrelationsmatrix $H$ durch Formel~\eqref{QuaH} mit diesen Vektoren bestimmt werden. Die Hilfematrix $N$ in Formel~\eqref{QuaN} bestehlt aus den Elementen der Matrix $H$, und Ein von ihren Eigenvektoren ist genau die Einheitsquaternion für die Rotation, der den größten positiven Eigenwert entspricht. Die Rotationsmatrix bzw. die Translationsmatrix unter kartesischem Koordinatensystem werden durch jeweils die Formel~\eqref{QuaR} und \eqref{QTran} berechnet.
+Um ein Objekt zu lernen, muss das Objekt mit Marken zuerst zu der Kamera gezeigt und sich langsame umdreht werden. Zwischen der Umdrehung werden dann die relativen Positionen der Marken an jeder Ebene bestimmt. Deshalb sollen die Lagen der bekannten Marken in diesem Ablauf rechtzeitig aktualisiert werden, was als ein Orientierungsproblem formuliert werden kann. In dieser Arbeit wird der Verfahren von \cite{H87} verwendet, um die Transformation der bekannten Marken zwischen nachfolgenden Bildern zu berechnen. Der genaue Durchlauf wird im Abschnitt \ref{QmE} aufgeführt. Zuerst sollen die Schwerpunkte der erkannten Marken herausgefunden werden (sehen Formel~\eqref{QuaSch}). Dann berechnet man die Vektoren, die von alle Marken zu ihren entsprechenden Schwerpunkten richten. Drittens wird die Korrelationsmatrix $H$ durch Formel~\eqref{QuaH} mit diesen Vektoren bestimmt werden. Die Hilfematrix $N$ in Formel~\eqref{QuaN} bestehlt aus den Elementen der Matrix $H$, und Ein von ihren Eigenvektoren ist die Einheitsquaternion für die Rotation, genau dann, wenn der den größten positiven Eigenwert entspricht. Die Rotation- bzw. die Translationsmatrix unter kartesischem Koordinatensystem werden durch jeweils die Formel~\eqref{QuaR} und \eqref{QTran} berechnet.
 \\
 \\
-Die Lage des Objekts von jedem Bild hängt nur von der Lage des Objekt von vorherigem Bild ab. Wegen der kontinuierlichen Bestimmung der Orientierung des Objekts während des Lernens, wird großes Verschieben erzeugt, obwohl nur winziger Fehler zwischen jedem zwei Bildern vorkommt. In dieser Arbeit wird das Kalman-Filter über die Translation des Schwerpunkts von Objekt benutzt, um die kumulative negative Wirkung jedes Schritts zu verdecken. Die Grundlage des Kalma-Filters wird im Abschnitt~\ref{KF} aufgeführt. Die Übergangsmatrix des Schwerpunkts des Objekts im 3D Raum kann definiert als:
+Die Lage des Objekts von jedem Bild hängt nur von der Lage des Objekts von vorherigem Bild ab. Wegen der kontinuierlichen Bestimmung der Orientierung des Objekts während des Objektlernens, kommt häufig großes
+Verschieben zwischen der realen und berechneten Lage des Objekt in einem langen Bilderstrom vor, obwohl es nur winziger Fehler zwischen jedem zwei Bildern gibt. In dieser Arbeit wird das Kalman-Filter über die Translation des Schwerpunkts von Objekt benutzt, um die kumulative negative Wirkung jedes Schritts zu verdecken. Die Grundlage des Kalma-Filters wird im Abschnitt~\ref{KF} aufgeführt. Die Übergangsmatrix des Schwerpunkts des Objekts im 3D Raum kann definiert als:
 
 \[
 F = 
@@ -275,18 +279,34 @@ F =
 \end{pmatrix},
 \] 
 
-was die Lage und Geschwindigkeit der Bewegung gleichzeitig betrachtet. Die Beobachtungsmatrix ist die Einheitsmatrix mit Größe 3$\times$3, weil der Schwerpunkt des Objekts als Eingabe zur Korrektorsphase eingegeben wird. OpenCV liefert eine komplette Implementierung über Kalman-Filter, was hier in dieser Arbeit direkt verwendet wird.
+was die Lage und Geschwindigkeit der Bewegung gleichzeitig betrachtet. Die Beobachtungsmatrix ist die Einheitsmatrix mit Größe 3$\times$3, weil der Schwerpunkt des Objekts $\in R^{3\times 1}$ als Eingabe zur Korrektorsphase eingegeben wird. OpenCV liefert eine komplette Implementierung über Kalman-Filter, was hier direkt verwendet wird.
 
 \subsection{Markenanordnung}
+Wie im Anfang des Abschnittes~\ref{BdO} geschrieben hat, soll während der Lernensphase die Lage betrachtetes Objekts in jedem Bild bestimmt werden. Es benötigt zumindest in zwei Bildern jeweils 3 nicht kollinearen Punkten des Objekts, damit die Transformation zwischen der Lage dieses Objekts in diesen zwei Bildern bestimmt werden kann. Je mehr die Punkte betrachtet werden, desto exaktere Transformation in der Theorie berechnet werden kann. Aber wegen der Auflösung der Kamera in dieser Arbeit wird die Größe der Marken bzw. die Abstände der Marken stark beschränkt. D.h. es ist unmöglich, beliebig viele Marken an dem Objekt anzubringen. Deshalb soll eine Strategie für die Anordnung der Marken entworfen werden, damit die beste Transformation mit möglich wenigeren Marken bestimmt werden kann.
+\\
+\\
+Die Anordnungsstrategie wird in 5 Regeln zusammengefasst.
+\begin{enumerate}
+	\item Die Größen der Marken dürfen nicht zu klein sein.
+	\item Die Abstände zwei Marken sollen nicht zu eng.
+	\item Jedes Tripel der Marken soll nicht kollinear sein.
+	\item Um Grenze zweier Ebenen des Objekts sollen mehr Marken als in Mitte angebracht werden.
+	\item Der Strukturgraph jeder Ebene soll möglich unsymmetrisch sein.
+\end{enumerate}
+
+Die erste und zweite Regel hängen direkt von der Auflösung der Kamera ab, was schon im Abschnitt~\ref{AueM} diskutiert wurde. Die dritte Regel garantiert, dass die Orientierung des Objekts durch beliebigen drei Marken immer berechnet werden kann. Was in Regel 1 definierte minimale erkennbare Markengröße entspricht aber nur die Situation, dass die Marken mit der Bildebene der Kamera parallel sind. Wenn ein Objekt sich umdreht, verändert der Winkel zwischen der aktuellen beobachteten Ebene und der Kamera, wodurch werden die Marken auf dem Ebene zum kleineren Bereich auf dem Bild abgebildet. Die Größen der Marken auf dieser Ebene scheinen immer kleiner in dem Bild mit der Vergrößerung des Drehwinkels, bis sie komplette senkrecht zu der Bildebene liegt und die nächste Ebene vollständig unter Kamera vorkommt. Je keiner die Marken sind, desto sie schwieriger erkannt werden. Deshalb sollen mehr Marken im Bereich zwischen zwei benachbarten Ebenen angebracht werden, damit das Programm genug Marken für die Berechnung der Orientierung erhalten kann. Das ist genau was in Regel 4 erklärt wird. Die Asymmetrie von Regel 5 hält die Einzigartigkeit der Transformation zwischen zwei unterschieden Lagen des Objekts, d.h. nur eine Lösung wird von dem Orientierungsverfahren bestimmt.
+
 
 \subsection{Darstellung des Strukturgraphen}
-Das Ziel des Lernens ist, dass ein Strukturgraph für jedes eingegebenen Objekt erzeugt wird, welche als die Charakteristiken für Wiedererkennung verwendet werden können. Um das Ziel zu erreichen, sollen die Strukturgraphen stabil sein und genug charakteristische Information des Objekts enthalten. Die Stabilität bedeutet, dass gleichen Strukturgraphen für ein Objekt während viel mal Lernen dargestellt werden sollen. Die Information, die in Wiedererkennung benötigt wird, wird von der Positionen der Marken bzw. der Abstände dazwischen liefert. Die Verfahren der Bestimmungen der charakteristische Marken und Kanten werden in folgenden Abschnitten diskutiert.
+\label{DdS}
+Das Ziel des Lernens ist, dass ein Strukturgraph für jedes eingegebenen Objekt erzeugt wird, welche als die Charakteristiken für Wiedererkennung verwendet werden können. Um das Ziel zu erreichen, sollen die Strukturgraphen stabil sein und genug charakteristische Information des Objekts enthalten. Die Stabilität bedeutet, dass der Strukturgraph für ein Objekt während viel mal Lernen gleich dargestellt werden sollen. Die Information, die in Wiedererkennung benötigt ist, wird durch die Positionen der Marken bzw. die Abstände dazwischen erzeugt. Die Verfahren der Bestimmungen der charakteristische Marken und Kanten werden in folgenden Abschnitten diskutiert.
 
 \subsubsection{Bestimmung der stabilen Knoten}
-Nach der Markenerkennung werden viele Marken aus dem Bild erkannt, die aber viel Rauschen enthalten. Das Rauschen wird von den falschen erkannten Merkmalen des Objekt bzw. der Umgebung oder den schlechten Korrespondenzpunkten verursacht. Deshalb benötigt das Programm eine Strategie für die Auswahl der gültigen Marken. In dieser Arbeit wird die Auswahl auf den Erscheinungshäufigkeiten basiert, d.h. nur die Marken, die vielmals vorgekommen sind, werden zu den gültigen Marken erkannt und in den Strukturgraph eingefügt. Außer der Beschränkung der Anzahl der Erscheinungen soll aber auch der Begriff von ,,Identität'' zweier Marken in unterschiedlichen Bildern definiert werden. Zwei Marken von verschiedenen Bildern sind identisch, genau dann, wenn der Abstand von einer Marke zu dem Punkt, der von anderer Marke nach Transformation erzeugt wird, kleiner als einen vorgegebenen Schwellenwert ist. Die Transformation umfasst die Rotation- bzw. Translationsmatrix, die mit dem Verfahren vom Abschnitt~\ref{BdO} bestimmt werden. 
+\label{BdsK}
+Nach der Markenerkennung werden viele Marken aus dem Bild erkannt, die aber viel Rauschen enthalten. Das Rauschen wird von den falschen erkannten Merkmalen des Objekt bzw. der Umgebung oder den schlechten Korrespondenzpunkten verursacht. Deshalb benötigt das Programm eine Strategie für die Auswahl der gültigen Marken. In dieser Arbeit wird die Auswahl auf den Erscheinungshäufigkeiten basiert, d.h. nur die Marken, die vielmals kontinuierlich vorgekommen sind, werden zu den gültigen Marken erkannt und in den Strukturgraphen eingefügt. Diese Marken werden als stabilen Knoten in dem Strukturgraphen markiert, und dürfen nicht verändert werden. Außer der Beschränkung der Anzahl der Erscheinungen soll aber auch der Begriff von ,,Identität'' zweier Marken in unterschiedlichen Bildern definiert werden. Zwei Marken von verschiedenen Bildern sind identisch, genau dann, wenn der Abstand von einer Marke zu dem Punkt, der von anderer Marke nach Transformation erzeugt wird, kleiner als einen vorgegebenen Schwellenwert ist. Die Transformation umfasst die Rotation- bzw. Translationsmatrix, die mit dem Verfahren vom Abschnitt~\ref{BdO} bestimmt werden. 
 
 \subsubsection{Kanteneinfügung}
-Die ungerichteten Kanten von Strukturgraph speichern die Abstände zwischen den Knoten des Graphen, was die wichtigste Eigenschaft für die Wiedererkennung ist. Die Knoten, die gleichzeitig beobachtet werden können, werden in einem vollständigen Graph mit den anderen verbunden. Wenn irgendwann ein neuer Knoten in den Graphen eingefügt wird, verbindet der mit allen vorhandenen Knoten des Graphen. Der analoge Durchlauf wird während der Entfernung eines ungültigen Knotens aus dem Graphen auch durchgeführt.
+Die ungerichteten Kanten von Strukturgraphen speichern die Abstände zwischen den Knoten des Graphen, was die wichtigste Eigenschaft für die Wiedererkennung ist. Die Knoten, die gleichzeitig beobachtet werden können, werden in einem vollständigen Graph mit den anderen verbunden. Wenn irgendwann ein neuer Knoten in den Graphen eingefügt wird, verbindet der mit allen vorhandenen Knoten des Graphen. Der analoge Durchlauf wird während der Entfernung eines ungültigen Knotens aus dem Graphen durchgeführt. Der Algorithmus~\ref{algAG} zeigt, wie der aktuelle Strukturgraph mit neu eingegebenen Punkten aktualisiert.
 
 \begin{algorithm}                     
 \caption{GraphUpdate($Punkte$ $P$, $Mat$ $R$, $Mat$ $T$)}         
@@ -321,10 +341,112 @@ Die ungerichteten Kanten von Strukturgraph speichern die Abstände zwischen den K
 \end{algorithmic}
 \end{algorithm}
 
-\section{Objekterkennung und Verfolgung}
+\section{Zugriff des Strukturgraphen von Datei}
+Das Ergebnis des Objektlernens ist ein Strukturgraph, der die Charakteristiken des betrachteten Objekts beschreibt. Die Knoten des Graphen werden als die 3D Punkten mit Gleitkommazahl definiert. Jeder Knoten enthält ein Map, wo seine Nachbarn und die Kantenlänge dazwischen paarweise gespeichert werden. Der Zugriff des Graphen von Datei soll dann implementiert werden, damit die Lernensergebnisse in der Festplatte gespeichert werden können. In dieser Arbeit wird die Dateiform von VTK (\cite{VTK}) benutzt, was als eine Open-Source-C++-Klassenbibliothek für die 3D Computergraphik und wissenschaftliche Visualisierung häufig verwendet wird. Der Vorteil der Verwendung der VTK Datei ist, dass die Ergebnisgraphen einfach weiter von den anderen Framework bzw. Software verwendbar sind. Das Abbildung~\ref{PV} ist das Screenshot von der Visualisierung eines Strukturgraphen mit Software ParaView \cite{PV}. Vor dem Speichern des Graphen, werden alle Knoten noch mal überprüft. Die ähnlichen Knoten sollen als einen einzigen Knoten kombiniert werden, damit nur ein vereinfachter Graph ohne verdoppelten Knoten gespeichert wird. VTK-Dateiform liefert vielen Stichwörter für Beschreibung der unterschiedlichen grundsätzlichen geometrischen Elemente, z.B. die Punkte, die Gerade und die Ebene usw.. Deshalb werden die Knoten und die Kanten des Strukturgraphen mit jeweils dem Stichwort ,,POINTS '' und ,,LINES'' in der VTK-Datei geschrieben. Diese Stichwörter sind auch die Kennzeichen bei dem Lesen der VTK-Datei. Die Punkte werden zuerst in einen neuen Graphen eingefügt, und verbindet dann mit anderen Knoten durch die gespeicherten Gerade.
 
-\subsection{Vergleichung der Objekte}
+\begin{figure}
+\centering
+\includegraphics[scale=0.3]{Abbildungen/ParaView.png}
+\caption{Visualisierung eines Strukturgraphen des Kästchens mit ParaView.}
+\label{PV}
+\end{figure}
+
+\section{Objekterkennung und Verfolgung}
+Die Strukturgraphen aller von Programm erlernten Objekte sollen am Anfang der Wiedererkennungsphase von den in der Festplatte gespeicherten VTK-Dateien wieder zum Programm eingelesen werden. Danach wird die Markenanalyse genau wie in der Lernensphase durchgeführt und wird am Ende eine Liste von Punktmenge erzeugt. Das Programm versucht dann, die Teilgraphen dieser Strukturgraphen aus die von der Punktmengen neu darstellenden Graphen zu finden, was zum sogenannten Teilgraph-Isomorphismus-Problem zusammengefasst wird. Für einziges Bild werden alle mögliche Kombination der Strukturgraphen und Punktmengen dieses Bildes durchgesucht. Die Objekte, deren Teilgraphen aus dem Eingabebild gefunden wurden, werden als erkannt genannt. Die entsprechenden Punktmengen im Eingabebild beschreiben nun die aktuellen Lagen der Objekte. Mit dem gleichen Ablauf können die Objekte in einem Bilderstrom kontinuierlich erkannt werden, aber was nicht möglich ist, die entsprechenden Punktmengen kontinuierlich festzulegen, weil die Marken von jedem Bild neu segmentiert werden und keine Verbindungen zwischen den ,,gleichen'' Punktmengen von unterschiedlichen Bildern existieren. Ein direkter Lösungsverfahren ist, dass jede Punktmenge aus Segmentierung sofort als ein neues Objekt erkannt wird. Der Vergleich von Teilgraph-Isomorphismus-Problem wird dann zwischen die Strukturgraphen zweier Objekte stattgefunden. Dadurch sollen viele Lernensprozesse während der Wiedererkennungsphase gleichzeitig durchgeführt werden, was kostet aber zu viele Zeit und ist schwierig zu implementieren. Die alternative Lösung ist, die sogenannte Kandidaten zu verwenden, in der nur die Abhängigkeiten der gleichen Punktmengen von unterschiedlichen Bildern gespeichert aber kein einziger Strukturgraph dargestellt werden.
+
+\subsection{Kandidaten der Objekterkennung}
+Wie im Abschnitt~\ref{Seg} geschrieben werden viele Punktmengen nach der Segmentierung erzeugt, welche mit unterschiedlichen Objekten übereinstimmen können. Die Kandidaten werden aus diesen Punktmengen bestehen und in einer Liste im Speicher gespeichert. Wenn das Programm ein neuen Eingabebild einliest, werden alle neue von Segmentierung erhaltenen Punktmengen mit vorhandenen Kandidaten verglichen. Der Kandidat, der mit Einer der neuen Punktmengen assoziiert, wird dann aktualisiert. Die übrige Punktmengen, die keine entsprechenden Kandidaten finden können, werden als neuen Kandidaten in der Liste eingefügt. Um die Leistungsfähigkeit zu halten, sollen die Kandidaten, die in langer Zeit nicht aktualisiert wurden, aus der Liste entfernt werden. Die Erkennung werden dann für jeden neu aktualisierten Kandidat durchgeführt. Der Index des am besten entsprechenden Objekts wird im Kandidat gespeichert.
+
+\subsection{Objekterkennung}
+
+\begin{figure}[ftb]
+\centering
+\includegraphics[scale=0.47]{Abbildungen/IsomorphKnoten.png}
+\caption{Ein Beispiel der isomorphen Knoten. $P$ und $P'$ sind zwei isomorphen Knoten, die jeweils vier Nachbarn mit gleicher Abständen haben. ($(P,V_1) = (P',V'_1)$, $(P,V_2) = (P',V'_2)$, $(P,V_3) = (P',V'_3)$, $(P,V_4) = (P',V'_4)$)}
+\label{IK}
+\end{figure}
+
+Die Objekterkennung basiert auf dem Vergleich zwischen den Strukturgraphen der erlernten Objekte und den Kandidaten, die von den neu segmentierten Punktmengen erzeugt werden. Ein neuer Graph wird zuerst von der Punkten eines Kandidaten dargestellt. Der Vergleich zwischen diesem Kandidat und den vorhandenen Strukturgraphen  können dann zum Teilgraph-Isomorphismus Problem abgleitet werden. Der Lösungsverfahren übernimmt die Idee von Rhijn und Mulder \cite{AJ05}, was im Abschnitt \ref{TI} erklärt wurde. Die isomorphen Knoten zwischen zwei Graphen werden zuerst herausgefunden, welche jeweils genug isomorphen Nachbarn haben, die mit gleichen Abständen zu den isomorphen Knoten liegen. Ein Beispiel der isomorphen Knoten wird in Abbildung~\ref{IK} gezeigt. Der Teilgraph-Isomorphismus zwischen diesen Graphen existiert, genau dann, wenn mindesten ein gefundener isomorpher Knoten und seine Nachbarn zusammen die gleichen Pyramiden darstellen können. In dieser Arbeit wird der Verfahren von Rhijn und Mulder in zwei Bereichen verbessert: die effizientere Nebenbedingung für die Suchung der isomorphen Knoten und die vereinfachte Endbedingung statt Feststellung der Pyramide. 
+\\
+\\
+\textbf{Nebenbedingung für die Suchung der isomorphen Knoten}
+\\
+Um die isomorphen Knoten schneller zu finden, werden zwei Quoten für die Suchung definiert. Die Abstandquote wird statt dem absoluten Schwellenwert benutzt, damit der Vergleich der Distanzen zwischen dem betrachteten Knoten und seiner Nachbarn bewertet werden kann. Offensichtlich wird die Kante zwischen zwei Marken auf dem Objekt zu mehr Bildpunkten abgebildet, wenn das Objekt zu der Kamera bewegt. Je größer die Auflösung des Objekt ist, desto das bessere Erkennungsergebnis von dem Programm erzeugt werden kann. Deshalb lässt die Verwendung der Abstandquote die Genauigkeit der Erkennung nicht von der Distanz zwischen dem Objekt und der Kamera beeinflussen. 
+\\
+\\
+Die zweite Nachbarquote beschränkt die minimale Anzahl der nötigen assoziierten Nachbarn für Bestimmung eines isomorphen Knotens, was im Verfahren von Rhijn und Mulder aber als Invariante definiert wird. Die Beziehung zwischen der Nachbarquote und der minimalen Anzahl der Nachbarn kann in
+
+\begin{equation}
+N_{min} = \left\{
+\begin{array}{l l}
+3 & \text{if } \| V \| * Nachbarquote<3 \\
+\| V \| * Nachbarquote & sonst \\
+\end{array}
+\right.
+\end{equation}
+
+formuliert werden, wobei $V$ die Knotenmenge des Graphen beschreibt. Die minimale Anzahl der Nachbarn darf nicht kleiner als 3 sein, weil es mindesten 3 Nachbarn benötigt, um einziger Knoten eines Graphen durch Vergleich der Kantenlänge seiner Nachbarn im 3D Raum zu bestimmen. Diese Veränderung liefert eine bessere Toleranz für die Erkennung: wenn die Graphen mit nur wenigen Knoten als die Eingaben dem Verfahren eingegeben werden, garantiert der Verfahren aber auch genug Nachbarn, um die isomorphen Knoten auszuwählen; außerdem können die Genauigkeit und Stabilität der Teilgraph-Isomorphismus mit dem Vergrößern der Anzahl der Knoten auch ansteigen.
+\\
+\\
+\textbf{Vereinfachung der Endbedingung}
+\\
+Im Verfahren von Rhijn und Mulder sollen schließlich die Pyramiden für den isomorphen Knoten und seine Nachbarn gefunden werden, damit der Isomorphismus bestimmt werden kann. Die Pyramide ist ein vollständiger Graph mit 4 Knoten, deshalb für einen Knoten, der $n$ Nachbarn hat, sollen höchstenfalls 
+
+\[
+C_n^3 = \binom{n}{3} = \frac{n!}{k!(n-k)!} = \frac{1}{6} n(n-1)(n-2) \approx \mathcal{O}(\frac{1}{6}(n^3-3n^2))
+\]
+
+verschiedenen Kombinationen seiner Nachbarn betrachtet werden, um die Pyramide zu finden. Seien $m$ die Anzahl der gefundenen isomorphen Knoten und der Zeitaufwand von Überprüfung der Nachbarschaft der Einheitszeitwand $\mathcal{O}(1)$, dann ist der Zeitaufwand der Suchung der Pyramide in den schlechtesten Fall $\mathcal{O}(\frac{1}{6} m (n^3-n^2))$. Offensichtlich gilt es $m < n$ wegen der Definition des isomorphen Knoten. Die Idee der Vereinfachung ist, statt der Nachbarn eines isomorphen Knoten aber die isomorphen Knoten selbst zu betrachten, um den obigen schlechtesten Fall zu vermeiden. Die Bedingung für die Pyramide kann auch geschwächt werden, d.h. man kann die einfacheren geometrischen Elemente benutzen, z.B. das Dreieck sogar eine Ecke mit drei Knoten aber nur zwei Kanten. $m$ isomorphe Knoten werden durchgesucht, um zu bestimmen, ob sie zumindest mit zwei anderen isomorphen Knoten verbinden. Der Zeitaufwand dieses Ablaufs ist nur $\mathcal{O}(m^2)$, was deutlich kleiner als den Verfahren mit Suchung der Pyramide. Abbildung~\ref{AI} zeigt ein Beispiel für den Vergleich der beiden Nebenbedingung des Isomorphen-Problems. An der linken Seite versucht das Programm, eine Pyramide an den isomorphen Knoten zu finden. Alle Kombinationen der drei Nachbarn werden für jeden isomorphen Knoten betrachtet, dadurch ist der Zeitaufwand der linken Seite: 
+
+\[
+\binom{3}{3}(V_1) + \binom{3}{3}(V_2) + \binom{4}{3}(V_3) + \binom{6}{3}(V_4) + \binom{5}{3}(V_5) = 1 + 1 + 4 + 20 + 10 = 36.
+\]
+
+An der rechten Seite werden aber nur die isomorphe Knoten selbst betrachtet, wobei $m^2=5^2$ Einheitszeit kostet. Alle isomorphen Knoten, die diese Bedingung erfüllen, werden dann gespeichert, um die Orientierung des erkannten Objekts zu berechnen. 
+
+\begin{figure}
+\centering
+\includegraphics[scale=0.5]{Abbildungen/AlgoIsomorphismus.png}
+\caption{Ein Beispiel für den Vergleich der zwei Endbedingungen. $V_1 \sim V_4$ sind die isomorphen Knoten und $N_1 \sim N_6$ sind die Nachbarn von Knoten $V_4$. An der linken Seite wird der Verfahren mit Pyramide gezeigt, wobei alle isomorphen Knoten durchgesucht werden, bis eine Pyramide $V_4 N_5 N_6 N_1$ gefunden ist. An der rechten Seite werden aber nur die Kanten zwischen den isomorphen Knoten betrachtet.}
+\label{AI}
+\end{figure}
 
 \subsection{Bestimmung der Orientierung}
+Verfolgung des Objekts ist die andere wichtige Aufgabe dieser Arbeit, was durch die Berechnung der Orientierung realisiert wird. Die Anfangslage eines Objekts wird von dem Strukturgraphen definiert. In jedem Bild werden die Rotation- bzw. Translationsmatrix zwischen dem Anfangs- und aktuellen Zustand mithelfe der ausgewählten isomorphen Knoten bestimmt. Der Orientierungsverfahren läuft gleich wie den Verfahren im Lernensprozess, der im Abschnitt~\ref{BdO} erklärt wurde.
 
-\section{Bilder Steuerung}
+\section{Bildersteuerung}
+Speichern und Auswahl der Bildern sind die Hauptaufgaben des Teilprogramm der Bildersteuerung. Die Verfolgung der Marken wird durch den Vergleich der Marken von zwei nachfolgenden Bildern realisiert, d.h. soll das Programm immer zwei Bilder gleichzeitig betrachten: das aktuelle- und das historische Bild. Außerdem wegen Rauschen und andere Störung aus den Eingabebildern, werden manchmal die Marken total schlecht erkannt. Die falschen Marken verstören die Korrespondenzuntersuchung und verschlechtern weiterhin die Orientierung der Objektslagen zwischen zwei Bildern, was aber ganz wichtig für das Lernen des Objekts. Wenn irgendwelche kleinen Fehler in der Transformation vorkommen, wird der Strukturgraph des lernenden Objekts komplett andere dargestellt. Deshalb sollen die schlechten Eingabebilder vor dem Darstellung des Strukturgraphen ausgewählt und von dem Bilderstrom entfernt werden. 
+\\
+\\
+In dieser Arbeit werden allen Eingabebilder zuerst in einer Warteschlange gespeichert. Die Warteschlange wird mit fester Größe definiert, und wenn neues Bild eingegeben wird, wird es im Ende der Schlange eingefügt und das älteste Bild aus die erste Stelle der Schlange gestrichen. In jedem Zyklus des Programms werden das erste und letzte Bild verglichen und die korrespondierenden Punktpaare daraus gefunden. Mit anderen Worten definiert die Größe der Warteschlange aber auch das Intervall der betrachteten Bilder. Die Markenanalyse und die Orientierung von Objektlernen werden regelmäßig für jedem Eingabebild durchgeführt, aber die davon erhaltenen Rotation- bzw. Translationsmatrix werden nicht direkt für die Aktualisierung des Strukturgraphen benutzt, sonder zuerst von anderem Teilprogramm geprüft werden, damit die Qualität der Transformation bewerten werden kann. 
+\\
+\\
+Das Prüfungsprogramm besteht aus zwei Teilen. Der erste Teil ist ein Prüfer, der eine boolesche Aussage liefert, ob aus dem Bild genug hochqualitativen Marken gefunden werden können. Der Prüfer läuft analog wie die Aktualisierung der Knoten von dem Teilprogramm des Strukturgraphen, was im Abschnitt~\ref{BdsK} beschrieben wurde. Der Unterschied liegt daran, dass der Prüfer die Lebenszeit der Marken nicht betrachtet, aber nur die neu gefundenen Marken zählen, die mit den vorhandenen Knoten des Strukturgraphen nach gerade berechneter Transformation identisch sind. Nur das Bild mit genug Marken, die obige Bedingung erfüllen, wird von dem Prüfer akzeptiert. Die Beurteilung über die Anzahl der Marken wird durch den Vergleich der Quote, die der Anteil der mit vorhandenen Knoten übereinstimmten Marken an allem neuen Marken beschreibt, mit einem vordefinierten Schwellenwert realisiert. Die von Prüfer akzeptierten Bilder können direkt für die Aktualisierung der Strukturgraphen benutzt. Die anderen Bilder sind überflüssig, können aber nicht direkt alles geschmissen werden. Unter einer total schlechten Beobachtungssituation liefert die Kamera möglicherweise in langer Zeit gar keine hochqualitativen Bilder. Wenn das Programm alle diesen Bilder überspringt, wird die Verfolgung des Objekts abgebrochen und falschen Erkennungsergebnisse erzeugt. Ein extremes Beispiel wird in der Umdrehung des Kästchens gefunden. Wenn nur die Bilder von zwei benachbarten Ebenen des Objekts von dem Programm akzeptiert aber die Bilder des Rotationsablaufs dazwischen nicht berücksichtigt werden, hat das Programm aber gar keine Möglichkeit, diese zwei Ebenen zu unterscheiden. Sie werden als eine große Ebene erkannt und gespeichert. Der zweite Teil des Prüfungsprogramms vermeidet diese Situation. Die maximale Anzahl der übersprungenen Bilder wird von dem beschränkt. Wenn kein hochqualitatives Bild gefunden werden kann, wird ein verhältnismäßig besseres Bild aus die schlechten Bilder ausgewählt. Die Summe aller größten Elemente von $P$, die im Abschnitt \textbf{Qualitätsmanagement der Markenverfolgung} von \ref{MV} erklärt wurde, wird hier als die Bewertungsvariable verwendet. Der Durchlauf des Prüfungsprogramms wird im Algorithmus~\ref{algBP} aufgeführt.
+
+\begin{algorithm}                     
+\caption{Bilderprüfer($Strukturgraph$, $Eingabebild$, $UebersprungeneAnzahl$)}         
+\label{algBP}                          
+\begin{algorithmic}
+\State die minimale Quote der mit vorhandenen Knoten übereinstimmten Marken: $q$
+\State die maximale Anzahl der Bilder, die übersprungen werden dürfen: $N_{jump}$
+\State Iterator des Besten Bild in $Bildschlange$: $i_b$
+\If {$Korrespondenzuntersuchung()$ == True und $Identische Quote>q$}
+	\State Aktualisieren $Strukturgraph$ mit $Eingabebild$
+\Else
+	\If {$Korrespondenzuntersuchung()$ == False}
+		\State Überspringen
+	\EndIf
+	\If {$Eingabebild.SumP > Bildschlange[i_b].SumP$}
+		\State Entfernen $Bildschlange[i_b]$
+		\State $i_b \gets Eingabebild.iterator$
+	\Else
+		\State Überspringen
+	\EndIf
+	\State $UebersprungeneAnzahl$ ++
+	\If {$UebersprungeneAnzahl > N_{jump}$}
+		\State Aktualisieren $Strukturgraph$ mit $Bildschlange[i_b]$
+		\State $UebersprungeneAnzahl \gets 0$
+	\EndIf
+\EndIf
+\end{algorithmic}
+\end{algorithm}

@@ -80,6 +80,7 @@ Die Intensität bezieht sich auf Graustufen. Nach einer Abbildung können diese Gr
 Die PMD Kamera liefert 3D Daten in zwei Formen: die reine Distanzinformation und die 3D Koordinaten. Die Distanzinformation ist die gemessene Distanz zwischen der Kamera und Objekt, was direkt durch die Formel \eqref{tof1} berechnet wird. Bezüglich dieser Distanzinformation und der 2D Daten der normalen Kamera werden die 3D Koordinaten innerhalb der PMD Kamera berechnet und können durch die Schnittstelle abgefragt werden. Die Abbildung~\ref{C3D} zeigt die Visualisierung einer Szene mit jeweils der 3D Koordinaten und Distanzinformation von PMD Kamera. Eine Transformation ist notwendig, wenn man direkt die Distanzinformation im kartesischen Koordinatensystem visualisieren möchte.
 
 \subsubsection{Auflösung und erkennbare Markengröße}
+\label{AueM}
 Die Auflösung der PMD Kamera wurde schon im vorherigen Abschnitt angegeben, wofür man sich noch interessiert ist, wie genau die Objekte von der Kamera in der Praxis beobachtet werden können. D.h. wie groß ein Pixel von Kamera den Bereich in realer Welt beschreibt. Die Vorderansicht des Kamerasystems dieser Arbeit ist in Abbildung~\ref{MSF} links gezeigt.
 
 \begin{figure}[bft]
@@ -789,6 +790,7 @@ Der Algorithmus durchläuft für jeden Punkt von Punktmenge $D$ und die Lösung hän
 \end{algorithm}
 
 \subsection{Teilgraph Isomorphismus}
+\label{TI}
 Die Objekterkennung bzw. Objektverfolgung wird durch dem Vergleich der Modellgraphen und Eingabegraphen realisiert. Ein für diese Arbeit hilfreicher Algorithmus wurde von Rhijn und Mulder entwickelt \cite{AJ05}. Um das Problem des Graphisomorphismus zu vereinfachen, werden nur ein Teilgraph $S_{min}$ von Modellgraphen betrachtet. $S_{min}$ soll ein vollständiger Graph sein und einen Modellgraphen eindeutig bestimmen können. Zuerst wird ein Punkt $p_i$ vom Eingabegraph ausgewählt und die Distanzen von diesem zu allen seinen Nachbarn berechnet. Alle diese Kantenlängen werden mit den Kanten der Modellgraphen verglichen, damit ein Kandidatenpunkt $v_k$ im Modellgraph gefunden werden kann, der genug Kanten mit dem ausgewählten Punkt $p_i$ identisch hat. Zweitens sollen drei Nachbarn von $p_i$ gefunden werden, die mit $p_i$ zusammen einen vollständigen Graphen (Pyramide) darstellen können. Wenn ein Teilgraph von Modellgraphen zum obigen vollständigen Graph assoziiert wird, ist ein Teilgraph Isomorphismus zwischen den Eingabegraphen und Modellgraphen gefunden. Der Algorithm~\ref{isoAlgo} gibt eine genauere Beschreibung des Algorithmus von Rhijn und Mulder an.
 
 \begin{algorithm}
