@@ -14,7 +14,7 @@ PMDCamIO::~PMDCamIO(){
 }
 
 BOOL PMDCamIO::createPMDCon(){
-	int res = pmdOpen (&hnd, "plugin\\camcube0", "", "plugin\\camcubeproc0", "");
+	int res = pmdOpen (&hnd, ".\\plugin\\camcube3", "", ".\\plugin\\camcubeproc", "");
 
 	// Check if the call succeeded 
 	if (res != PMD_OK){

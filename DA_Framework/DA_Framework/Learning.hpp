@@ -33,6 +33,8 @@ public:
 	void updateObject(vector<PMDPoint> features, Mat R, Mat T);
 	//Check the Quality of the Transformation. Get the proportion of the associated points
 	float getCorresRate(float e);
+	//Get the center of the current object
+	Point2i getCenter();
 	
 
 	//Vector to save the training data

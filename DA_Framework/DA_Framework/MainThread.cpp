@@ -134,7 +134,7 @@ DWORD MainThread::calculationThreadProc(void){
 	LeaveCriticalSection (&glInitCrs);
 
 #ifdef EVALUATION
-	string EVA_RootPath = string("2012.09.17");
+	string EVA_RootPath = string("2012.09.26");
 	EVA_RootPath.append("/");
 	EVA_RootPath.append(this->INPUTPATH);
 	//const char *EVA_RootPath = "2012.09.17/EmptyBox";
@@ -149,14 +149,14 @@ DWORD MainThread::calculationThreadProc(void){
 	const char *dFilterFileName = "With Distance Filter";
 #endif
 	pEvaluator->createCSVFile(dFilterFileName);
-	pEvaluator->writeCSVTitle(dFilterFileName, "FrameIndex, x, y, z, Features, Sammed Features");
+	pEvaluator->writeCSVTitle(dFilterFileName, "FrameIndex, index_x, index_y, Features, Sammed Features");
 #endif
 
 	//Brightness Control
 #ifdef EVA_CBRIGHTNESS
-	const char *brightnessFileName = "Without Brightness Control";
+	const char *brightnessFileName = "With Brightness Control";
 	pEvaluator->createCSVFile(brightnessFileName);
-	pEvaluator->writeCSVTitle(brightnessFileName, "FrameIndex, x, y, z, Features, Sammed Features, End Contrast, End Energie");
+	pEvaluator->writeCSVTitle(brightnessFileName, "FrameIndex, index_x, index_y, Features, Sammed Features, End Contrast, End Energie");
 #endif
 
 	//Association
@@ -228,10 +228,13 @@ DWORD MainThread::calculationThreadProc(void){
 #ifdef EVALUATION
 		vector<float> evaData;
 		evaData.push_back(this->pIterator->frameIndex);
-		Point3f midPoint = this->pLearning->pObject->getMiddelPoint();
-		evaData.push_back(midPoint.x);
-		evaData.push_back(midPoint.y);
-		evaData.push_back(midPoint.z);
+		//Point3f midPoint = this->pLearning->pObject->getMiddelPoint();
+		//evaData.push_back(midPoint.x);
+		//evaData.push_back(midPoint.y);
+		//evaData.push_back(midPoint.z);
+		Point2i center = this->pLearning->getCenter();
+		evaData.push_back(center.x);
+		evaData.push_back(center.y);
 		evaData.push_back(this->pDetector->PMDFeatures.size());
 		evaData.push_back(this->pLearning->curBildData->features.size());
 
@@ -249,6 +252,24 @@ DWORD MainThread::calculationThreadProc(void){
 		evaData.push_back(this->pLearning->curAssPoints.size());
 		evaData.push_back(this->pLearning->associateVariance);
 		pEvaluator->saveCSVData(associationFileName, evaData);
+#endif
+
+#ifdef EVA_SAVECVBILD
+		if(pIterator->frameIndex % FRAME_INTERVAL == 0){
+			Mat curMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
+			ImageProcess::transFloatToMat3(this->pLearning->curBildData->ampData, curMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
+			vector<PMDPoint> features = this->pLearning->curBildData->features;
+
+			for(int i=0;i<features.size();i++){
+				circle(curMat, features[i].index, 3, Scalar(0,0,255,0), -1);
+			}
+
+			//Translate the frame index into the file name
+			stringstream ss;
+			ss<<pIterator->frameIndex;
+			string path(ss.str());
+			pEvaluator->saveCVBild(path.data(),curMat);
+		}
 #endif
 #endif
 
