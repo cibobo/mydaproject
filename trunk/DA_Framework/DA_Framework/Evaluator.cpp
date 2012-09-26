@@ -70,6 +70,19 @@ void Evaluator::saveCVBild(const char *fileName, Mat data){
 	cv::imwrite(path, data);
 }
 
+void Evaluator::saveCVBild(const char *subPath, int index, cv::Mat data){
+	string path = string(this->defaultSavePath);
+	path.append("/");
+	path.append(subPath);
+	path.append("/");
+	stringstream ss;
+	ss<<index;
+	path.append(ss.str());
+	path.append(".png");
+
+	cv::imwrite(path, data);
+}
+
 void Evaluator::saveCSVData(vector<float> data){
 	// default for the first file
 	//ofstream *f = (*(this->dataFiles.begin())).second;

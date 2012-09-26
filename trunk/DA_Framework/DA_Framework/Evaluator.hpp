@@ -29,6 +29,8 @@ public:
 	void createCSVFile(const char *fileName);
 	// Save the OpenCV bild with the user defined file name
 	void saveCVBild(const char *fileName, Mat data);
+	// Save the OpenCV bild with the user defined subpath and with the name of frame index
+	void saveCVBild(const char *subPath, int index, Mat data);
 	// Save the data into the default csv File
 	void saveCSVData(vector<float> data);
 	// Save the data into the user defined csv File
