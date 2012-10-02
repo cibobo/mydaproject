@@ -163,7 +163,7 @@ DWORD MainThread::calculationThreadProc(void){
 #ifdef EVA_ASSOCIATION
 	const char *associationFileName = "With alternative Variance";
 	pEvaluator->createCSVFile(associationFileName);
-	pEvaluator->writeCSVTitle(associationFileName, "FrameIndex, x, y, z, Features, Sammed Features, Correspondenz Pairs, Association Variance");
+	pEvaluator->writeCSVTitle(associationFileName, "FrameIndex, index_x, index_y, Features, Sammed Features, Correspondenz Pairs, Association Variance, Fixed Nodes");
 #endif
 #endif
 
@@ -251,6 +251,7 @@ DWORD MainThread::calculationThreadProc(void){
 #ifdef EVA_ASSOCIATION
 		evaData.push_back(this->pLearning->curAssPoints.size());
 		evaData.push_back(this->pLearning->associateVariance);
+		evaData.push_back(this->pLearning->pObject->getFixedNodeCount());
 		pEvaluator->saveCSVData(associationFileName, evaData);
 #endif
 
