@@ -102,6 +102,15 @@ void Object::transformate(Mat R, Mat T){
 	}
 }
 
+int Object::getFixedNodeCount(){
+	int count = 0;
+	for(int i=0;i<this->nodeList.size();i++){
+		if(nodeList[i]->isFixed){
+			count++;
+		}
+	}
+	return count;
+}
 
 void Object::saveToVTKFile(const char *name){
 	string savePath = string(defaultDataPath);

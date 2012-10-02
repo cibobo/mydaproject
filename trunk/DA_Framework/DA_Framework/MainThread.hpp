@@ -22,18 +22,18 @@
 using namespace std;
 
 //Whether the Evaluator is active
-//#define EVALUATION
+#define EVALUATION
 
 #ifdef EVALUATION
 
 //#define EVA_DFILTER
 #ifdef EVA_DFILTER
-	//#define NO_DFILTER
+	#define NO_DFILTER
 #endif
 
-#define EVA_CBRIGHTNESS
+//#define EVA_CBRIGHTNESS
 
-//#define EVA_ASSOCIATION
+#define EVA_ASSOCIATION
 
 //#define EVA_SAVECVBILD
 #ifdef EVA_SAVECVBILD

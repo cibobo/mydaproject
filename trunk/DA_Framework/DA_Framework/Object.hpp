@@ -20,6 +20,8 @@ public:
 
 	void transformate(Mat R, Mat T);
 
+	int getFixedNodeCount();
+
 	void saveToVTKFile(const char *name);
 	void loadFromVTKFile(const char *name);
 
