@@ -125,7 +125,7 @@ double TinyParser::parseLineDouble( std::string line)
 
 Configurator::Configurator(MainThread *p){
 	strConfigureFile = "./conf/Configuration.txt";
-	strParserConfiguration = "iiiifiiiiifffffffibfiffbbfiffiibbbsbfffbbsibbbffi";
+	strParserConfiguration = "iiiifiiiiifffffffibfiffbbfiffiibbbsbfffbbsbsibbbffi";
 
 	this->pMainThread = p;
 }
@@ -293,25 +293,29 @@ int Configurator::readConfigurationFile(){
 				//Input Mode
 			case 39: this->pMainThread->isOnline = b;
 					break;
-			case 40: this->pMainThread->isOffline = b;
+			case 40: this->pMainThread->pPMDCamIO->isDataSaved = b;
 					break;
-			case 41: strcpy(this->pMainThread->INPUTPATH, s.data()); //here should use the strcpy, but not direct using the pointer equal
+			case 41: strcpy(this->pMainThread->pPMDCamIO->savedPath, s.data());
 					break;
-			case 42: this->pMainThread->FRAMERATE = i;
+			case 42: this->pMainThread->isOffline = b;
+					break;
+			case 43: strcpy(this->pMainThread->INPUTPATH, s.data()); //here should use the strcpy, but not direct using the pointer equal
+					break;
+			case 44: this->pMainThread->FRAMERATE = i;
 					break;
 				//Visualisation
-			case 43: this->pMainThread->isObservingWindowVisible = b;
+			case 45: this->pMainThread->isObservingWindowVisible = b;
 					break;
-			case 44: this->pMainThread->isResultWindowVisible = b;
+			case 46: this->pMainThread->isResultWindowVisible = b;
 					break;
-			case 45: this->pMainThread->isOpenCVWindowVisible = b;
+			case 47: this->pMainThread->isOpenCVWindowVisible = b;
 					break;
 				//Distance Filter
-			case 46: this->pMainThread->pDFilter->eps = f;
+			case 48: this->pMainThread->pDFilter->eps = f;
 					break;
-			case 47: this->pMainThread->pDFilter->diffRate = f;
+			case 49: this->pMainThread->pDFilter->diffRate = f;
 					break;
-			case 48: this->pMainThread->pDFilter->creatingFrames = i;
+			case 50: this->pMainThread->pDFilter->creatingFrames = i;
 					break;
 			default:
 					break;

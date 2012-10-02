@@ -82,5 +82,7 @@ public:
 	//Measurment of the Orientation
 	//Sum of the maximal values of the Matrix P in FeatureAssociation
 	float sumMaxValue;
+	//The angle of rotation
+	float angle;
 };
 
