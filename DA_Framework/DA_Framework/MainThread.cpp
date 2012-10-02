@@ -134,7 +134,7 @@ DWORD MainThread::calculationThreadProc(void){
 	LeaveCriticalSection (&glInitCrs);
 
 #ifdef EVALUATION
-	string EVA_RootPath = string("2012.09.26");
+	string EVA_RootPath = string("2012.10.02");
 	EVA_RootPath.append("/");
 	EVA_RootPath.append(this->INPUTPATH);
 	//const char *EVA_RootPath = "2012.09.17/EmptyBox";
@@ -162,9 +162,18 @@ DWORD MainThread::calculationThreadProc(void){
 	//Association
 #ifdef EVA_ASSOCIATION
 	const char *associationFileName = "With alternative Variance";
+	//const char *associationFileName = "Without all Improvement";
 	pEvaluator->createCSVFile(associationFileName);
-	pEvaluator->writeCSVTitle(associationFileName, "FrameIndex, index_x, index_y, Features, Sammed Features, Correspondenz Pairs, Association Variance, Fixed Nodes");
+	pEvaluator->writeCSVTitle(associationFileName, "FrameIndex, index_x, index_y, Features, Sammed Features, Correspondenz Pairs, Association Variance, Summed Maximal Value, Fixed Nodes, Rotation Angle");
 #endif
+
+	//Frame Controll
+#ifdef EVA_FRAMECONTROL
+	const char *frameControlFileName = "Without Frame Control";
+	pEvaluator->createCSVFile(frameControlFileName);
+	pEvaluator->writeCSVTitle(frameControlFileName, "FrameIndex, index_x, index_y, Features, Sammed Features, Correspondenz Pairs, Association Variance, Fixed Nodes, Rotation Angle");
+#endif
+
 #endif
 
 	while(!bDone){
@@ -251,8 +260,18 @@ DWORD MainThread::calculationThreadProc(void){
 #ifdef EVA_ASSOCIATION
 		evaData.push_back(this->pLearning->curAssPoints.size());
 		evaData.push_back(this->pLearning->associateVariance);
+		evaData.push_back(this->pLearning->sumMaxValue);
 		evaData.push_back(this->pLearning->pObject->getFixedNodeCount());
+		evaData.push_back(this->pLearning->angle);
 		pEvaluator->saveCSVData(associationFileName, evaData);
+#endif
+
+#ifdef EVA_FRAMECONTROL
+		evaData.push_back(this->pLearning->curAssPoints.size());
+		evaData.push_back(this->pLearning->associateVariance);
+		evaData.push_back(this->pLearning->pObject->getFixedNodeCount());
+		evaData.push_back(this->pLearning->angle);
+		pEvaluator->saveCSVData(frameControlFileName, evaData);
 #endif
 
 #ifdef EVA_SAVECVBILD
@@ -271,6 +290,13 @@ DWORD MainThread::calculationThreadProc(void){
 			string path(ss.str());
 			pEvaluator->saveCVBild(path.data(),curMat);
 		}
+#endif
+	
+		//Screenshot
+#ifdef SCREENSHOT
+	if(this->pIterator->frameIndex == SCREENSHOT_FRAME){
+		EnterCriticalSection(&pauseCrs);
+	}
 #endif
 #endif
 
@@ -342,7 +368,7 @@ DWORD MainThread::onlineInputThreadProc(void){
 
 	cout<<"PMD Camera Connecting..."<<endl;
 	if(!pPMDCamIO->createPMDCon()){
-		exit(1);
+		exit(100);
 		//cout<<"input thread running!"<<endl;
 		
 	}
@@ -533,6 +559,8 @@ DWORD MainThread::openCVHelpThreadProc(void)
 		
 		BildData* curBildData = pIterator->getCurrentBildData();
 		BildData* hisBildData = pIterator->getHistoricalBildData();
+		//BildData* curBildData = pLearning->curBildData;
+		//BildData* hisBildData = pLearning->hisBildData;
 
 		EnterCriticalSection (&calcCrs);
 		ImageProcess::transFloatToMat3(curBildData->filteredData, feaMat, pDetector->balance, pDetector->contrast);

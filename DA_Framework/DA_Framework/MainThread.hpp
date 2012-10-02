@@ -35,9 +35,16 @@ using namespace std;
 
 #define EVA_ASSOCIATION
 
+//#define EVA_FRAMECONTROL
+
 //#define EVA_SAVECVBILD
 #ifdef EVA_SAVECVBILD
 	#define FRAME_INTERVAL 30
+#endif
+
+//#define SCREENSHOT
+#ifdef SCREENSHOT
+	#define SCREENSHOT_FRAME 480
 #endif
 
 #endif

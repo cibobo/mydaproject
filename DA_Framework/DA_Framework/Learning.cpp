@@ -20,6 +20,7 @@ Learning::Learning(){
 	updateTThreshold = 25;
 
 	sumMaxValue = -1;
+	angle = 0;
 
 	initKalmanFilter();
 }
@@ -116,9 +117,9 @@ void Learning::findTransformation(){
 	ImageProcess::decPMDPointVector(this->hisAssPoints, his3DResult, his2DResult);
 	ImageProcess::decPMDPointVector(this->curAssPoints, cur3DResult, cur2DResult);
 	if(this->isTKFilter){
-		ImageProcess::UQFindRAndT(his3DResult, cur3DResult, this->tempR, this->tempT, &(this->tFilter));
+		this->angle = ImageProcess::UQFindRAndT(his3DResult, cur3DResult, this->tempR, this->tempT, &(this->tFilter));
 	} else {
-		ImageProcess::UQFindRAndT(his3DResult, cur3DResult, this->tempR, this->tempT);
+		this->angle = ImageProcess::UQFindRAndT(his3DResult, cur3DResult, this->tempR, this->tempT);
 	}
 }
 
@@ -177,6 +178,6 @@ Point2i Learning::getCenter(){
 	if(size == 0){
 		return Point2i(0,0);
 	} else {
-		return Point2i(x,y);
+		return Point2i(x/size,y/size);
 	}
 }

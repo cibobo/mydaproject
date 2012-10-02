@@ -329,6 +329,7 @@ bool ImageProcess::featureAssociatePMD(vector<PMDPoint> oldFeature, vector<PMDPo
 		}
 		// if the loop of the column is complete, a frame coorespondence for two frames are found.
 		if(j==m && maxValue>assRate){
+		//if(j==m){
 			disPE += fabs(1-maxValue);
 			sumP += maxValue;
 			cout<<i<<" : "<<maxValue<<endl;

@@ -235,6 +235,8 @@ BOOL CDA_GUIDlg::OnInitDialog()
 	if(!this->pMainThread->pPMDCamIO->isDataSaved){
 		this->OutputSavedCheck.EnableWindow(false);
 		this->outputPathEditor.EnableWindow(false);
+	} else {
+		this->outputPathEditor.SetWindowTextA(CString(this->pMainThread->pPMDCamIO->savedPath));
 	}
 
 	return TRUE;  // Geben Sie TRUE zurück, außer ein Steuerelement soll den Fokus erhalten

@@ -11,7 +11,7 @@ using namespace std;
 const char *defaultRootPath = "data/evaluation/";
 #else
 //default load path
-const char *defaultRootPath = "data/evaluation/";
+const char *defaultRootPath = "data/evaluation_8Points/";
 #endif
 
 string defaultLoadPath;
