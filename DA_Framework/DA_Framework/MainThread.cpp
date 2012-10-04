@@ -134,7 +134,7 @@ DWORD MainThread::calculationThreadProc(void){
 	LeaveCriticalSection (&glInitCrs);
 
 #ifdef EVALUATION
-	string EVA_RootPath = string("2012.10.02");
+	string EVA_RootPath = string("2012.10.04");
 	EVA_RootPath.append("/");
 	EVA_RootPath.append(this->INPUTPATH);
 	//const char *EVA_RootPath = "2012.09.17/EmptyBox";
@@ -171,7 +171,14 @@ DWORD MainThread::calculationThreadProc(void){
 #ifdef EVA_FRAMECONTROL
 	const char *frameControlFileName = "Without Frame Control";
 	pEvaluator->createCSVFile(frameControlFileName);
-	pEvaluator->writeCSVTitle(frameControlFileName, "FrameIndex, index_x, index_y, Features, Sammed Features, Correspondenz Pairs, Association Variance, Fixed Nodes, Rotation Angle");
+	pEvaluator->writeCSVTitle(frameControlFileName, "FrameIndex, index_x, index_y, Features, Sammed Features, Correspondenz Pairs, Association Variance, Fixed Nodes, Rotation Angle, Jummped Frames");
+#endif
+
+	//Graph Update
+#ifdef EVA_GRAPHUPDATE
+	//const char *graphUpdateFileName = "Graph Update";
+	//pEvaluator->createCSVFile(graphUpdateFileName);
+	//pEvaluator->writeCSVTitle(graphUpdateFileName, "Distance Threshold, Lifetime Threshold, Number of fixed Nodes");
 #endif
 
 #endif
@@ -270,7 +277,13 @@ DWORD MainThread::calculationThreadProc(void){
 		evaData.push_back(this->pLearning->curAssPoints.size());
 		evaData.push_back(this->pLearning->associateVariance);
 		evaData.push_back(this->pLearning->pObject->getFixedNodeCount());
-		evaData.push_back(this->pLearning->angle);
+		//If frame has been jumped, set the rotated angle as 0 for the current frame
+		if(this->pIterator->jumpedFeatures>0){
+			evaData.push_back(0);
+		} else {
+			evaData.push_back(this->pLearning->angle);
+		}
+		evaData.push_back(this->pIterator->jumpedFeatures);
 		pEvaluator->saveCSVData(frameControlFileName, evaData);
 #endif
 
@@ -295,6 +308,13 @@ DWORD MainThread::calculationThreadProc(void){
 		//Screenshot
 #ifdef SCREENSHOT
 	if(this->pIterator->frameIndex == SCREENSHOT_FRAME){
+#ifdef EVA_GRAPHUPDATE
+		//save the VTK file with the life time
+		stringstream ss;
+		ss<<this->pLearning->updateTThreshold;
+		string fileName = ss.str();
+		this->pLearning->pObject->saveToVTKFile(fileName.data());
+#endif
 		EnterCriticalSection(&pauseCrs);
 	}
 #endif
@@ -312,6 +332,19 @@ DWORD MainThread::calculationThreadProc(void){
 		//LeaveCriticalSection (&filterInitCrs);
 		
 	}
+//#ifdef EVA_GRAPHUPDATE
+//		//save the VTK file with the life time
+//		//stringstream ss;
+//		//ss<<this->pLearning->updateTThreshold;
+//		//string fileName = ss.str();
+//		//this->pLearning->pObject->saveToVTKFile(fileName.data());
+//
+//		vector<float> endData;
+//		endData.push_back(this->pLearning->updateDThreshold);
+//		endData.push_back(this->pLearning->updateTThreshold);
+//		endData.push_back(this->pLearning->pObject->nodeList.size());
+//		pEvaluator->saveCSVData(endData);
+//#endif
 	return 0;
 }
 
@@ -493,7 +526,7 @@ DWORD MainThread::openGLResultThreadProc(void){
 
 	TlsSetValue(ThreadIndex, pObjGLWinUI);
 
-	if(!CreateOpenGLWindow("Object Window", 0, 0, 1000, 750, PFD_TYPE_RGBA, 0, pObjGLWinUI, pObjViewContext)){
+	if(!CreateOpenGLWindow("Object Window", 0, 0, 750, 750, PFD_TYPE_RGBA, 0, pObjGLWinUI, pObjViewContext)){
 		exit(0);
 	}
 
