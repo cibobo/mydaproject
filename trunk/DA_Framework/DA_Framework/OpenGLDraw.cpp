@@ -176,7 +176,7 @@ void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData){
 				grayValue = 0;
 			}
 			glColor3f(grayValue,grayValue,grayValue);
-			glVertex3f((i-102)*factor, (j-102)*factor, 0);
+			glVertex3f((-i+102)*factor, (j-102)*factor, 0);
 			//glVertex3f(i*factor, j*factor, 0);
 		}
 	}
@@ -219,7 +219,7 @@ void display(OpenGLWinUI *pOpenGLWinUI, BildData *bildData){
 				default:
 					glColor3f(1,0,1-f);
 			}
-			glVertex3f((i-102)*factor, (j-102)*factor, 0);
+			glVertex3f((-i+102)*factor, (j-102)*factor, 0);
 		}
 	}
 	glEnd();

@@ -53,6 +53,13 @@ public:
 	char *defaultRootPath;
 	string defaultSavePath;
 	map<const char*,ofstream*> dataFiles;
+
+	////Static Methode for the Timemr
+	//void static Timmer_Begin(const char *name);
+	//void static Timmer_End(const char *name);
+	//void static Timeer_Sum();
+
+	//static map<const char*, float> timmer;
 };
 
 #endif

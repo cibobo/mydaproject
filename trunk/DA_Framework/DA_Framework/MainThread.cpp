@@ -14,6 +14,9 @@ MainThread::MainThread(){
 
 	pPMDCamIO = new PMDCamIO();
 
+	//pLogger = new Evaluator();
+	//pLogger->createCSVFile(this->loggerName);
+
 	ThreadIndex = 1001;
 
 	isLearning = true;
@@ -134,7 +137,7 @@ DWORD MainThread::calculationThreadProc(void){
 	LeaveCriticalSection (&glInitCrs);
 
 #ifdef EVALUATION
-	string EVA_RootPath = string("2012.10.04");
+	string EVA_RootPath = string("2012.10.08");
 	EVA_RootPath.append("/");
 	EVA_RootPath.append(this->INPUTPATH);
 	//const char *EVA_RootPath = "2012.09.17/EmptyBox";
@@ -176,14 +179,30 @@ DWORD MainThread::calculationThreadProc(void){
 
 	//Graph Update
 #ifdef EVA_GRAPHUPDATE
-	//const char *graphUpdateFileName = "Graph Update";
-	//pEvaluator->createCSVFile(graphUpdateFileName);
-	//pEvaluator->writeCSVTitle(graphUpdateFileName, "Distance Threshold, Lifetime Threshold, Number of fixed Nodes");
+	const char *graphUpdateFileName = "Graph Update";
+	pEvaluator->createCSVFile(graphUpdateFileName);
+	//pEvaluator->writeCSVTitle(graphUpdateFileName, "Distance Threshold, Lifetime Threshold, Number of fixed Nodes, Number of summaried fixed Nodes");
+#endif
+
+	//Running Time
+#ifdef EVA_TIME
+	const char *timeFileName = "Time";
+	pEvaluator->createCSVFile(timeFileName);
+	pEvaluator->writeCSVTitle(timeFileName,"Frame Index, Disstance Filter, Star Detector & Brightness Control, Summerized Features, Segmentation, Correspondence, Orientation, Frame Control, Total Calculation, Total Frame");
 #endif
 
 #endif
 
 	while(!bDone){
+
+#ifdef EVA_TIME
+		vector<float> timmer;
+		timmer.push_back(this->pIterator->frameIndex);
+		int start, end;
+		int calStart, calEnd;
+		int frameStart, frameEnd;
+		frameStart = clock();
+#endif
 
 		if(isDataUsed){
 			continue;
@@ -192,10 +211,15 @@ DWORD MainThread::calculationThreadProc(void){
 		//EnterCriticalSection (&filterInitCrs);
 
 
+
 		EnterCriticalSection(&pauseCrs);
 		EnterCriticalSection(&frameCrs);
 		EnterCriticalSection (&calcCrs);
 
+#ifdef EVA_TIME
+		//Begin of the Calculation
+		calStart = clock();
+#endif
 		//get the current Bild Data, which is saved at the last position of the List
 		BildData *currentBildData = pIterator->getCurrentBildData();
 		
@@ -203,8 +227,20 @@ DWORD MainThread::calculationThreadProc(void){
 		ImageProcess::filterDepthDate(currentBildData->threeDData, 0.3);
 
 #ifndef NO_DFILTER
+
+#ifdef EVA_TIME
+		//Begin of the Distance Filter
+		start = clock();
+#endif
 		// Distance Filter
 		bool isDiff = this->pDFilter->Filte(currentBildData, currentBildData->filteredData);
+
+#ifdef EVA_TIME
+		//End of the Distance Filter
+		end = clock();
+		timmer.push_back(end-start);
+#endif
+
 #else
 		// For the evalutation, close the DistanceFilter
 		bool isDiff = true;
@@ -214,27 +250,101 @@ DWORD MainThread::calculationThreadProc(void){
 
 		if(isDiff){
 			pDetector->setDetectedData(currentBildData);
+
+#ifdef EVA_TIME
+			//Begin of the Star Detector
+			start = clock();
+#endif
 			pDetector->usingSTAR();
+
+#ifdef EVA_TIME
+			//End of the Star Detector
+			end = clock();
+			timmer.push_back(end-start);
+			//Begin of the Summerized Features
+			start = clock();
+#endif
 			pDetector->createPMDFeatures();	
+
+#ifdef EVA_TIME
+			//End of the Summerized Features
+			end = clock();
+			timmer.push_back(end-start);
+#endif
 		}
+
+#ifdef EVA_TIME
+		//If Distance Filter not run
+		else{
+			timmer.push_back(-1);
+			timmer.push_back(-1);
+		}
+#endif
 
 		if(this->isLearning){
 			pLearning->setTrainingFeatures(pDetector->PMDFeatures);
 			pLearning->setCurrentBildData(currentBildData);
 			pLearning->setHistoricalBildData(pIterator->getHistoricalBildData());
 
+#ifdef EVA_TIME
+			//Begin of the Segmentation
+			start = clock();
+#endif
 			pLearning->findObjectFeatures();
+
+#ifdef EVA_TIME
+			//End of the Segmentation
+			end = clock();
+			timmer.push_back(end-start);
+#endif
 			if(pLearning->hisBildData->features.size()>0 &&
 			   pLearning->curBildData->features.size()>0){
+
+#ifdef EVA_TIME
+				//Begin of the Correspondenz
+				start = clock();
+#endif
+
 				pLearning->findAssociations();
+
+#ifdef EVA_TIME
+				//End of the Correspondenz
+				end = clock();
+				timmer.push_back(end-start);
+				//Begin of the Orientation
+				start = clock();
+#endif
 				pLearning->findTransformation();
+
+#ifdef EVA_TIME
+				//End of the Orientation
+				end = clock();
+				timmer.push_back(end-start);
+				//Begin of the Frame Control
+				start = clock();
+#endif
 				//pLearning->updateObject();
 
 				//Choosing frame
 				pIterator->framesControl(pLearning);
 
+#ifdef EVA_TIME
+				//End of the Frame Control
+				end = clock();
+				timmer.push_back(end-start);
+#endif
 			}
+
+#ifdef EVA_TIME
+			//If there is no feature detected
+			else{
+				timmer.push_back(-1);
+				timmer.push_back(-1);
+				timmer.push_back(-1);
+			}
+#endif
 		} 
+
 
 		if(this->isRecognise){
 			pRecognition->objectRecognition(pDetector->PMDFeatures);
@@ -308,19 +418,28 @@ DWORD MainThread::calculationThreadProc(void){
 		//Screenshot
 #ifdef SCREENSHOT
 	if(this->pIterator->frameIndex == SCREENSHOT_FRAME){
-#ifdef EVA_GRAPHUPDATE
-		//save the VTK file with the life time
-		stringstream ss;
-		ss<<this->pLearning->updateTThreshold;
-		string fileName = ss.str();
-		this->pLearning->pObject->saveToVTKFile(fileName.data());
-#endif
+//#ifdef EVA_GRAPHUPDATE
+//		//save the VTK file with the life time
+//		stringstream ss;
+//		ss<<this->pLearning->updateTThreshold;
+//		string fileName = ss.str();
+//		this->pLearning->pObject->saveToVTKFile(fileName.data());
+//#endif
+		//pLearning->pObject->joinSimilarNodes(0.045);
 		EnterCriticalSection(&pauseCrs);
 	}
 #endif
+
 #endif
 
 		this->isDataUsed = true;
+
+#ifdef EVA_TIME
+		//End the time of Calculation
+		calEnd = clock();
+		timmer.push_back(calEnd-calStart);
+#endif
+
 		LeaveCriticalSection (&calcCrs);
 
 		// display 3D structur of the Object in an OpenGL Window
@@ -330,21 +449,33 @@ DWORD MainThread::calculationThreadProc(void){
 		LeaveCriticalSection(&pauseCrs);
 
 		//LeaveCriticalSection (&filterInitCrs);
+
+		//Running Time
+#ifdef EVA_TIME
+		frameEnd = clock();
+		timmer.push_back(frameEnd-frameStart);
+		pEvaluator->saveCSVData(timeFileName, timmer);
+#endif
 		
 	}
-//#ifdef EVA_GRAPHUPDATE
-//		//save the VTK file with the life time
-//		//stringstream ss;
-//		//ss<<this->pLearning->updateTThreshold;
-//		//string fileName = ss.str();
-//		//this->pLearning->pObject->saveToVTKFile(fileName.data());
-//
-//		vector<float> endData;
-//		endData.push_back(this->pLearning->updateDThreshold);
-//		endData.push_back(this->pLearning->updateTThreshold);
-//		endData.push_back(this->pLearning->pObject->nodeList.size());
-//		pEvaluator->saveCSVData(endData);
-//#endif
+#ifdef EVA_GRAPHUPDATE
+		//save the VTK file with the life time
+		//stringstream ss;
+		//ss<<this->pLearning->updateTThreshold;
+		//string fileName = ss.str();
+		//this->pLearning->pObject->saveToVTKFile(fileName.data());
+
+		vector<float> endData;
+		endData.push_back(this->pLearning->updateDThreshold);
+		endData.push_back(this->pLearning->updateTThreshold);
+		//Get the number of fixed Nodes
+		endData.push_back(this->pLearning->pObject->getFixedNodeCount());
+		//Join the similar Nodes
+		pLearning->pObject->joinSimilarNodes(0.045);
+		//Get the summaried Nodes
+		endData.push_back(this->pLearning->pObject->nodeList.size());
+		pEvaluator->saveCSVData(endData);
+#endif
 	return 0;
 }
 
@@ -663,9 +794,9 @@ DWORD MainThread::openCVHelpThreadProc(void)
 			
 			for(int i=0;i<curFeatures.size();i++){
 				circle(graphImg, curFeatures[i].index, 2, Scalar(0,0,255), -1);
-				for(int j=i;j<curFeatures.size();j++){
+				/*for(int j=i;j<curFeatures.size();j++){
 					line(graphImg, curFeatures[i].index, curFeatures[j].index, Scalar(0, 255, 255, 0));
-				}
+				}*/
 			}
 			
 			imshow("OpenCVSummedFeatures", graphImg);

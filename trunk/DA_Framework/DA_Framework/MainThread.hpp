@@ -37,18 +37,19 @@ using namespace std;
 
 //#define EVA_FRAMECONTROL
 
-#define EVA_GRAPHUPDATE
+//#define EVA_GRAPHUPDATE
 
 //#define EVA_SAVECVBILD
 #ifdef EVA_SAVECVBILD
 	#define FRAME_INTERVAL 30
 #endif
 
-#define SCREENSHOT
+//#define SCREENSHOT
 #ifdef SCREENSHOT
-	
 	#define SCREENSHOT_FRAME 400
 #endif
+
+#define EVA_TIME
 
 #endif
 
@@ -75,6 +76,9 @@ public:
 
 	// Pointer of Instance of PMDCamera IO 
 	PMDCamIO *pPMDCamIO;
+
+	// Pointer of Logger
+	//Evaluator *pLogger;
 
 	// Announcement of subthreads
 	DWORD offlineInputThreadProc(void);
@@ -149,8 +153,6 @@ public:
 	// The vtk file name
 	char *MODELNAME;
 
-
-
 	//Object *obj;
 	//Recognition *recognition;
 
@@ -160,4 +162,7 @@ public:
 	BOOL isResultWindowVisible;
 	// Whether the OpenCV help Window is visible
 	BOOL isOpenCVWindowVisible;
+
+	// Logger name
+	//const char *loggerName = "Log";
 };
