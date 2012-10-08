@@ -106,7 +106,7 @@ Eva3DRotation
 30
 #----Visualisation----#
 # is Open real-time Ovservin Window
-0
+1
 # is Open Result Window
 1
 # is Open help OpenCV Windows
