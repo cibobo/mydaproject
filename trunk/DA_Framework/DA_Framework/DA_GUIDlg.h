@@ -90,4 +90,9 @@ public:
 	afx_msg void OnEnChangeEditOnlinepath();
 	// The Button to run and stop the programm
 	CButton RunButton;
+	// Check box of the Rotation's Kalman Filter
+	CButton RFilterControl;
+	// Check box of the Translation's Kalman Filter
+	CButton TFilterControl;
+	afx_msg void OnBnClickedCheckTfilter();
 };

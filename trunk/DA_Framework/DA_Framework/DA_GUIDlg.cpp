@@ -123,6 +123,9 @@ void CDA_GUIDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Check(pDX, IDC_CHECK_TFILTER, pMainThread->pLearning->isTKFilter);
 	DDX_Check(pDX, IDC_CHECK_RFILTER, pMainThread->pLearning->isQKFilter);
 
+	DDX_Control(pDX, IDC_CHECK_RFILTER, RFilterControl);
+	DDX_Control(pDX, IDC_CHECK_TFILTER, TFilterControl);
+
 	//Graph Update Prameters
 	DDX_Text(pDX, IDC_EDIT_GUPDATE_DT, pMainThread->pLearning->updateDThreshold);
 	DDX_Text(pDX, IDC_EDIT_GUPDATE_TT, pMainThread->pLearning->updateTThreshold);
@@ -151,6 +154,7 @@ void CDA_GUIDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_EDIT_MODELNAMES, LoadingNameEdit);
 	DDX_Control(pDX, IDC_CHECK_ONLINESAVED, OutputSavedCheck);
 	DDX_Control(pDX, IDOK, RunButton);
+
 }
 
 BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
@@ -178,6 +182,7 @@ BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
 	ON_BN_CLICKED(IDC_RADIO_RMODEL_CREATE, &CDA_GUIDlg::OnBnClickedRadioRmodelCreate)
 	ON_BN_CLICKED(IDC_CHECK_ONLINESAVED, &CDA_GUIDlg::OnBnClickedCheckOnlinesaved)
 	ON_EN_CHANGE(IDC_EDIT_ONLINEPATH, &CDA_GUIDlg::OnEnChangeEditOnlinepath)
+	ON_BN_CLICKED(IDC_CHECK_TFILTER, &CDA_GUIDlg::OnBnClickedCheckTfilter)
 END_MESSAGE_MAP()
 
 
@@ -238,6 +243,9 @@ BOOL CDA_GUIDlg::OnInitDialog()
 	} else {
 		this->outputPathEditor.SetWindowTextA(CString(this->pMainThread->pPMDCamIO->savedPath));
 	}
+
+	//Init the CheckBox of the Kalman Filter
+	this->RFilterControl.EnableWindow(false);
 
 	return TRUE;  // Geben Sie TRUE zurück, außer ein Steuerelement soll den Fokus erhalten
 }
@@ -536,3 +544,8 @@ void CDA_GUIDlg::OnBnClickedCheckOnlinesaved()
 }
 
 
+
+void CDA_GUIDlg::OnBnClickedCheckTfilter()
+{
+	this->pMainThread->pLearning->isTKFilter = this->TFilterControl.GetCheck();
+}

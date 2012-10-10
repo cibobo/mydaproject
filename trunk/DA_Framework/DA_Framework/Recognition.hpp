@@ -106,7 +106,7 @@ public:
 	// To save the recognition's results for one Object
 	vector<RecognitionResult> resultList;
 	// To save the recognitions' results for more than one objects
-	vector<RecognitionResult> multiResultList;
+	vector<RecognitionResult*> multiResultList;
 	map<int, map<int,RecognitionResult>> resultMap;
 
 	// Parameter for the Graph Isomorphismus
