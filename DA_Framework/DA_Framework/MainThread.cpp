@@ -137,7 +137,7 @@ DWORD MainThread::calculationThreadProc(void){
 	LeaveCriticalSection (&glInitCrs);
 
 #ifdef EVALUATION
-	string EVA_RootPath = string("2012.10.08");
+	string EVA_RootPath = string("2012.10.10");
 	EVA_RootPath.append("/");
 	EVA_RootPath.append(this->INPUTPATH);
 	//const char *EVA_RootPath = "2012.09.17/EmptyBox";
@@ -189,6 +189,12 @@ DWORD MainThread::calculationThreadProc(void){
 	const char *timeFileName = "Time";
 	pEvaluator->createCSVFile(timeFileName);
 	pEvaluator->writeCSVTitle(timeFileName,"Frame Index, Disstance Filter, Star Detector & Brightness Control, Summerized Features, Segmentation, Correspondence, Orientation, Frame Control, Total Calculation, Total Frame");
+#endif
+
+#ifdef EVA_RECOGNITION
+	const char *recogFileName = "Recognition with one model_with not found";
+	pEvaluator->createCSVFile(recogFileName);
+	pEvaluator->writeCSVTitle(recogFileName, "Frame Index, Reslutlist Size, Is Find, Find Index, Find Weight, Run Time");
 #endif
 
 #endif
@@ -343,15 +349,10 @@ DWORD MainThread::calculationThreadProc(void){
 				timmer.push_back(-1);
 			}
 #endif
-		} 
-
-
-		if(this->isRecognise){
-			pRecognition->objectRecognition(pDetector->PMDFeatures);
-		}
 
 		//Code of the Evaluation
 #ifdef EVALUATION
+#ifndef EVA_RECOGNITION
 		vector<float> evaData;
 		evaData.push_back(this->pIterator->frameIndex);
 		//Point3f midPoint = this->pLearning->pObject->getMiddelPoint();
@@ -363,6 +364,7 @@ DWORD MainThread::calculationThreadProc(void){
 		evaData.push_back(center.y);
 		evaData.push_back(this->pDetector->PMDFeatures.size());
 		evaData.push_back(this->pLearning->curBildData->features.size());
+#endif
 
 #ifdef EVA_DFILTER
 		pEvaluator->saveCSVData(dFilterFileName, evaData);
@@ -414,7 +416,36 @@ DWORD MainThread::calculationThreadProc(void){
 			pEvaluator->saveCVBild(path.data(),curMat);
 		}
 #endif
-	
+#endif
+		} 
+
+
+		if(this->isRecognise){
+#ifdef EVA_RECOGNITION
+			int beginTime, endTime;
+			beginTime = clock();
+#endif
+			pRecognition->objectRecognition(pDetector->PMDFeatures);
+#ifdef EVA_RECOGNITION
+			endTime = clock();
+			vector<float> recogData;
+			recogData.push_back(this->pIterator->frameIndex);
+			recogData.push_back(this->pRecognition->multiResultList.size());
+			if(this->pRecognition->multiResultList.size() == 0){
+				recogData.push_back(-1);
+				recogData.push_back(-1);
+				recogData.push_back(-1);
+			} else {
+				recogData.push_back(this->pRecognition->multiResultList[0]->isFind);
+				recogData.push_back(this->pRecognition->multiResultList[0]->modelIndex);
+				recogData.push_back(this->pRecognition->multiResultList[0]->weight);
+			}
+			recogData.push_back(endTime-beginTime);
+			pEvaluator->saveCSVData(recogFileName, recogData);
+#endif
+		}
+
+
 		//Screenshot
 #ifdef SCREENSHOT
 	if(this->pIterator->frameIndex == SCREENSHOT_FRAME){
@@ -430,7 +461,7 @@ DWORD MainThread::calculationThreadProc(void){
 	}
 #endif
 
-#endif
+
 
 		this->isDataUsed = true;
 
@@ -439,6 +470,7 @@ DWORD MainThread::calculationThreadProc(void){
 		calEnd = clock();
 		timmer.push_back(calEnd-calStart);
 #endif
+
 
 		LeaveCriticalSection (&calcCrs);
 
@@ -657,7 +689,26 @@ DWORD MainThread::openGLResultThreadProc(void){
 
 	TlsSetValue(ThreadIndex, pObjGLWinUI);
 
-	if(!CreateOpenGLWindow("Object Window", 0, 0, 750, 750, PFD_TYPE_RGBA, 0, pObjGLWinUI, pObjViewContext)){
+	int width;
+	int height;
+
+	if(this->isLearning){
+		width = 750;
+		height = 750;
+	} 
+
+	if(this->isRecognise){
+		int modelSize = this->pRecognition->modelList.size();
+		width = 1500;
+		if(modelSize!=0){
+			height = width/modelSize;
+		} else {
+			height = width;
+		}
+	}
+
+
+	if(!CreateOpenGLWindow("Object Window", 0, 0, width, height, PFD_TYPE_RGBA, 0, pObjGLWinUI, pObjViewContext)){
 		exit(0);
 	}
 
