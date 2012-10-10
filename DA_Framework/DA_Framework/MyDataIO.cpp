@@ -6,13 +6,10 @@ using namespace std;
 //the path of the saved Data
 //const char *defaultSavePath = "data/translate/";
 
-#ifdef EVALUATION
-//default evaluation's data path
-const char *defaultRootPath = "data/evaluation/";
-#else
+
 //default load path
 const char *defaultRootPath = "data/evaluation_8Points/";
-#endif
+//const char *defaultRootPath = "data/";
 
 string defaultLoadPath;
 string defaultSavePath;

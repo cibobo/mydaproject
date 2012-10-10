@@ -98,11 +98,11 @@ Recognition::~Recognition(){
 
 
 void Recognition::loadModels(){
-	Object *obj1 = new Object("Box_all4");
+	Object *obj1 = new Object("Box1");
 	obj1->setColor(0);
 	this->modelList.push_back(obj1);
 
-	Object *obj2 = new Object("Box2_all2");
+	Object *obj2 = new Object("Box2");
 	obj2->setColor(1);
 	this->modelList.push_back(obj2);
 }
@@ -190,10 +190,10 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 	//	}
 	//} else {
 		for(int j=0;j<this->multiResultList.size();j++){
-			if(this->multiResultList[j].nodes.size() > 0 && this->multiResultList[j].isFind){
+			if(this->multiResultList[j]->nodes.size() > 0 && this->multiResultList[j]->isFind){
 				vector<Point3f> point3D;
 				vector<Point2f> point2D;
-				ImageProcess::decPMDPointVector(this->multiResultList[j].nodes, point3D, point2D);
+				ImageProcess::decPMDPointVector(this->multiResultList[j]->nodes, point3D, point2D);
 
 				Graph *graph = new Graph();
 				graph->createCompleteGraph(point3D);
@@ -211,19 +211,21 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 												this->distanceThreshold);
 					if(compResult){
 						cout<<"Find the Object! "<<i<<endl;
-						//Update result list. Using size of the ResultPair as the weight
-						if(resultPair.size() > multiResultList[j].weight){
-							multiResultList[j].modelIndex = i;
-							multiResultList[j].nodePair = resultPair;
-							multiResultList[j].weight = resultPair.size();
-						}
+						//Update result list. Using size of the ResultPair as the weight, if there are more than one Objects
+						//if(resultPair.size() > multiResultList[j]->weight){
+							multiResultList[j]->modelIndex = i;
+							multiResultList[j]->nodePair = resultPair;
+							multiResultList[j]->weight = resultPair.size();
+						//}
+					} else {
+						multiResultList[j]->isFind = false;
 					}
 				}
-				if(multiResultList[j].modelIndex != -1){
-					multiResultList[j].mark();
-					updateObjectPosition(multiResultList[j].modelIndex, multiResultList[j].nodePair);
+				if(multiResultList[j]->modelIndex != -1){
+					multiResultList[j]->mark();
+					updateObjectPosition(multiResultList[j]->modelIndex, multiResultList[j]->nodePair);
 
-					graph->setColor(multiResultList[j].modelIndex);					
+					graph->setColor(multiResultList[j]->modelIndex);					
 				}
 						
 			}
@@ -339,7 +341,7 @@ void Recognition::updateMultiResultList(){
 
 	//Set all result as not found
 	for(int j=0;j<multiResultList.size();j++){
-		multiResultList[j].isFind = false;
+		multiResultList[j]->isFind = false;
 	}
 
 	//Loop for all segmentations
@@ -347,19 +349,20 @@ void Recognition::updateMultiResultList(){
 		bool isUsed = false;
 		//Loop for all existing Result
 		for(int j=0;j<this->multiResultList.size();j++){
+			this->multiResultList[j]->isFind = false;
 			vector<PMDPoint> tempNew, tempOld;
 			float avrDis, disPE, sumP;
 			//Find the Association between the segmentation and the nodes saved in Result
-			ImageProcess::featureAssociatePMD(multiResultList[j].nodes, tempSegResult[i], sigma, assRate,
+			ImageProcess::featureAssociatePMD(multiResultList[j]->nodes, tempSegResult[i], sigma, assRate,
 				tempOld, tempNew, avrDis, disPE, sumP);
 
 			//If a besser Association has been found
-			if(sumP>multiResultList[j].lastSumP){
+			if(sumP>multiResultList[j]->lastSumP){
 
 				//Test OpenCV Draw
 				Scalar color = scalarColorList[j];
-				for(int k=0;k<multiResultList[j].nodes.size();k++){
-					circle(left, multiResultList[j].nodes[k].index, 2, color, -1);
+				for(int k=0;k<multiResultList[j]->nodes.size();k++){
+					circle(left, multiResultList[j]->nodes[k].index, 2, color, -1);
 				}
 				for(int k=0;k<tempSegResult[i].size();k++){
 					circle(right, tempSegResult[i][k].index, 2, color, -1);
@@ -371,10 +374,10 @@ void Recognition::updateMultiResultList(){
 				//End Test
 
 				//Update the Result
-				multiResultList[j].isFind = true;
-				multiResultList[j].lastSumP = sumP;
-				multiResultList[j].nodes = tempSegResult[i];
-				multiResultList[j].lifeTime++;
+				multiResultList[j]->isFind = true;
+				multiResultList[j]->lastSumP = sumP;
+				multiResultList[j]->nodes = tempSegResult[i];
+				multiResultList[j]->lifeTime += 2;
 				isUsed = true;
 			}
 		}
@@ -390,20 +393,21 @@ void Recognition::updateMultiResultList(){
 	
 	//Update the life time of the Results, and delete the unused Result, which may match to the objet, that will be no more appeared.
 	for(int j=0;j<multiResultList.size();j++){
-		multiResultList[j].lifeTime -= 2;
-		if(multiResultList[j].lifeTime < 0){
+		//The reduce of the life time is acorroding to the size of the MultiResultList
+		multiResultList[j]->lifeTime -= (multiResultList.size()>2?multiResultList.size():2);
+		if(multiResultList[j]->lifeTime < 0){
 			multiResultList.erase(multiResultList.begin()+j);
 			j--;
 		} else {
 			//Reset the Threshold of the Association
-			multiResultList[j].lastSumP = 3;
+			multiResultList[j]->lastSumP = 3;
 		}
 	}
 	
 	//Add the rest Segementations als the new Result into the ResultList
 	for(int i=0;i<tempSegResult.size();i++){
-		RecognitionResult newResult = RecognitionResult();
-		newResult.nodes = tempSegResult[i];
+		RecognitionResult *newResult = new RecognitionResult();
+		newResult->nodes = tempSegResult[i];
 		this->multiResultList.push_back(newResult);
 	}
 }
