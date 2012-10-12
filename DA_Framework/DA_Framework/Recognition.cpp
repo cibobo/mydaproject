@@ -88,6 +88,8 @@ Recognition::Recognition(){
 	//graph = new Graph();
 	
 	timmer = 0;
+
+	isInCurrentFound = false;
 }
 
 Recognition::~Recognition(){
@@ -190,6 +192,7 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 	//	}
 	//} else {
 		for(int j=0;j<this->multiResultList.size();j++){
+			isInCurrentFound = false;
 			if(this->multiResultList[j]->nodes.size() > 0 && this->multiResultList[j]->isFind){
 				vector<Point3f> point3D;
 				vector<Point2f> point2D;
@@ -216,10 +219,10 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 							multiResultList[j]->modelIndex = i;
 							multiResultList[j]->nodePair = resultPair;
 							multiResultList[j]->weight = resultPair.size();
+							isInCurrentFound = true;
 						//}
-					} else {
-						multiResultList[j]->isFind = false;
-					}
+					} 
+						
 				}
 				if(multiResultList[j]->modelIndex != -1){
 					multiResultList[j]->mark();
