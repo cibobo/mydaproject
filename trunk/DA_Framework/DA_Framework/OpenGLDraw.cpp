@@ -373,7 +373,7 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 	//glTranslatef(-factor/2, factor/2, 0);
 	for(int i=0;i<graph->nodeList.size();i++){
 		if(graph->nodeList[i]->isFixed){
-			ballSize = 0.02;
+			ballSize = 0.01;
 
 			// if the color of the node are not set
 			if(graph->nodeList[i]->color == -1){
@@ -384,7 +384,7 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 			mat_diffuse[2] = COLORLIST[graph->nodeList[i]->color][2];
 			mat_diffuse[3] = COLORLIST[graph->nodeList[i]->color][3];
 		} else {
-			ballSize = 0.01;
+			ballSize = 0.005;
 			mat_diffuse[0] = 0.07568;
 			mat_diffuse[1] = graph->nodeList[i]->timmer*0.1+0.2;
 			mat_diffuse[2] = 0.07568;
@@ -396,6 +396,16 @@ void display(OpenGLWinUI *pOpenGLWinUI, Graph *graph){
 		glTranslatef(graph->nodeList[i]->x,graph->nodeList[i]->y,-graph->nodeList[i]->z);
 		glutSolidSphere(ballSize, 20, 16);
 		glTranslatef(-graph->nodeList[i]->x,-graph->nodeList[i]->y,graph->nodeList[i]->z);
+
+		//Draw Edges
+		map<Node*, float>::iterator k = graph->nodeList[i]->neighbors.begin();
+		for(;k!=graph->nodeList[i]->neighbors.end();k++){
+			//mat_diffuse[0] = mat_diffuse[1] = mat_diffuse[2] = mat_diffuse[3] = 1.0;
+			glBegin(GL_LINES);
+				glVertex3f(graph->nodeList[i]->x, graph->nodeList[i]->y, -graph->nodeList[i]->z); 
+				glVertex3f(k->first->x, k->first->y, -k->first->z); 
+			glEnd();
+		}
 	}
 
 	glDisable(GL_LINE_STIPPLE);   // Disable the line stipple

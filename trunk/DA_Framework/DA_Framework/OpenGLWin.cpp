@@ -104,13 +104,13 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 			pOpenGLWinUI->Y = 0.0f;        
 			pOpenGLWinUI->Z = 2.0f;       
 
-			pOpenGLWinUI->rotX = -70.0f;    
+			pOpenGLWinUI->rotX = -80.0f;    
 			pOpenGLWinUI->rotY = 0.0f;    
 			pOpenGLWinUI->rotZ = 110.0f;    
 
 			pOpenGLWinUI->rotLx = 0.0f;                           
 			pOpenGLWinUI->rotLy = 0.0f;  
-			pOpenGLWinUI->rotLz = 4.0f;   
+			pOpenGLWinUI->rotLz = 3.0f;   
 
 			pOpenGLWinUI->gContrast = 3200;
 			pOpenGLWinUI->gBalance = 5000;

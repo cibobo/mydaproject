@@ -44,14 +44,14 @@ using namespace std;
 	#define FRAME_INTERVAL 30
 #endif
 
-#define SCREENSHOT
+//#define SCREENSHOT
 #ifdef SCREENSHOT
-	#define SCREENSHOT_FRAME 180
+	#define SCREENSHOT_FRAME 480
 #endif
 
 //#define EVA_TIME
 
-//#define EVA_RECOGNITION
+#define EVA_RECOGNITION
 
 #endif
 

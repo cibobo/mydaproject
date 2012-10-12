@@ -40,7 +40,7 @@
 2
 #----Learning----#
 # isLearning
-1
+0
 ##---Spatial Features Segmentation---##
 # Maximal allowed Distance
 0.18
@@ -74,14 +74,14 @@
 # Save Direction
 #----Recognition----#
 #isRecognition
-0
+1
 ##---Recognition's Model---##
 # is Using test models
-1
-# is Load model from VTK file
 0
+# is Load model from VTK file
+1
 # Models' names
-Box_all4,Box_all2
+Box1,Box2
 # is Create a new model
 0
 ##---Graph Isomorphismus---##
@@ -97,7 +97,7 @@ Box_all4,Box_all2
 # is data saved
 1
 # save direction
-Eva2DTranslation_new
+Eva3DRotationBox2
 # is offline
 1
 # load direction

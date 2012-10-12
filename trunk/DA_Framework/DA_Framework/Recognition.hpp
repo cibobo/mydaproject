@@ -118,4 +118,7 @@ public:
 	BOOL isTest;
 	BOOL isLoad;
 	BOOL isCreate;
+
+	//Help Parameter for evaluation
+	BOOL isInCurrentFound;
 };

@@ -137,7 +137,7 @@ DWORD MainThread::calculationThreadProc(void){
 	LeaveCriticalSection (&glInitCrs);
 
 #ifdef EVALUATION
-	string EVA_RootPath = string("2012.10.10");
+	string EVA_RootPath = string("2012.10.12");
 	EVA_RootPath.append("/");
 	EVA_RootPath.append(this->INPUTPATH);
 	//const char *EVA_RootPath = "2012.09.17/EmptyBox";
@@ -192,7 +192,7 @@ DWORD MainThread::calculationThreadProc(void){
 #endif
 
 #ifdef EVA_RECOGNITION
-	const char *recogFileName = "Recognition with one model_with not found";
+	const char *recogFileName = "Recognition with two model_with not found";
 	pEvaluator->createCSVFile(recogFileName);
 	pEvaluator->writeCSVTitle(recogFileName, "Frame Index, Reslutlist Size, Is Find, Find Index, Find Weight, Run Time");
 #endif
@@ -436,7 +436,7 @@ DWORD MainThread::calculationThreadProc(void){
 				recogData.push_back(-1);
 				recogData.push_back(-1);
 			} else {
-				recogData.push_back(this->pRecognition->multiResultList[0]->isFind);
+				recogData.push_back(this->pRecognition->isInCurrentFound);
 				recogData.push_back(this->pRecognition->multiResultList[0]->modelIndex);
 				recogData.push_back(this->pRecognition->multiResultList[0]->weight);
 			}
@@ -699,7 +699,7 @@ DWORD MainThread::openGLResultThreadProc(void){
 
 	if(this->isRecognise){
 		int modelSize = this->pRecognition->modelList.size();
-		width = 1500;
+		width = 750;
 		if(modelSize!=0){
 			height = width/modelSize;
 		} else {
