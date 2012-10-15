@@ -101,7 +101,7 @@ Eva3DRotationBox2
 # is offline
 1
 # load direction
-Eva3DRotation
+EvaRecognition
 # framerate
 30
 #----Visualisation----#

@@ -109,6 +109,8 @@ public:
 	vector<RecognitionResult*> multiResultList;
 	map<int, map<int,RecognitionResult>> resultMap;
 
+	vector<int> statisticResult;
+
 	// Parameter for the Graph Isomorphismus
 	float distanceProportion;
 	float nodesCountProportion;
@@ -121,4 +123,7 @@ public:
 
 	//Help Parameter for evaluation
 	BOOL isInCurrentFound;
+
+	int evaIsoRecogCount;
+	int evaNodeCount;
 };
