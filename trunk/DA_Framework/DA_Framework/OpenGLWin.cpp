@@ -101,8 +101,8 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 
 			// Declared static (no need for object reference
 			pOpenGLWinUI->X = 0.0f;        
-			pOpenGLWinUI->Y = 0.0f;        
-			pOpenGLWinUI->Z = 2.0f;       
+			pOpenGLWinUI->Y = 0.5f;        
+			pOpenGLWinUI->Z = 2.3f;       
 
 			pOpenGLWinUI->rotX = -80.0f;    
 			pOpenGLWinUI->rotY = 0.0f;    
@@ -110,7 +110,7 @@ LONG WINAPI WindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam){
 
 			pOpenGLWinUI->rotLx = 0.0f;                           
 			pOpenGLWinUI->rotLy = 0.0f;  
-			pOpenGLWinUI->rotLz = 3.0f;   
+			pOpenGLWinUI->rotLz = 2.5f;   
 
 			pOpenGLWinUI->gContrast = 3200;
 			pOpenGLWinUI->gBalance = 5000;

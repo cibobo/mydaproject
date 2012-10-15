@@ -137,7 +137,7 @@ DWORD MainThread::calculationThreadProc(void){
 	LeaveCriticalSection (&glInitCrs);
 
 #ifdef EVALUATION
-	string EVA_RootPath = string("2012.10.12");
+	string EVA_RootPath = string("2012.10.15");
 	EVA_RootPath.append("/");
 	EVA_RootPath.append(this->INPUTPATH);
 	//const char *EVA_RootPath = "2012.09.17/EmptyBox";
@@ -192,9 +192,16 @@ DWORD MainThread::calculationThreadProc(void){
 #endif
 
 #ifdef EVA_RECOGNITION
-	const char *recogFileName = "Recognition with two model_with not found";
+	const char *recogFileName = "Recognition with 1 model_without Improvement";
 	pEvaluator->createCSVFile(recogFileName);
-	pEvaluator->writeCSVTitle(recogFileName, "Frame Index, Reslutlist Size, Is Find, Find Index, Find Weight, Run Time");
+	pEvaluator->writeCSVTitle(recogFileName, "Frame Index, Reslutlist Size, Is Find, Is Model 1 found, Is Model 2 found, Run Time");
+#endif
+
+	//Graph Isomorphismus
+#ifdef EVA_ISOMORPHISMUS
+	const char *graphIsoFileName = "Graph Isomorphismus 2 Model";
+	pEvaluator->createCSVFile(graphIsoFileName);
+	pEvaluator->writeCSVTitle(graphIsoFileName, "Proportion of Distance, Proportion of similar Nodes, Recognized Frames, Right Recognized Frames, Wrong Recognized Frames, Checked Node Count, Frame Count");
 #endif
 
 #endif
@@ -431,15 +438,18 @@ DWORD MainThread::calculationThreadProc(void){
 			vector<float> recogData;
 			recogData.push_back(this->pIterator->frameIndex);
 			recogData.push_back(this->pRecognition->multiResultList.size());
-			if(this->pRecognition->multiResultList.size() == 0){
-				recogData.push_back(-1);
-				recogData.push_back(-1);
-				recogData.push_back(-1);
-			} else {
-				recogData.push_back(this->pRecognition->isInCurrentFound);
-				recogData.push_back(this->pRecognition->multiResultList[0]->modelIndex);
-				recogData.push_back(this->pRecognition->multiResultList[0]->weight);
-			}
+			//if(this->pRecognition->multiResultList.size() == 0){
+			//	recogData.push_back(-1);
+			//	recogData.push_back(-1);
+			//	recogData.push_back(-1);
+			//} else {
+			//	recogData.push_back(this->pRecognition->isInCurrentFound);
+			//	recogData.push_back(this->pRecognition->multiResultList[0]->modelIndex);
+			//	recogData.push_back(this->pRecognition->multiResultList[0]->weight);
+			//}
+			recogData.push_back(this->pRecognition->isInCurrentFound);
+			recogData.push_back(this->pRecognition->statisticResult[0]);
+			recogData.push_back(this->pRecognition->statisticResult[1]);
 			recogData.push_back(endTime-beginTime);
 			pEvaluator->saveCSVData(recogFileName, recogData);
 #endif
@@ -507,6 +517,18 @@ DWORD MainThread::calculationThreadProc(void){
 		//Get the summaried Nodes
 		endData.push_back(this->pLearning->pObject->nodeList.size());
 		pEvaluator->saveCSVData(endData);
+#endif
+
+#ifdef EVA_ISOMORPHISMUS
+		vector<float> endData;
+		endData.push_back(this->pRecognition->distanceProportion);
+		endData.push_back(this->pRecognition->nodesCountProportion);
+		endData.push_back(this->pRecognition->evaIsoRecogCount);
+		endData.push_back(this->pRecognition->statisticResult[0]);
+		endData.push_back(this->pRecognition->statisticResult[1]);
+		endData.push_back(this->pRecognition->evaNodeCount);
+		endData.push_back(this->pIterator->frameIndex);
+		pEvaluator->saveCSVData(graphIsoFileName, endData);
 #endif
 	return 0;
 }

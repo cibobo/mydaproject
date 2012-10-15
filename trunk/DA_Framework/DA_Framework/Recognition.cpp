@@ -90,6 +90,12 @@ Recognition::Recognition(){
 	timmer = 0;
 
 	isInCurrentFound = false;
+	evaIsoRecogCount = 0;
+	evaNodeCount = 0;
+
+	//set the first recognized statistic value to 0
+	this->statisticResult.push_back(0);
+	this->statisticResult.push_back(0);
 }
 
 Recognition::~Recognition(){
@@ -104,9 +110,13 @@ void Recognition::loadModels(){
 	obj1->setColor(0);
 	this->modelList.push_back(obj1);
 
+
+
 	Object *obj2 = new Object("Box2");
 	obj2->setColor(1);
 	this->modelList.push_back(obj2);
+
+	
 }
 
 void Recognition::loadModels(std::vector<string> names){
@@ -193,6 +203,7 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 	//} else {
 		for(int j=0;j<this->multiResultList.size();j++){
 			isInCurrentFound = false;
+			//multiResultList[j]->weight = 0;
 			if(this->multiResultList[j]->nodes.size() > 0 && this->multiResultList[j]->isFind){
 				vector<Point3f> point3D;
 				vector<Point2f> point2D;
@@ -219,7 +230,10 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 							multiResultList[j]->modelIndex = i;
 							multiResultList[j]->nodePair = resultPair;
 							multiResultList[j]->weight = resultPair.size();
+							//Evaluation's Help Parameters
 							isInCurrentFound = true;
+							evaIsoRecogCount++;
+							evaNodeCount+=multiResultList[j]->weight;
 						//}
 					} 
 						
@@ -228,7 +242,10 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 					multiResultList[j]->mark();
 					updateObjectPosition(multiResultList[j]->modelIndex, multiResultList[j]->nodePair);
 
-					graph->setColor(multiResultList[j]->modelIndex);					
+					graph->setColor(multiResultList[j]->modelIndex);	
+					if(isInCurrentFound){
+						this->statisticResult[multiResultList[j]->modelIndex]++;
+					}
 				}
 						
 			}
