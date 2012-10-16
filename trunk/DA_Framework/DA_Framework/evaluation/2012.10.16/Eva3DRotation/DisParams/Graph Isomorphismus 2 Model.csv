@@ -1,0 +1,15 @@
+#Description#
+#Proportion of Distance, Proportion of similar Nodes, Recognized Frames, Right Recognized Frames, Wrong Recognized Frames, Checked Node Count, Frame Count#
+0.005 0.5 43 43 0 155 485 
+0.01 0.5 163 163 0 765 485 
+0.02 0.5 254 254 0 1380 485 
+0.03 0.5 293 289 2 1643 485 
+0.04 0.5 299 292 4 1616 485 
+0.05 0.5 315 298 10 1624 485 
+0.06 0.5 311 278 18 1536 485 
+0.07 0.5 276 266 5 1296 485 
+0.08 0.5 199 194 3 860 485 
+0.1 0.5 159 158 1 602 485 
+0.12 0.5 136 136 0 459 485 
+0.15 0.5 52 52 0 174 485 
+0.2 0.5 0 0 0 0 485 
