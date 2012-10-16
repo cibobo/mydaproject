@@ -39,14 +39,14 @@ using namespace std;
 
 //#define EVA_GRAPHUPDATE
 
-//#define EVA_SAVECVBILD
+#define EVA_SAVECVBILD
 #ifdef EVA_SAVECVBILD
-	#define FRAME_INTERVAL 30
+	#define FRAME_INTERVAL 50
 #endif
 
-#define SCREENSHOT
+//#define SCREENSHOT
 #ifdef SCREENSHOT
-	#define SCREENSHOT_FRAME 156
+	#define SCREENSHOT_FRAME 485
 #endif
 
 //#define EVA_TIME
