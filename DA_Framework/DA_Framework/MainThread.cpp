@@ -137,7 +137,7 @@ DWORD MainThread::calculationThreadProc(void){
 	LeaveCriticalSection (&glInitCrs);
 
 #ifdef EVALUATION
-	string EVA_RootPath = string("2012.10.15");
+	string EVA_RootPath = string("2012.10.16");
 	EVA_RootPath.append("/");
 	EVA_RootPath.append(this->INPUTPATH);
 	//const char *EVA_RootPath = "2012.09.17/EmptyBox";
@@ -192,16 +192,16 @@ DWORD MainThread::calculationThreadProc(void){
 #endif
 
 #ifdef EVA_RECOGNITION
-	const char *recogFileName = "Recognition with 1 model_without Improvement";
+	const char *recogFileName = "Recognition with 2 model_without Improvement";
 	pEvaluator->createCSVFile(recogFileName);
-	pEvaluator->writeCSVTitle(recogFileName, "Frame Index, Reslutlist Size, Is Find, Is Model 1 found, Is Model 2 found, Run Time");
+	pEvaluator->writeCSVTitle(recogFileName, "Frame Index, Reslutlist Size, Is Find, Is Model 1 found, Is Model 2 found, Result 1, Result 2, Run Time");
 #endif
 
 	//Graph Isomorphismus
 #ifdef EVA_ISOMORPHISMUS
-	const char *graphIsoFileName = "Graph Isomorphismus 2 Model";
+	const char *graphIsoFileName = "Graph Isomorphismus 1 Model";
 	pEvaluator->createCSVFile(graphIsoFileName);
-	pEvaluator->writeCSVTitle(graphIsoFileName, "Proportion of Distance, Proportion of similar Nodes, Recognized Frames, Right Recognized Frames, Wrong Recognized Frames, Checked Node Count, Frame Count");
+	//pEvaluator->writeCSVTitle(graphIsoFileName, "Proportion of Distance, Proportion of similar Nodes, Recognized Frames, Right Recognized Frames, Wrong Recognized Frames, Checked Node Count, Frame Count");
 #endif
 
 #endif
@@ -406,23 +406,7 @@ DWORD MainThread::calculationThreadProc(void){
 		pEvaluator->saveCSVData(frameControlFileName, evaData);
 #endif
 
-#ifdef EVA_SAVECVBILD
-		if(pIterator->frameIndex % FRAME_INTERVAL == 0){
-			Mat curMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
-			ImageProcess::transFloatToMat3(this->pLearning->curBildData->ampData, curMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
-			vector<PMDPoint> features = this->pLearning->curBildData->features;
 
-			for(int i=0;i<features.size();i++){
-				circle(curMat, features[i].index, 3, Scalar(0,0,255,0), -1);
-			}
-
-			//Translate the frame index into the file name
-			stringstream ss;
-			ss<<pIterator->frameIndex;
-			string path(ss.str());
-			pEvaluator->saveCVBild(path.data(),curMat);
-		}
-#endif
 #endif
 		} 
 
@@ -450,11 +434,46 @@ DWORD MainThread::calculationThreadProc(void){
 			recogData.push_back(this->pRecognition->isInCurrentFound);
 			recogData.push_back(this->pRecognition->statisticResult[0]);
 			recogData.push_back(this->pRecognition->statisticResult[1]);
+			switch(this->pRecognition->multiResultList.size()){
+				case 0: recogData.push_back(-1);
+						recogData.push_back(-1);
+						break;
+				case 1: recogData.push_back(this->pRecognition->multiResultList[0]->modelIndex);
+						recogData.push_back(-1);
+						break;
+				default: recogData.push_back(this->pRecognition->multiResultList[0]->modelIndex);
+						recogData.push_back(this->pRecognition->multiResultList[1]->modelIndex);
+						break;
+			}
 			recogData.push_back(endTime-beginTime);
 			pEvaluator->saveCSVData(recogFileName, recogData);
 #endif
 		}
+		//OpenCV Bild
+#ifdef EVA_SAVECVBILD
+		if(pIterator->frameIndex % FRAME_INTERVAL == 0){
+			Mat curMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
+			ImageProcess::transFloatToMat3(this->pIterator->getCurrentBildData()->ampData, curMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
+			
+			//vector<PMDPoint> features = this->pLearning->curBildData->features;
+			//for(int i=0;i<features.size();i++){
+			//	circle(curMat, features[i].index, 3, Scalar(0,0,255,0), -1);
+			//}
 
+			for(int i=0;i<this->pRecognition->segResult.size();i++){
+				Scalar color = scalarColorList[i];
+				for(int j=0;j<this->pRecognition->segResult[i].size();j++){
+					circle(curMat, this->pRecognition->segResult[i][j].index, 2, color, -1);
+				}
+			}	
+
+			//Translate the frame index into the file name
+			stringstream ss;
+			ss<<pIterator->frameIndex;
+			string path(ss.str());
+			pEvaluator->saveCVBild(path.data(),curMat);
+		}
+#endif
 
 		//Screenshot
 #ifdef SCREENSHOT

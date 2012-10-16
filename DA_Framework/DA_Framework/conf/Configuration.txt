@@ -97,11 +97,11 @@ Box1,Box2
 # is data saved
 1
 # save direction
-Eva3DRotationBox2
+EvaRecog2Boxes_3
 # is offline
 1
 # load direction
-EvaRecognition
+EvaRecog2Boxes_3
 # framerate
 30
 #----Visualisation----#

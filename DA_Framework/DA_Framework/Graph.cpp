@@ -451,7 +451,7 @@ bool Graph::isEqual(Graph *other, NodePairs &nodePairs, float disProp, float cou
 
 		bool isFound = false;
 		// create the minimal acceptable number of numbers for point p
-		int minNodeSize = (this->nodeList.size()*countProp)>=4?(this->nodeList.size()*countProp):4;
+		int minNodeSize = (this->nodeList.size()*countProp)>=3?(this->nodeList.size()*countProp):3;
 
 		int bestNeighborCount = 0;
 		Node *bestP;
