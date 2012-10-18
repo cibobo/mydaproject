@@ -137,7 +137,7 @@ DWORD MainThread::calculationThreadProc(void){
 	LeaveCriticalSection (&glInitCrs);
 
 #ifdef EVALUATION
-	string EVA_RootPath = string("2012.10.16");
+	string EVA_RootPath = string("2012.10.18");
 	EVA_RootPath.append("/");
 	EVA_RootPath.append(this->INPUTPATH);
 	//const char *EVA_RootPath = "2012.09.17/EmptyBox";
@@ -194,7 +194,8 @@ DWORD MainThread::calculationThreadProc(void){
 #ifdef EVA_RECOGNITION
 	const char *recogFileName = "Recognition with 2 model_without Improvement";
 	pEvaluator->createCSVFile(recogFileName);
-	pEvaluator->writeCSVTitle(recogFileName, "Frame Index, Reslutlist Size, Is Find, Is Model 1 found, Is Model 2 found, Result 1, Result 2, Run Time");
+	//pEvaluator->writeCSVTitle(recogFileName, "Frame Index, Reslutlist Size, Is Find, Is Model 1 found, Is Model 2 found, Result 1, Result 2, Run Time");
+	pEvaluator->writeCSVTitle(recogFileName, "Frame Index, Reslutlist Size, Is Find, Is Model 1 found, Is Model 2 found, Nodes Count, Run Time");
 #endif
 
 	//Graph Isomorphismus
@@ -434,17 +435,18 @@ DWORD MainThread::calculationThreadProc(void){
 			recogData.push_back(this->pRecognition->isInCurrentFound);
 			recogData.push_back(this->pRecognition->statisticResult[0]);
 			recogData.push_back(this->pRecognition->statisticResult[1]);
-			switch(this->pRecognition->multiResultList.size()){
-				case 0: recogData.push_back(-1);
-						recogData.push_back(-1);
-						break;
-				case 1: recogData.push_back(this->pRecognition->multiResultList[0]->modelIndex);
-						recogData.push_back(-1);
-						break;
-				default: recogData.push_back(this->pRecognition->multiResultList[0]->modelIndex);
-						recogData.push_back(this->pRecognition->multiResultList[1]->modelIndex);
-						break;
-			}
+			//switch(this->pRecognition->multiResultList.size()){
+			//	case 0: recogData.push_back(-1);
+			//			recogData.push_back(-1);
+			//			break;
+			//	case 1: recogData.push_back(this->pRecognition->multiResultList[0]->modelIndex);
+			//			recogData.push_back(-1);
+			//			break;
+			//	default: recogData.push_back(this->pRecognition->multiResultList[0]->modelIndex);
+			//			recogData.push_back(this->pRecognition->multiResultList[1]->modelIndex);
+			//			break;
+			//}
+			recogData.push_back(this->pRecognition->evaNodeCount);
 			recogData.push_back(endTime-beginTime);
 			pEvaluator->saveCSVData(recogFileName, recogData);
 #endif
@@ -454,18 +456,22 @@ DWORD MainThread::calculationThreadProc(void){
 		if(pIterator->frameIndex % FRAME_INTERVAL == 0){
 			Mat curMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
 			ImageProcess::transFloatToMat3(this->pIterator->getCurrentBildData()->ampData, curMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
-			
-			//vector<PMDPoint> features = this->pLearning->curBildData->features;
-			//for(int i=0;i<features.size();i++){
-			//	circle(curMat, features[i].index, 3, Scalar(0,0,255,0), -1);
-			//}
 
-			for(int i=0;i<this->pRecognition->segResult.size();i++){
-				Scalar color = scalarColorList[i];
-				for(int j=0;j<this->pRecognition->segResult[i].size();j++){
-					circle(curMat, this->pRecognition->segResult[i][j].index, 2, color, -1);
+			if(this->isLearning){
+				vector<PMDPoint> features = this->pLearning->curBildData->features;
+				for(int i=0;i<features.size();i++){
+					circle(curMat, features[i].index, 3, Scalar(0,0,255,0), -1);
 				}
-			}	
+			}
+
+			if(this->isRecognise){
+				for(int i=0;i<this->pRecognition->segResult.size();i++){
+					Scalar color = scalarColorList[i];
+					for(int j=0;j<this->pRecognition->segResult[i].size();j++){
+						circle(curMat, this->pRecognition->segResult[i][j].index, 2, color, -1);
+					}
+				}	
+			}
 
 			//Translate the frame index into the file name
 			stringstream ss;
