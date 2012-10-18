@@ -201,6 +201,8 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 	//		updateObjectPosition(resultList[maxIndex].modelIndex, resultList[maxIndex].nodePair);
 	//	}
 	//} else {
+
+
 		for(int j=0;j<this->multiResultList.size();j++){
 			isInCurrentFound = false;
 			multiResultList[j]->weight = 0;
@@ -243,16 +245,18 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 					updateObjectPosition(multiResultList[j]->modelIndex, multiResultList[j]->nodePair);
 
 					graph->setColor(multiResultList[j]->modelIndex);	
-					if(isInCurrentFound){
+					//if(isInCurrentFound){
 						this->statisticResult[multiResultList[j]->modelIndex]++;
-					}
+					//}
 				}
 						
 			}
 		}
+
 	//}
 
 	//for(int j=0;j<this->segResult.size();j++){
+	//	isInCurrentFound = false;
 	//	if(this->segResult[j].size()>0){
 	//		RecognitionResult *resultArray = new RecognitionResult[modelList.size()];
 	//		
@@ -276,6 +280,7 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 	//										this->distanceThreshold);
 	//			if(compResult){
 	//				cout<<"Find the Object! "<<i<<endl;
+	//				isInCurrentFound = true;
 	//				//int appear = this->Statistic[0].find(i)->second.appear(timmer);
 	//				//cout<<"The appearence rate is: "<<float(appear)/timmer<<endl;
 
@@ -283,15 +288,17 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 
 	//				
 	//				
-	//				if(this->segResult.size() == 1){
-	//					// for just one Object
-	//					updateResultList(i, resultPair);
-	//				//updateObjectPosition(i, resultPair);
-	//				} else {
+	//				//if(this->segResult.size() == 1){
+	//				//	// for just one Object
+	//				//	updateResultList(i, resultPair);
+	//				////updateObjectPosition(i, resultPair);
+	//				//} else {
 	//					// more than 2 objects
 	//					resultArray[i].nodePair = resultPair;
 	//					resultArray[i].weight++;
-	//				}
+
+	//					evaNodeCount+=resultPair.size();
+	//				//}
 	//				
 	//			}
 
@@ -312,17 +319,18 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 	//		//}
 
 
-	//		if(this->segResult.size() == 1){
-	//			// for just one object
-	//			int maxIndex = this->findBestResult();
-	//			cout<<"The max Index: "<<maxIndex<<endl;
-	//			if(maxIndex != -1){
-	//				graphList[j]->setColor(resultList[maxIndex].modelIndex);
-	//				this->resultList[maxIndex].mark();
-	//				// transformate the object
-	//				updateObjectPosition(resultList[maxIndex].modelIndex, resultList[maxIndex].nodePair);
-	//			}
-	//		} else {
+	//		//if(this->segResult.size() == 1){
+	//		//	// for just one object
+	//		//	int maxIndex = this->findBestResult();
+	//		//	cout<<"The max Index: "<<maxIndex<<endl;
+	//		//	if(maxIndex != -1){
+	//		//		graphList[j]->setColor(resultList[maxIndex].modelIndex);
+	//		//		this->resultList[maxIndex].mark();
+	//		//		// transformate the object
+	//		//		updateObjectPosition(resultList[maxIndex].modelIndex, resultList[maxIndex].nodePair);
+	//		//		this->statisticResult[0]++;
+	//		//	}
+	//		//} else {
 	//			// for more objects
 	//			bool isfind = false;
 	//			for(int i=0;i<modelList.size();i++){
@@ -330,10 +338,11 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 	//					graphList[j]->setColor(i);
 	//					resultArray[i].mark();
 	//					updateObjectPosition(i, resultArray[i].nodePair);
+	//					this->statisticResult[i]++;
 	//					break;
 	//				}
 	//			}
-	//		}
+	//		//}
 	//		delete []resultArray;
 
 	//		// show the appearence rate

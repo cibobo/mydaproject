@@ -51,7 +51,7 @@ using namespace std;
 
 //#define EVA_TIME
 
-#define EVA_RECOGNITION
+//#define EVA_RECOGNITION
 
 //#define EVA_ISOMORPHISMUS
 
