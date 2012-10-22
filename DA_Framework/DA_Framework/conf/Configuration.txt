@@ -101,7 +101,7 @@ EvaRecog2Boxes_5
 # is offline
 1
 # load direction
-EvaRecog2Boxes_5
+Eva3DRotation
 # framerate
 30
 #----Visualisation----#

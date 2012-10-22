@@ -21,6 +21,7 @@ void ImageProcess::transFloatToMat(float *src, cv::Mat &dst, float balance, floa
 	for(int i=0;i<V_BILDSIZE;i++){
 		for(int j=0;j<H_BILDSIZE;j++){
 			int gray = (src[i*V_BILDSIZE+j]-balance)/contrast;
+			//int gray = (src[i*V_BILDSIZE-j+H_BILDSIZE-1]-balance)/contrast;
 			if(gray>255){
 				gray = 255;
 			} else if(gray <0){
@@ -36,6 +37,7 @@ void ImageProcess::transFloatToMat3(float *src, cv::Mat &dst, float balance, flo
 	for(int i=0;i<V_BILDSIZE;i++){
 		for(int j=0;j<H_BILDSIZE;j++){
 			int gray = (src[i*V_BILDSIZE+j]-balance)/contrast;
+			//int gray = (src[i*V_BILDSIZE-j+H_BILDSIZE-1]-balance)/contrast;
 			if(gray>255){
 				gray = 255;
 			} else if(gray <0){

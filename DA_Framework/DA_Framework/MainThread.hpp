@@ -22,7 +22,7 @@
 using namespace std;
 
 //Whether the Evaluator is active
-#define EVALUATION
+//#define EVALUATION
 
 #ifdef EVALUATION
 
