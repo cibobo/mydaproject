@@ -155,6 +155,11 @@ void MyFeatureDetector::createPMDFeatures(){
 			avrX3D += detectedData->threeDData[(indexI*204 + indexJ)*3];
 			avrY3D += detectedData->threeDData[(indexI*204 + indexJ)*3 + 1];
 			avrZ3D += detectedData->threeDData[(indexI*204 + indexJ)*3 + 2];
+
+			
+			//avrX3D += detectedData->threeDData[(indexI*204 -indexJ+H_BILDSIZE-1)*3];
+			//avrY3D += detectedData->threeDData[(indexI*204 -indexJ+H_BILDSIZE-1)*3 + 1];
+			//avrZ3D += detectedData->threeDData[(indexI*204 -indexJ+H_BILDSIZE-1)*3 + 2];
 		}
 
 		Point2f p2(avrX2D/groupSize, avrY2D/groupSize);
