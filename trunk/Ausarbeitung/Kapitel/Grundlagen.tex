@@ -16,11 +16,11 @@ d = \frac{t_d}{2c}
 wobei $t_d$ die gemessene Zeit bezeichnet. Die Konstante $c$ steht für die Lichtgeschwindigkeit. 
 \\
 \\
-Im Vergleich zu anderen 3D Kamerasystemen hat die TOF Kamera viele Vorteilen \cite{TOFWiki}. Zuerst kann die TOF Kamera einfach die interessierenden Bereiche aus einem Bild extrahieren und nur die Pixel nah vor der Kamera betrachten. Zweitens, kann die TOF Kamera eine hohe Bildrate bis zu 80 bps erreichen. Diese Eigenschaft ermöglicht somit Echtzeitanwendungen. Außerdem benötigt die TOF Kamera weniger Platz als z.B. das Triangulationssystem und hat niedrigere Abhängigkeit von der Systemstruktur gegenüber dem Stereosystem.
+Im Vergleich zu anderen 3D Kamerasystemen hat die TOF Kamera viele Vorteile \cite{TOFWiki}. Zuerst kann die TOF Kamera einfach die interessierenden Bereiche aus einem Bild extrahieren und nur die Pixel nah vor der Kamera betrachten. Zweitens, kann die TOF Kamera eine hohe Bildrate bis zu 100 fps erreichen. Diese Eigenschaft ermöglicht somit Echtzeitanwendungen. Außerdem benötigt die TOF Kamera weniger Platz als z.B. das Triangulationssystem und hat niedrigere Abhängigkeit von der Systemstruktur gegenüber dem Stereosystem.
 
 
 \subsubsection{PMD Sensor}
-Der PMD Sensor heißt CamCube ist eine wichtige Komponente der TOF Kamera. Er liefert eine hohe Auflösung bis zum 204x204 Pixel und maximale Bildrate bis zum 40 bps. Durch Formel \eqref{tof1} wird der maximale Distanzbereich zum 7 m festgelegt. Die andere wichtigen Parameter findet man in Abbildung~\ref{PMDParam} \cite{pmde}.
+Der PMD Sensor ist eine wichtige Art der TOF Kamera. Er liefert eine hohe Auflösung bis zum 204x204 Pixel und maximale Bildrate bis zu 25 fps. Durch Formel \eqref{tof1} wird der maximale Distanzbereich zum 7 m festgelegt. Die andere wichtigen Parameter findet man in Abbildung~\ref{PMDParam} \cite{pmde}.
 \\
 \\
 %\graphicspath{}
@@ -51,7 +51,7 @@ Kinect ist eine Hardware zur Steuerung der Videospielkonsole Xbox360, die ein so
 \label{Kinect}
 \end{figure}
 
-Der Unterschied zwischen TOF Kamera und Kinect können auf dem Arbeitsprinzip zurückgeführt werden. In TOF Kameras wird die Tiefdaten durch dem Laufzeitverfahren berechnet, was im \ref{TOF Kamera} erklärt wird. Das Abtastverfahren der Kinect heißt Light Coding. Eine große Menge von Streifen werden als Mustern auf die Szene bzw. die Objekte durch infrarotes Licht projiziert. Die ganz Szene mit diesen zusätzlichen Mustern wird von einer infraroten Kamera des Kinects aufgenommen. Durch die Verzerrung zwischen dem vordefinierten Muster im infraroten Licht und dem von der infraroten Kamera erkannten Muster kann das Tiefbild der Szene ausgerechnet werden. Die Abbildung~\ref{Kinect} zeigt dieses Arbeitsprinzip der Kinect. Die weitere Information findet man im technischen Dokument des Firma Cadet \cite{KINH}. Der Vergleich über die genauen technischen Daten von PMD Kamera und Kinect wird in Tabelle~\ref{PMD and Kinect} zusammengefasst. Obwohl Kinect eine bessere Auflösung und größeres Sichtfeld hat, ist die PMD Kamera wegen ihrer hohen Bildrate und großen Messbereich für das MAROCO-System geeignet. Außerdem mithilfe des SBI Systems ist die Arbeit der PMD Kamera unter schwieriger Umgebungsbedingung, z.B. außerhalb des Zimmers mit starker Störung von Sonneneinstrahlung, auch möglich.
+Der Unterschied zwischen TOF Kamera und Kinect können auf dem Arbeitsprinzip zurückgeführt werden. In TOF Kameras wird die Tiefdaten durch dem Laufzeitverfahren berechnet, was im \ref{TOF Kamera} erklärt wird. Das Abtastverfahren der Kinect heißt Light Coding. Eine große Menge von Punkten werden als Mustern auf die Szene bzw. die Objekte durch infrarotes Licht projiziert. Die ganz Szene mit diesen zusätzlichen Mustern wird von einer infraroten Kamera des Kinects aufgenommen. Durch die Verzerrung zwischen dem vordefinierten Muster im infraroten Licht und dem von der infraroten Kamera erkannten Muster kann das Tiefbild der Szene ausgerechnet werden. Die Abbildung~\ref{Kinect} zeigt dieses Arbeitsprinzip der Kinect. Die weitere Information findet man im technischen Dokument des Firma Cadet \cite{KINH}. Der Vergleich über die genauen technischen Daten von PMD Kamera und Kinect wird in Tabelle~\ref{PMD and Kinect} zusammengefasst. Obwohl Kinect eine bessere Auflösung und größeres Sichtfeld hat, ist die PMD Kamera wegen ihrer hohen Bildrate und großen Messbereich für das MAROCO-System geeignet. Außerdem mithilfe des SBI Systems ist die Arbeit der PMD Kamera unter schwieriger Umgebungsbedingung, z.B. außerhalb des Zimmers mit starker Störung von Sonneneinstrahlung, auch möglich.
 
 \begin{table}[ftb]
 \begin{center}
@@ -71,19 +71,19 @@ Lange der Tiefdaten & 8 bit (unsigned char) & 11 bit \\ \hline
 
 \subsection{Daten der PMD Kamera}
 \label{PMDData}
-Die PMD Kamera CamCube kann insgesamt 4 verschiedenen Vermessungsdaten ausgeben. Sie sind Amplitude, Intensität, Distanz und 3D Koordinaten. Die erste Zwei und letzte Zwei Typen der Daten können durch die Dimension in zwei Gruppen unterteilt werden. 
+Die PMD Kamera CamCube kann insgesamt 4 verschiedene Vermessungsdaten ausgeben. Sie sind Amplitude, Intensität, Distanz und 3D Koordinaten. Die erste zwei und letzte zwei Typen der Daten können durch die Dimension in zwei Gruppen unterteilt werden. 
 
 \subsubsection{2D Daten}
-Die Intensität bezieht sich auf Graustufen. Nach einer Abbildung können diese Graustufen auf das Intervall 0 bis 255 beschränkt werden und das Ergebnis ist das Bild einer normalen Schwarz-Weiß Kamera. Die Amplitude zeigt die Stärke der Beleuchtung, die vom Objekt wegen des aktiven Sendersignal von PMD Kamera selbst reflektiert wird. Dieser Wert kann die Qualität der Distanzinformation schätzen, d.h. das Objekt weit von Kamera liefert niedriger Amplitude als das Objekt in der Nähe von der Kamera, wenn sie mit identischem Material dargestellt werden. An der Gegenseite sind die Merkmalen mit höherem Rückstrahlvermögen durch Amplitudedaten einfacher betrachtet, was für die Erkennung der großen künstlichen Marken in unserer Arbeit sinnvoll ist.   
+Die Intensität bezieht sich auf Graustufen. Nach einer Abbildung können diese Graustufen auf das Intervall 0 bis 255 beschränkt werden und das Ergebnis ist das Bild einer normalen Schwarz-Weiß Kamera. Die Amplitude zeigt die Stärke der Beleuchtung, die vom Objekt wegen des aktiven Sendersignal von PMD Kamera selbst reflektiert wird. Dieser Wert kann die Qualität der Distanzinformation schätzen, d.h. das Objekt weit von Kamera liefert niedriger Amplitude als das Objekt in der Nähe von der Kamera, wenn sie mit identischem Material dargestellt werden. An der Gegenseite sind die Merkmale mit höherem Rückstrahlvermögen durch Amplitudedaten einfacher betrachtet, was für die Erkennung der großen künstlichen Marken in dieser Arbeit sinnvoll ist.   
 
 \subsubsection{3D Daten}
 Die PMD Kamera liefert 3D Daten in zwei Formen: die reine Distanzinformation und die 3D Koordinaten. Die Distanzinformation ist die gemessene Distanz zwischen der Kamera und Objekt, was direkt durch die Formel \eqref{tof1} berechnet wird. Bezüglich dieser Distanzinformation und der 2D Daten der normalen Kamera werden die 3D Koordinaten innerhalb der PMD Kamera berechnet und können durch die Schnittstelle abgefragt werden. Die Abbildung~\ref{C3D} zeigt die Visualisierung einer Szene mit jeweils der 3D Koordinaten und Distanzinformation von PMD Kamera. Eine Transformation ist notwendig, wenn man direkt die Distanzinformation im kartesischen Koordinatensystem visualisieren möchte.
 
 \subsubsection{Auflösung und erkennbare Markengröße}
 \label{AueM}
-Die Auflösung der PMD Kamera wurde schon im vorherigen Abschnitt angegeben, wofür man sich noch interessiert ist, wie genau die Objekte von der Kamera in der Praxis beobachtet werden können. D.h. wie groß ein Pixel von Kamera den Bereich in realer Welt beschreibt. Die Vorderansicht des Kamerasystems dieser Arbeit ist in Abbildung~\ref{MSF} links gezeigt.
+Die Auflösung der PMD Kamera wurde schon im vorherigen Abschnitt angegeben. Wofür man sich noch interessiert ist, wie genau die Objekte von der Kamera in der Praxis beobachtet werden können. D.h. wie groß ein Pixel der Kamera den Bereich in realer Welt beschreibt. Die Vorderansicht des Kamerasystems dieser Arbeit ist in Abbildung~\ref{MSF} links gezeigt.
 
-\begin{figure}[bft]
+\begin{figure}[hbft]
 \centering
 \includegraphics[scale=0.44]{Abbildungen/MarkerSizeForme}
 \caption{Die Vorderansicht(links) und die Draufsicht(rechts) des PMD Kamera Systems}
@@ -157,7 +157,7 @@ Außer der Umgebung beeinflussen die Helligkeit und der Kontrast die Qualität bzw
 H_{ij} = a I_{ij} + b,
 \end{equation}
 
-wobei die Parameter $a \in R^+$ und $b \in R$ die Helligkeit und den Kontrast kontrollieren. Es gibt vier Möglichkeiten für die verschiedenen Zuordnungen dieser Parameter:
+wobei die Parameter $a \in R^+$ und $b \in R$ jeweils die Helligkeit und den Kontrast kontrollieren. Es gibt vier Möglichkeiten für die verschiedenen Zuordnungen dieser Parameter:
 
 \begin{itemize}
 \item $a>1$, $b=0$     Kontrasterhöhung
@@ -189,7 +189,7 @@ Wie im Abschnitt \ref{mErkennung} beschrieben, sind viele Erkennungsalgorithmen 
 Odessa hat in seinem Blog einen sehr guten Vergleich für alle Erkennungsalgorithmen von OpenCV durchgeführt \cite{O11}. Vier häufig benutzte Beispielbilder wurden betrachtet (s. Abb.~\ref{4Samp}).
 \\
 \\
-Was besonders interessiert in seiner Arbeit, ist der Vergleich über die Anzahl der betrachteten Punkte bzw. der durchschnittlichen Fehler. Wegen der verschiedenen Prinzipien erkennt der Algorithmus FAST viel mehr Merkmale als SURF und STAR(Name von CenSurE Algorithmus in OpenCV). Den Unterschied sieht man deutlich in der Abbildung~\ref{Nodf}. Je mehr Punkte betrachtet werden, desto mehr Rauschen wird in das System gebracht, weil viele normale Pixel auch als Merkmale erkannt werden. Das ist offensichtlich ein negativer Einfluss für die weitere Analyse der Daten. Abbildung~\ref{Ate} zeigt den durchschnittlichen Fehler in Pixeln von den Punktpaaren, was durch gleichen Erkennungsalgorithmus von Bezugsbildern erkannt wird. Der Algorithmus STAR erzeugt deutlich weniger Fehler in der Erkennung, und das Ergebnis hängt auch leicht von der Eingabe ab. Wegen der niedrigeren Fehlerquote und besserer Konzentration an großen kreisförmigen Merkmalen ist der STAR Algorithmus für die Erkennung der Objekte mit künstlichen Marken sehr geeignet.
+Was besonders interessiert in seiner Arbeit, ist der Vergleich über die Anzahl der betrachteten Punkte bzw. der durchschnittlichen Fehler. Wegen der verschiedenen Prinzipien erkennt der Algorithmus FAST viel mehr Merkmale als SURF und STAR(Name des CenSurE Algorithmus in OpenCV). Den Unterschied sieht man deutlich in der Abbildung~\ref{Nodf}. Je mehr Punkte betrachtet werden, desto mehr Rauschen wird in das System gebracht, weil viele normale Pixel auch als Merkmale erkannt werden. Das ist offensichtlich ein negativer Einfluss für die weitere Analyse der Daten. Abbildung~\ref{Ate} zeigt den durchschnittlichen Fehler in Pixeln von den Punktpaaren, was durch gleichen Erkennungsalgorithmus von Bezugsbildern erkannt wird. Der Algorithmus STAR erzeugt deutlich weniger Fehler in der Erkennung, und das Ergebnis hängt auch leicht von der Eingabe ab. Wegen der niedrigeren Fehlerquote und besserer Konzentration an großen kreisförmigen Merkmalen ist der STAR Algorithmus für die Erkennung der Objekte mit künstlichen Marken sehr geeignet.
 
 \begin{figure}[bft]
 \centering
@@ -199,7 +199,9 @@ Was besonders interessiert in seiner Arbeit, ist der Vergleich über die Anzahl d
 \end{figure}
 
 \subsection{CenSurE Algorithmus}
-Der Algorithmus CenSurE (Center Surround Extrema) wird von Agrawal et al. 2008 entwickelt \cite{AKB08}. Sie verbessern die SIFT bzw. SURF Verfahren durch Berücksichtigung aller Merkmale in allen Skalenräume. Das Extremum durch die Skalen und Lagen werden ausgewählt, um die Merkmale zu bestimmen. Der Bi-level Filter wird hier statt Gaussian Filter verwendet, damit der Algorithmus in Echtzeit laufen kann, obwohl große Menge der Berechnung für alle Merkmale aller Skalenräume nötig sind. 
+Der Algorithmus CenSurE (Center Surround Extrema) wird von Agrawal et al. 2008 entwickelt \cite{AKB08}. Analog zum SIFT Algorithmus werden die Extrem zwischen den Skalenräumen herausgefunden, welche als die Merkmale des betrachteten Bilds erkannt werden. Der Bi-Level Filter wird in der Arbeit von Agrawal et al. statt dem Differenz der Gaussian verwendet, um die Laufzeit zu reduzieren. Weiterhin wird die Approximation des gefilterten Bereich von Bi-Level Filter durchgeführt, dadurch kann das Algorithmus in Echtzeit laufen lassen, obwohl alle Merkmale in allen Skalenräumen betrachtet werden sollen. 
+
+%Sie verbessern die SIFT bzw. SURF Verfahren durch Berücksichtigung aller Merkmale in allen Skalenräume. Das Extremum durch die Skalen und Lagen werden ausgewählt, um die Merkmale zu bestimmen. Der Bi-level Filter wird hier statt Gaussian Filter verwendet, damit der Algorithmus in Echtzeit laufen kann, obwohl alle Merkmale in aller Skalenräume betrachtet werden sollen.
 
 \subsubsection{Bi-level Filter}
 Der Bi-level Filter ist eine einfache Approximation des Laplacian-Operators durch die Multiplikation der Bilder mit 1 und -1. Die Abbildung~\ref{bi-level} zeigt die Progression des Bi-level Filters mit verschiedenen Symmetrischen Stufen. Der kreisförmige Filter an linker Seite der Abbildung~\ref{bi-level} kann den Laplacian-Operator am Beste approximieren, ist aber leider schwierig zu implementieren. Deshalb werden die Progressionen der Filter durch Polygone angenähert, damit die Berechnung vereinfacht werden kann. Zum Vergleich der übrigen Formen der Abbildung~\ref{bi-level} liefert der Filter mit Achteck die beste Leistung und der Filter mit Rechtecke die kürzeste Laufzeit. Diese Polygon-Filter können durch die integralen Bilder einfach dargestellt werden.  
@@ -229,7 +231,7 @@ I_\alpha(x,y) = \sum_{y'=0}^y \sum_{x'=0}^{x+\alpha(y-y')} N(x',y'),
 wobei $\alpha$ den schrägen Winkel erklärt und wenn es 0 gleicht, ist die Formel \eqref{InteBild1} genau so wie die Formel \eqref{InteBild2}, und beschreibt ein rechteckiges integrales Bild. Die in der Abbildung~\ref{bi-level} gezeigte Achtecke-Filter und Sechsecke-Filter können mit jeweils 3 bzw. 2 Trapezen schnell aufgebaut werden.
   
 \subsubsection{Non-maximal Suppression}
-Non-maximal Suppression ist eine Strategie, die das lokale Extremum finden kann. Die Response des Pixels wird unterdrückt, wenn es ein Pixel in seiner Nachbarschaft für Lage bzw. Skala gibt, dessen Response größer oder kleiner als das betrachtende Pixel ist. Die Pixel mit entweder Maximum oder Minimum Response werden als Merkmale bekannt. Der Suchumfang wird in der Arbeit von Agrawal als 3x3x3 eingestellt, d.h. 8 Pixeln um dem betrachteten Pixel und jeweils 9 Pixeln im zwei benachbarten Skalenräumen, werden zusammen berücksichtigt. Die Pixel mit höherer Response können zwischen der Transformation des Bildes stabiler wieder erkannt werden, deshalb nach der Non-maximal Suppression werden die ausgewählten Extremums noch mal durch einem Schwellwerte-Filter gefiltert, um die besten Merkmale zu bestimmen. 
+Non-maximal Suppression ist eine Strategie, die das lokale Extremum finden kann. Die Response des Pixels wird unterdrückt, wenn es ein Pixel in seiner Nachbarschaft für Lage bzw. Skala gibt, dessen Response größer oder kleiner als das betrachtende Pixel ist. Die Pixel mit entweder Maximum oder Minimum Response werden als Merkmale erkannt. Der Suchumfang wird in der Arbeit von Agrawal als 3x3x3 eingestellt, d.h. 8 Pixeln um den betrachteten Pixel und jeweils 9 Pixeln im zwei benachbarten Skalenräumen, werden zusammen berücksichtigt. Die Pixel mit höherer Response können zwischen der Transformation des Bildes stabiler wieder erkannt werden, deshalb sollen die ausgewählten Extremums nach der Non-maximal Suppression noch mal durch einen Schwellwerte-Filter gefiltert werden, um die besten Merkmale zu bestimmen. 
   
 \subsection{Kalman-Filter}
 \label{KF}
@@ -242,7 +244,7 @@ Der nächste Systemzustand kann basierend auf dem aktuellen Systemzustand durch:
 X_k = F_{k-1} X_{k-1} + B_{k-1} u_{k-1} + w_{k-1} 
 \end{equation}
 
-schätzen. Der Index $k$ bzw. $k-1$ beziehen sich auf den Zeitpunkt $t_{k}$ und $t_{k-1}$, wobei $t_k = t_0 + k \Delta t$ und $t_0$ der Anfangszeitpunkt und $k$ eine natürliche Zahl von Interesse ist. Deshalb beschreibt der mehrdimensionale Vektor $X_k$ den Zustand des Systems zur Zeitpunkt $t_k$. Die Matrix $F_{x-1}$ ist die Übergangsmatrix für die zeitlich aufeinanderfolgenden Zustände $X_k$ und $X_{k-1}$. Die Matrix $B_{k-1}$ und Kontrollvektor $u_{k-1}$ stellen den deterministischen Anteil der weiteren äußeren Einflüsse auf das System dar.  Die zufälligen, nicht erfassbaren Komponenten der äußeren Einflüssen werden durch die stochastische Größe $w_{k-1}$ geschätzt, die einer Normalverteilung mit Mittelwert 0 und Kovarianz $Q_{k-1}$ folgt.
+geschätzt werden. Der Index $k$ bzw. $k-1$ bezieht sich auf den Zeitpunkt $t_{k}$ und $t_{k-1}$, wobei $t_k = t_0 + k \Delta t$ und $t_0$ der Anfangszeitpunkt und $k$ eine natürliche Zahl von Interesse ist. Deshalb beschreibt der mehrdimensionale Vektor $X_k$ den Zustand des Systems zum Zeitpunkt $t_k$. Die Matrix $F_{x-1}$ ist die Übergangsmatrix für die zeitlich aufeinanderfolgenden Zustände $X_k$ und $X_{k-1}$. Die Matrix $B_{k-1}$ und Kontrollvektor $u_{k-1}$ stellen den deterministischen Anteil der weiteren äußeren Einflüsse auf das System dar.  Die zufälligen, nicht erfassbaren Komponenten der äußeren Einflüsse werden durch die stochastische Größe $w_{k-1}$ geschätzt, die einer Normalverteilung mit Mittelwert 0 und Kovarianz $Q_{k-1}$ folgt.
 
 \[
 w_{k-1} \sim N(0,Q_{k-1})
@@ -251,7 +253,7 @@ w_{k-1} \sim N(0,Q_{k-1})
 Wegen dieser Zufallsvariable bilden die Menge aller Zustandsvektoren eine Markov-Kette, d.h. der Zustand zu einem Zeitpunkt $k$ hängt lediglich vom unmittelbaren zeitlichen Vorgänger an $k-1$ ab.
 \\
 \\
-Die Beobachtungen des Systems werden aus modellierbarer Verzerrung und unvorhersagbarem Messrauschen bestanden:
+Die Beobachtungen des Systems bestehen aus modellierbarer Verzerrung und unvorhersagbarem Messrauschen:
 
 \begin{equation}
 Z_k = H_k X_k + v_k.
@@ -316,7 +318,9 @@ und $\hat{K}_k$ ist die zugehörige Kalman-Matrix:
 \hat{K}_k = \hat{P}_{k|k-1} H_k^T S_k^{-1}.
 \]
 
-\section{Registrierung}
+\section{Markenverfolgung}
+Die Marken, die vom Markendetektor erkannt werden, sollen während der Bildsequenz verfolgt werden. Damit kann die Transformation des betrachteten Objekt zwischen jeden zwei Bildern bestimmt werden. D.h. die gleichen Marken von verschiedenen Bildern sollen zuerst erkannt werden. In dieser Arbeit wird das Singulärwertzerlegungsverfahren verwendet, um diese Korrespondenzpunktpaare herauszufinden.
+
 \subsection{Singulärwertzerlegung}
 Sei M eine komplexe $m \times n$ Matrix mit Rang $r$. Dann bezeichnet die Singulärwertzerlegung das Produkt:
 
@@ -324,7 +328,7 @@ Sei M eine komplexe $m \times n$ Matrix mit Rang $r$. Dann bezeichnet die Singul
 M = U \Sigma V^*
 \end{equation}
 
-wobei $U$ eine Unitäre Matrix mit Größe $m \times m$ und $V^*$ die Adjungierte einer Unitäre Matrix mit Größe $n \times n$ ist. $\Sigma$ bezieht sich auf eine $m \times n$ Diagonalmatrix:
+wobei $U$ eine unitäre Matrix mit Größe $m \times m$ und $V^*$ die Adjungierte einer unitäre Matrix mit Größe $n \times n$ ist. $\Sigma$ bezieht sich auf eine $m \times n$ Diagonalmatrix:
 
 \[
 \Sigma = 
@@ -349,19 +353,19 @@ Mithilfe der Singulärwertzerlegung haben Scott und Longuet-Higgins einen Algorit
 G_{ij} = exp(- \frac{r_{ij}^2}{2 \sigma^2})
 \]
 
-definiert, wobei $r_{ij}$ den Abstand zwischen Merkmale $I_i$ und $J_j$ beschreibt. $\sigma$ wird als einen Standard für Abstand definiert, wodurch das Vergrößern oder Verkleinern der Verschiebung des Objekts geschätzt werden kann. Der Wert von $G_{ij}$ nimmt durch die Erhöhung der Distanz von 1 bis 0 monoton ab. Der zweite Schritt des Algorithmus von Scott und Longuet-Higgins ist die Singulärwertzerlegung der Matrix $G$:
+definiert, wobei $r_{ij}$ den Abstand zwischen Merkmale $I_i$ und $J_j$ beschreibt. $\sigma$ wird als ein Standard für Abstand definiert, wodurch das Vergrößern oder Verkleinern der Verschiebung des Objekts geschätzt werden kann. Der Wert von $G_{ij}$ nimmt durch die Erhöhung der Distanz von 1 bis 0 monoton ab. Der zweite Schritt des Algorithmus von Scott und Longuet-Higgins ist die Singulärwertzerlegung der Matrix $G$:
 
 \[
 G = TDU.
 \]
 
-wobei $T$ und $U$ die unitäre Matrix mit jeweils Größe $m \times m$ und $n \times n$ sind, und $D$ eine Diagonalmatrix ist. Sei $E$ eine neue Matrix mit gleicher Größe von $D$, in der aber jedes diagonale Element als 1 ersetzt wird. Nach Austausch der Matrix $D$ durch Matrix $E$ erhält man eine neue orthogonale Matrix:
+wobei $T$ und $U$ unitäre Matrizen mit jeweils Größe $m \times m$ und $n \times n$ sind, und $D$ eine Diagonalmatrix ist. Sei $E$ eine neue Matrix mit gleicher Größe von $D$, in der aber jedes diagonale Element als 1 ersetzt wird. Nach Austausch der Matrix $D$ durch Matrix $E$ erhält man eine neue orthogonale Matrix:
 
 \[
 P = TEU
 \]
 
-Die Aufgabe des dritten Schritts ist das Element $P_{ij}$ zu finden, was gleichzeitig das Maximum der Reihe und Spalte ist. Wenn $P_{ij}$ diese Bedingung erfüllt, sagt man, dass es eine Eins zu Eins Korrespondenz zwischen den Merkmalen $I_i$ und $J_j$ gibt. Der ganze Algorithmus ist in Algorithmus~\ref{alg1} aufgeführt, der durch die Eingabe von \cite{SL91} erzeugt wird. 
+Die Aufgabe des dritten Schritts ist das Element $P_{ij}$ zu finden, was gleichzeitig das Maximum der Reihe und Spalte ist. Wenn $P_{ij}$ diese Bedingung erfüllt, sagt man, dass es eine Eins zu Eins Korrespondenz zwischen den Merkmalen $I_i$ und $J_j$ gibt. Der ganze Algorithmus ist in Algorithmus~\ref{alg1} aufgeführt, der durch die Arbeit von Scott und Longuet-Higgins \cite{SL91} erzeugt wird. 
 
 \begin{algorithm}                      % enter the algorithm environment
 \caption{Bestimmung der Korrespondenz der Merkmalen von zwei Bildern}          % give the algorithm a caption
@@ -389,10 +393,11 @@ Die Aufgabe des dritten Schritts ist das Element $P_{ij}$ zu finden, was gleichz
 
 
 \section{Bestimmung der Transformation}
+Es gibt viele Möglichkeiten, die Lage eines Objekts im 3D Raum zu schätzen. In dieser Arbeit wird das Verfahren von Horn \cite{H87} verwendet, was durch Einheitsquaternionen die Transformation eines Objekts zwischen zwei Zeitpunkten bestimmen kann.
 
-\subsection{Quaternion}
+\subsection{Quaternionen}
 %Das Quaternion
-Ein Quaternion besteht aus einem Vektor mit 4 Elementen, wobei ein Element ein Skalar bezeichnet und die anderen drei eine Richtung im 3D Raum beschreiben. Quaternionen können aber auch als eine Erweiterung der komplexen Zahlen betrachtet werden, deren Imaginärteil nach drei neuen Zahlen $i$, $j$ und $k$ entwickelt wird. Eine Normalform der Quaternion ist gegeben durch:
+Ein Quaternion besteht aus einem Vektor mit 4 Elementen, wobei ein Element ein Skalar bezeichnet und die anderen drei eine Richtung im 3D Raum beschreiben. Quaternionen können aber auch als eine Erweiterung der komplexen Zahlen betrachtet werden, deren Imaginärteil nach drei neuen Zahlen $i$, $j$ und $k$ entwickelt wird. Eine Normalform eines Quaternion ist gegeben durch:
 
 \[
 q = q_0 + i q_x + j q_y + k q_z,
@@ -407,7 +412,7 @@ i^2 = j^2 = k^2 = i j k = -1,
 ij = k, \quad jk = i, \quad ki = j, 
 \]
 \[
-ji = -k, \quad kj = -i, \quad ik = -j,
+ji = -k, \quad kj = -i, \quad ik = -j.
 \] 
 
 Eine andere Form mit getrennten Realteil und Imaginärteil wird definiert durch:
@@ -426,7 +431,7 @@ Sei $r$ ein anderes Quaternion mit:
 r = r_0 + i r_x + j r_y + k r_z.
 \]
 
-Analog zu Vektoren im $\mathbb{R}^4$ wird das Skalarprodukt zwischen zwei Quaternion definiert als:
+Analog zu Vektoren im $\mathbb{R}^4$ wird das Skalarprodukt zwischen zwei Quaternionen definiert als:
 
 \[
 \langle q, r \rangle := q \cdot r := q_0 r_0 + q_x r_x + q_y r_y + q_z r_z.
@@ -490,7 +495,7 @@ q = \cos \alpha + \mathit{v} \cdot \sin \alpha
 mit $\alpha = \arccos (q_0) \in (0,\pi)$ und $v = \frac{1}{\sin \alpha} (i q_x + j q_y + k q_z)$. 
 
 \subsection{Beschreibung der Drehungen im Dreidimensionalen Raum mit Quaternionen}
-Die Drehungen im dreidimensionalen Raum können durch die Einheitsquaternionen sehr gut beschriebt werden. Eine Abbildung der Rotation $\rho_q$ kann in folgender Form definiert werden:
+Die Drehungen im dreidimensionalen Raum können durch die Einheitsquaternionen sehr gut beschrieben werden. Eine Abbildung der Rotation $\rho_q$ kann in folgender Form definiert werden:
 
 \[
 \rho_q : x \rightarrow q x \overline{q},
@@ -693,10 +698,11 @@ S_{xy} - S_{yx} & S_{zx} + S_{xz} & S_{yz} + S_{zy} & -S_{xx} - S_{yy} + S_{zz}
 Nach dem Beweis von Horn \cite{H87} wird die Formel \eqref{qNq} maximal, genau dann, wenn $q$ der zu dem maximalen positiven Eigenwert der Matrix $\mathbf{N}$ entsprechende Eigenvektor ist. 
 
 \section{Objekterkennung}
+Die gesamte Objekterkennung kann in zwei Phasen aufgeteilt werden: die Segmentierung und der Vergleich des Strukturgraphen. In diesem Abschnitt werden die wichtigsten Algorithmen für beide Teile erklärt. 
 
 \subsection{DBSCAN}
 \label{Dbscan}
-DBSCAN, kurz von dem englischen Namen ,,Density-Based Spatial CLustering of Applications with Noise, ist ein auf Dichte basierter Data-Mining-Algorithmus'' \cite{E96}. Die Hauptidee des Algorithmus hängt stark von dem Begriff ,,Dichteverbundenheit'' ab, was durch folgende Definitionen erklärt wird.
+DBSCAN, kurz für den englischen Namen ,,Density-Based Spatial CLustering of Applications with Noise'', ist ein auf Dichte basierter Data-Mining-Algorithmus \cite{E96}. Die Hauptidee des Algorithmus hängt stark von dem Begriff ,,Dichteverbundenheit'' ab, was durch folgende Definitionen erklärt wird.
 \\
 \\
 Seien $D$ eine Punktmenge im Raum $\mathbb{R}^n$ und $Dist(p,q)$ eine darauf definierte Distanzfunktion. $\epsilon$ und MinPts sind zwei Eingaben des Algorithmus.
@@ -723,7 +729,7 @@ Ein Punkt $p$ ist \textsf{Dichte-erreichbar} zum Punkt $q$, g.d.w es eine Kette 
 \end{definition}
 
 \begin{definition}
-Zwei Punkte $p$ und $q$ heißt \textsf{Dichte-verbunden}, g.d.w es einen Punkt $o$ gibt, wobei $p$ und $q$ jeweils zu $o$ \textsf{Dichte-erreichbar} sind.
+Zwei Punkte $p$ und $q$ heißen \textsf{Dichte-verbunden}, g.d.w es einen Punkt $o$ gibt, wobei $p$ und $q$ jeweils zu $o$ \textsf{Dichte-erreichbar} sind.
 \end{definition}
 
 Mithilfe dieser Definitionen der Beziehung zwischen den Punkten kann man eine einzige Definition des Clusters ausgeben.
@@ -744,19 +750,19 @@ Dann können alle Punkte von $D$ in drei verschiedene Typen zusammengefasst werde
 \item Geräusch: Der Punkt, der zu keinem Cluster gehört.  
 \end{itemize}
 
-\begin{figure}[ftb]
+\begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.3]{Abbildungen/DBSCAN}
-\caption{Ein Beispiel für die drei Typen der Punkte in DBSCAN-Algorithmus. Der rote Punkt A ist ein Kernpunkt. Die gelbe Punkte B und C sind die Grenzpunkte, die von roten Punkten Dichte-erreichbar sind. Wegen keine Dichte-Verbindung zwischen blau Punkt N und andere Punkte, wird N als Geräusch erkannt. \cite{DWiki}}
+\caption{Ein Beispiel für die drei Typen der Punkte in DBSCAN-Algorithmus. Der rote Punkt A ist ein Kernpunkt. Die gelbe Punkte B und C sind die Grenzpunkte, die von roten Punkten Dichte-erreichbar sind. Wegen fehlender Dichte-Verbindung zwischen Punkt N und anderen Punkten, wird N als Rauschen erkannt. \cite{DWiki}}
 \label{DBSCAN}
 \end{figure}
 
-Abbildung~\ref{DBSCAN} zeigt ein Beispiel für alle diesen drei Typen eines Punkts, wobei die Kernpunkte mit Rot, Grenzpunkte mit Gelb und Rauschen mit Blau dargestellt werden. Die Kreise zeigen die $\epsilon$-Umgebungen für die Punkte an ihren Ursprüngen.
+Abbildung~\ref{DBSCAN} zeigt ein Beispiel für alle diese drei Typen eines Punkts, wobei die Kernpunkte mit Rot, Grenzpunkte mit Gelb und Rauschen mit Blau dargestellt werden. Die Kreise zeigen die $\epsilon$-Umgebungen für die Punkte an ihren Ursprüngen.
 \\
 \\
-Der Algorithmus durchläuft für jeden Punkt von Punktmenge $D$ und die Lösung hängt von der Reihenfolge der Punkte nicht ab. Ein Kernpunkt soll zuerst gefunden werden, und dann die andere Punkte in ihrer $\epsilon$-Umgebung betrachtet werden. Zwei $\epsilon$-Umgebung werden verknüpft, wenn sie mindesten einen identische Punkt haben. Der genaue Ablauf des DBSCAN-Algorithmus ist in Algorithmus~\ref{algDBSCAN} ausgegeben.
+Der Algorithmus durchläuft für jeden Punkt von Punktmenge $D$ und die Lösung hängt von der Reihenfolge der Punkte nicht ab. Ein Kernpunkt soll zuerst gefunden werden, und dann die andere Punkte in ihrer $\epsilon$-Umgebung betrachtet werden. Zwei $\epsilon$-Umgebungen werden verknüpft, wenn sie mindesten einen identischen Punkt haben. Der genaue Ablauf des DBSCAN-Algorithmus ist in Algorithmus~\ref{algDBSCAN} ausgegeben.
 
-\begin{algorithm}                      % enter the algorithm environment
+\begin{algorithm}[htbp]                      % enter the algorithm environment
 \caption{DBSCAN}          % give the algorithm a caption
 \label{algDBSCAN}                      % and a label for \ref{} commands later in the document
 \begin{algorithmic}                    % enter the algorithmic environment
