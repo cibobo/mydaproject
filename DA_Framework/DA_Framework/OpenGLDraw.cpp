@@ -426,6 +426,8 @@ void displayObjects(OpenGLWinUI *pOpenGLWinUI, vector<Object*> objects){
 		width = width/objCount;
 	}
 
+	glViewport(0, 0, height, height);
+
 	GLfloat mat_ambient[] = {0.0215, 0.1745, 0.0215, 1.0};
 	GLfloat mat_diffuse[] = {0.07568, 0.61424, 0.07568, 1.0};
 	GLfloat mat_specular[] = {0.633, 0.727811, 0.633, 1.0};
@@ -445,11 +447,13 @@ void displayObjects(OpenGLWinUI *pOpenGLWinUI, vector<Object*> objects){
 	glTranslatef(pOpenGLWinUI->X, pOpenGLWinUI->Y, pOpenGLWinUI->Z);
 	glTranslatef(-1, 0, 0);
 
+drawCoordi();
+
 	for(int i=0;i<objCount;i++){
-		glViewport(i*width, 0, width, width);
+		//glViewport(i*width, 0, width, width);
 		glPushMatrix();   // It is important to push the Matrix before 
 
-		drawCoordi();
+		
 		
 		//mat_diffuse[0] = COLORLIST[i][0];
 		//mat_diffuse[1] = COLORLIST[i][1];
