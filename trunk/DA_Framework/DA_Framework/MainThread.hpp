@@ -41,12 +41,13 @@ using namespace std;
 
 #define EVA_SAVECVBILD
 #ifdef EVA_SAVECVBILD
-	#define FRAME_INTERVAL 50
+	#define FRAME_INTERVAL 5
+	//#define KORRESPONDENZ
 #endif
 
 //#define SCREENSHOT
 #ifdef SCREENSHOT
-	#define SCREENSHOT_FRAME 485
+	#define SCREENSHOT_FRAME 150
 #endif
 
 //#define EVA_TIME

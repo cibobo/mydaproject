@@ -137,7 +137,7 @@ DWORD MainThread::calculationThreadProc(void){
 	LeaveCriticalSection (&glInitCrs);
 
 #ifdef EVALUATION
-	string EVA_RootPath = string("2012.10.18");
+	string EVA_RootPath = string("2012.11.13");
 	EVA_RootPath.append("/");
 	EVA_RootPath.append(this->INPUTPATH);
 	//const char *EVA_RootPath = "2012.09.17/EmptyBox";
@@ -455,13 +455,54 @@ DWORD MainThread::calculationThreadProc(void){
 #ifdef EVA_SAVECVBILD
 		if(pIterator->frameIndex % FRAME_INTERVAL == 0){
 			Mat curMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
+			Mat testImg = Mat(V_BILDSIZE, H_BILDSIZE*2, CV_8UC3);
 			ImageProcess::transFloatToMat3(this->pIterator->getCurrentBildData()->ampData, curMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
 
 			if(this->isLearning){
+
+
+#ifdef KORRESPONDENZ
+				Mat hisMat = Mat(H_BILDSIZE, V_BILDSIZE, CV_8UC3);
+				ImageProcess::transFloatToMat3(this->pIterator->getHistoricalBildData()->ampData, hisMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
+
+				// The correspondent window
+				Mat left = Mat(testImg, Range::all(), Range(0,H_BILDSIZE));
+				Mat right = Mat(testImg, Range::all(), Range(H_BILDSIZE,H_BILDSIZE*2));
+				hisMat.copyTo(left);
+				curMat.copyTo(right);
+
+				vector<PMDPoint> curFeatures = this->pIterator->getCurrentBildData()->features;
+				vector<PMDPoint> hisFeatures = this->pIterator->getHistoricalBildData()->features;
+
+				vector<PMDPoint> oldResult = this->pLearning->hisAssPoints;
+				vector<PMDPoint> newResult = this->pLearning->curAssPoints;
+
+				for(int i=0;i<hisFeatures.size();i++){
+					// show the old features
+					circle(left, hisFeatures[i].index, 2, Scalar(0,255,0,0), -1);
+				}
+
+				for(int i=0;i<curFeatures.size();i++){
+					// show the current features
+					circle(right, curFeatures[i].index, 2, Scalar(0,0,255,0), -1);
+				}
+
+				for(int i=0;i<oldResult.size();i++){
+					Point2f trans(204,0);
+					//line(testImg, hisFeatures[oldResult[i]], curFeatures[newResult[i]]+trans, Scalar(255,255,0,0));
+					line(testImg, oldResult[i].index, newResult[i].index+trans, Scalar(255,255,0,0));
+				}
+#else
+				//ImageProcess::transFloatToMat3(this->pIterator->getCurrentBildData()->filteredData, curMat, pDetector->balance, pDetector->contrast);
 				vector<PMDPoint> features = this->pLearning->curBildData->features;
 				for(int i=0;i<features.size();i++){
 					circle(curMat, features[i].index, 3, Scalar(0,0,255,0), -1);
+				//for(int i=0;i<this->pDetector->keypoints.size();i++){
+				//	circle(curMat, this->pDetector->keypoints[i].pt, 1, Scalar(0,255,0,0), -1);
 				}
+
+				
+#endif
 			}
 
 			if(this->isRecognise){
@@ -477,7 +518,11 @@ DWORD MainThread::calculationThreadProc(void){
 			stringstream ss;
 			ss<<pIterator->frameIndex;
 			string path(ss.str());
+#ifdef KORRESPONDENZ
+			pEvaluator->saveCVBild(path.data(),testImg);
+#else
 			pEvaluator->saveCVBild(path.data(),curMat);
+#endif
 		}
 #endif
 
@@ -739,20 +784,20 @@ DWORD MainThread::openGLResultThreadProc(void){
 	int width;
 	int height;
 
-	if(this->isLearning){
+	//if(this->isLearning){
 		width = 750;
 		height = 750;
-	} 
+	//} 
 
-	if(this->isRecognise){
-		int modelSize = this->pRecognition->modelList.size();
-		width = 750;
-		if(modelSize!=0){
-			height = width/modelSize;
-		} else {
-			height = width;
-		}
-	}
+	//if(this->isRecognise){
+	//	int modelSize = this->pRecognition->modelList.size();
+	//	width = 1500;
+	//	if(modelSize!=0){
+	//		height = width/modelSize;
+	//	} else {
+	//		height = width;
+	//	}
+	//}
 
 
 	if(!CreateOpenGLWindow("Object Window", 0, 0, width, height, PFD_TYPE_RGBA, 0, pObjGLWinUI, pObjViewContext)){
@@ -908,12 +953,12 @@ DWORD MainThread::openCVHelpThreadProc(void)
 			ImageProcess::transFloatToMat3(curBildData->ampData, recMat, pDetector->BEGINBRIGHTNESS, pDetector->BEGINCONTRAST);
 			
 			for(int i=0;i<this->pRecognition->segResult.size();i++){
-				Scalar color = scalarColorList[i];
+				Scalar color = scalarColorList[0];
 				for(int j=0;j<this->pRecognition->segResult[i].size();j++){
 					circle(recMat, this->pRecognition->segResult[i][j].index, 2, color, -1);
-						/*for(int k=j+1;k<this->pRecognition->segResult[i].size();k++){
+						for(int k=j+1;k<this->pRecognition->segResult[i].size();k++){
 							line(recMat, this->pRecognition->segResult[i][j].index, this->pRecognition->segResult[i][k].index, Scalar(0,255,255,0),1);
-						}*/
+						}
 				}
 			}	
 					//circle(drawMat, Point2f(i*10+5, 5), 5, color, -1);

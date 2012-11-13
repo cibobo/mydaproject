@@ -30,8 +30,8 @@ RecognitionResult::RecognitionResult(RecognitionResult::NodePairs nodePair, Node
 void RecognitionResult::mark(){
 	NodePairs::iterator it = this->nodePair.begin();
 	for(;it!=this->nodePair.end();it++){
-		it->first->color = 9;
-		//it->second->color = 9;
+		it->first->color = 2;
+		it->second->color = 2;
 	}
 }
 void RecognitionResult::markColorful(){
@@ -241,13 +241,13 @@ void Recognition::objectRecognition(std::vector<PMDPoint> inputPoints){
 						
 				}
 				if(multiResultList[j]->modelIndex != -1){
-					multiResultList[j]->mark();
 					updateObjectPosition(multiResultList[j]->modelIndex, multiResultList[j]->nodePair);
 
 					graph->setColor(multiResultList[j]->modelIndex);	
 					//if(isInCurrentFound){
 						this->statisticResult[multiResultList[j]->modelIndex]++;
 					//}
+					//multiResultList[j]->mark();
 				}
 						
 			}
