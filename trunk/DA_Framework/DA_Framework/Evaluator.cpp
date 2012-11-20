@@ -102,6 +102,16 @@ void Evaluator::saveCSVData(const char* fileName, vector<float> data){
 	*(f)<<endl;
 }
 
+void Evaluator::saveCSVMat(Mat data){
+	const char *fileName = (*(this->dataFiles.begin())).first;
+	this->saveCSVMat(fileName, data);
+}
+
+void Evaluator::saveCSVMat(const char* fileName, Mat data){
+	ofstream *f = this->dataFiles[fileName];
+	*(f)<<data<<endl;
+}
+
 void Evaluator::writeCSVTitle(const char *title){
 	ofstream *f  = (this->dataFiles.begin())->second;
 	*(f)<<"#Description#"<<endl;

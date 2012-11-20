@@ -95,4 +95,13 @@ public:
 	// Check box of the Translation's Kalman Filter
 	CButton TFilterControl;
 	afx_msg void OnBnClickedCheckTfilter();
+	afx_msg void OnBnClickedCheckEva();
+	// Check box for saving the recognized result
+	CButton ResultSavingControl;
+	afx_msg void OnBnClickedRadioEvaSaved();
+	// The ditor of the result saving path
+	CEdit ResultPathEditor;
+	afx_msg void OnEnChangeEditEvafname();
+	afx_msg void OnBnClickedRadioEvaSaven();
+	CButton UsingDefaultSavePath;
 };

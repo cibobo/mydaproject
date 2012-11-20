@@ -155,6 +155,9 @@ void CDA_GUIDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_CHECK_ONLINESAVED, OutputSavedCheck);
 	DDX_Control(pDX, IDOK, RunButton);
 
+	DDX_Control(pDX, IDC_CHECK_EVA, ResultSavingControl);
+	DDX_Control(pDX, IDC_EDIT_EVAFNAME, ResultPathEditor);
+	DDX_Control(pDX, IDC_RADIO_EVA_SAVED, UsingDefaultSavePath);
 }
 
 BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
@@ -183,6 +186,10 @@ BEGIN_MESSAGE_MAP(CDA_GUIDlg, CDialog)
 	ON_BN_CLICKED(IDC_CHECK_ONLINESAVED, &CDA_GUIDlg::OnBnClickedCheckOnlinesaved)
 	ON_EN_CHANGE(IDC_EDIT_ONLINEPATH, &CDA_GUIDlg::OnEnChangeEditOnlinepath)
 	ON_BN_CLICKED(IDC_CHECK_TFILTER, &CDA_GUIDlg::OnBnClickedCheckTfilter)
+	ON_BN_CLICKED(IDC_CHECK_EVA, &CDA_GUIDlg::OnBnClickedCheckEva)
+	ON_BN_CLICKED(IDC_RADIO_EVA_SAVED, &CDA_GUIDlg::OnBnClickedRadioEvaSaved)
+	ON_EN_CHANGE(IDC_EDIT_EVAFNAME, &CDA_GUIDlg::OnEnChangeEditEvafname)
+	ON_BN_CLICKED(IDC_RADIO_EVA_SAVEN, &CDA_GUIDlg::OnBnClickedRadioEvaSaven)
 END_MESSAGE_MAP()
 
 
@@ -246,6 +253,13 @@ BOOL CDA_GUIDlg::OnInitDialog()
 
 	//Init the CheckBox of the Kalman Filter
 	this->RFilterControl.EnableWindow(false);
+
+	//Init the Editor of the Result Path
+	this->ResultPathEditor.EnableWindow(false);
+
+	this->UsingDefaultSavePath.SetCheck(true);
+
+	this->ResultSavingControl.SetCheck(true);
 
 	return TRUE;  // Geben Sie TRUE zurück, außer ein Steuerelement soll den Fokus erhalten
 }
@@ -548,4 +562,32 @@ void CDA_GUIDlg::OnBnClickedCheckOnlinesaved()
 void CDA_GUIDlg::OnBnClickedCheckTfilter()
 {
 	this->pMainThread->pLearning->isTKFilter = this->TFilterControl.GetCheck();
+}
+
+void CDA_GUIDlg::OnBnClickedCheckEva()
+{
+	this->pMainThread->isResultSaved = this->ResultSavingControl.GetCheck();
+}
+
+void CDA_GUIDlg::OnBnClickedRadioEvaSaved()
+{
+	this->pMainThread->resultSavePath = "RecognitionResult/";
+	this->ResultPathEditor.EnableWindow(false);
+}
+
+void CDA_GUIDlg::OnEnChangeEditEvafname()
+{
+	// TODO:  Falls dies ein RICHEDIT-Steuerelement ist, wird das Kontrollelement
+	// diese Benachrichtigung nicht senden, es sei denn, Sie setzen den CDialog::OnInitDialog() außer Kraft.
+	// Funktion und Aufruf CRichEditCtrl().SetEventMask()
+	// mit dem ENM_CHANGE-Flag ORed in der Eingabe.
+
+	CString str;
+	this->ResultPathEditor.GetWindowTextA(str);
+	strcpy(this->pMainThread->resultSavePath, str);
+}
+
+void CDA_GUIDlg::OnBnClickedRadioEvaSaven()
+{
+	this->ResultPathEditor.EnableWindow(true);
 }

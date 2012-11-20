@@ -39,7 +39,7 @@ using namespace std;
 
 //#define EVA_GRAPHUPDATE
 
-#define EVA_SAVECVBILD
+//#define EVA_SAVECVBILD
 #ifdef EVA_SAVECVBILD
 	#define FRAME_INTERVAL 5
 	//#define KORRESPONDENZ
@@ -52,7 +52,7 @@ using namespace std;
 
 //#define EVA_TIME
 
-//#define EVA_RECOGNITION
+#define EVA_RECOGNITION
 
 //#define EVA_ISOMORPHISMUS
 
@@ -170,4 +170,8 @@ public:
 
 	// Logger name
 	//const char *loggerName = "Log";
+
+	// The boolean parameter for the output
+	BOOL isResultSaved;
+	char *resultSavePath;
 };
