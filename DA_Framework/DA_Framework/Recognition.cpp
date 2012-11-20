@@ -86,7 +86,7 @@ Recognition::Recognition(){
 
 
 	//graph = new Graph();
-	
+
 	timmer = 0;
 
 	isInCurrentFound = false;

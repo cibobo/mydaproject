@@ -100,6 +100,10 @@ void Object::transformate(Mat R, Mat T){
 											newPoint.at<float>(1,0),
 											newPoint.at<float>(2,0)));
 	}
+
+	//Update Rotation and Trqanslation Matrix
+	this->curR = Mat(R);
+	this->curT = Mat(T);
 }
 
 int Object::getFixedNodeCount(){

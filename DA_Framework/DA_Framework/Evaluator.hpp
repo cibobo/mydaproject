@@ -35,6 +35,10 @@ public:
 	void saveCSVData(vector<float> data);
 	// Save the data into the user defined csv File
 	void saveCSVData(const char* fileName, vector<float> data);
+	// Save the Matrix into the default csv File
+	void saveCSVMat(Mat data);
+	// Save the Matrix into the user defined csv File
+	void saveCSVMat(const char* fileName, Mat data);
 	// Write the decription title
 	void writeCSVTitle(const char* title);
 	// Write the decription title

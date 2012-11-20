@@ -53,6 +53,10 @@ MainThread::MainThread(){
 	isObservingWindowVisible = true;
 	isResultWindowVisible = true;
 	isOpenCVWindowVisible = true;
+	
+	isResultSaved = true;
+	resultSavePath = "RecognitionResult/";
+;
 }
 
 MainThread::~MainThread(){
@@ -136,8 +140,27 @@ DWORD MainThread::calculationThreadProc(void){
 	LeaveCriticalSection (&cvInitCrs);
 	LeaveCriticalSection (&glInitCrs);
 
+	//Create Evaluator to save the Recognition Result 
+	Evaluator *resultSaver = new Evaluator(this->resultSavePath);
+	string resultFileName = string("recoResult");
+
+	if(this->isRecognise && this->isResultSaved){
+		//Create CSV for each model
+		//for(int f=0;f<this->pRecognition->modelList.size();f++){
+			
+			//stringstream ss;
+			//ss<<f;
+			//fileName.append(ss.str());
+
+			resultSaver->createCSVFile(resultFileName.data());
+			resultSaver->writeCSVTitle(resultFileName.data(), "Frame Index \n Model Index, Model Appearance Times \n R \n T \n");
+			//resultSaver->writeCSVTitle(fileName.data(), "R");
+			//resultSaver->writeCSVTitle(fileName.data(), "T");
+		//}
+	}
+
 #ifdef EVALUATION
-	string EVA_RootPath = string("2012.11.13");
+	string EVA_RootPath = string("2012.11.14");
 	EVA_RootPath.append("/");
 	EVA_RootPath.append(this->INPUTPATH);
 	//const char *EVA_RootPath = "2012.09.17/EmptyBox";
@@ -192,7 +215,7 @@ DWORD MainThread::calculationThreadProc(void){
 #endif
 
 #ifdef EVA_RECOGNITION
-	const char *recogFileName = "Recognition with 2 model_without Improvement";
+	const char *recogFileName = "Recognition with 1 model test";
 	pEvaluator->createCSVFile(recogFileName);
 	//pEvaluator->writeCSVTitle(recogFileName, "Frame Index, Reslutlist Size, Is Find, Is Model 1 found, Is Model 2 found, Result 1, Result 2, Run Time");
 	pEvaluator->writeCSVTitle(recogFileName, "Frame Index, Reslutlist Size, Is Find, Is Model 1 found, Is Model 2 found, Nodes Count, Run Time");
@@ -418,6 +441,24 @@ DWORD MainThread::calculationThreadProc(void){
 			beginTime = clock();
 #endif
 			pRecognition->objectRecognition(pDetector->PMDFeatures);
+
+			//Saving result
+			if(this->isResultSaved){
+				vector<float> recogResult;
+				recogResult.push_back(this->pIterator->frameIndex);
+				resultSaver->saveCSVData(resultFileName.data(), recogResult);
+				
+				for(int f=0;f<this->pRecognition->modelList.size();f++){
+					vector<float> modelData;
+					modelData.push_back(f);
+					modelData.push_back(this->pRecognition->statisticResult[f]);
+					resultSaver->saveCSVData(resultFileName.data(), modelData);
+					resultSaver->saveCSVMat(resultFileName.data(), this->pRecognition->modelList[f]->curR);
+					resultSaver->saveCSVMat(resultFileName.data(), this->pRecognition->modelList[f]->curT);
+				}
+			}
+
+			//Recognition Evaluation
 #ifdef EVA_RECOGNITION
 			endTime = clock();
 			vector<float> recogData;
@@ -956,9 +997,9 @@ DWORD MainThread::openCVHelpThreadProc(void)
 				Scalar color = scalarColorList[0];
 				for(int j=0;j<this->pRecognition->segResult[i].size();j++){
 					circle(recMat, this->pRecognition->segResult[i][j].index, 2, color, -1);
-						for(int k=j+1;k<this->pRecognition->segResult[i].size();k++){
-							line(recMat, this->pRecognition->segResult[i][j].index, this->pRecognition->segResult[i][k].index, Scalar(0,255,255,0),1);
-						}
+						//for(int k=j+1;k<this->pRecognition->segResult[i].size();k++){
+						//	line(recMat, this->pRecognition->segResult[i][j].index, this->pRecognition->segResult[i][k].index, Scalar(0,255,255,0),1);
+						//}
 				}
 			}	
 					//circle(drawMat, Point2f(i*10+5, 5), 5, color, -1);
