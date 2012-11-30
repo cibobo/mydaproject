@@ -81,7 +81,7 @@
 # is Load model from VTK file
 1
 # Models' names
-VideoModel1,Box2
+Box2
 # is Create a new model
 0
 ##---Graph Isomorphismus---##
@@ -97,7 +97,7 @@ VideoModel1,Box2
 # is data saved
 1
 # save direction
-EvaStatik
+Eva3DRotation2
 # is offline
 1
 # load direction
@@ -118,3 +118,10 @@ Eva3DRotation
 0.08
 # Creating Frames
 20
+#----Tracking Result----#
+# Enable Result Saving
+0
+# Saving as default
+1
+# Saving as the name
+RecognitionResult/

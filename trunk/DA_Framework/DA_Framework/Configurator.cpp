@@ -125,7 +125,7 @@ double TinyParser::parseLineDouble( std::string line)
 
 Configurator::Configurator(MainThread *p){
 	strConfigureFile = "./conf/Configuration.txt";
-	strParserConfiguration = "iiiifiiiiifffffffibfiffbbfiffiibbbsbfffbbsbsibbbffi";
+	strParserConfiguration = "iiiifiiiiifffffffibfiffbbfiffiibbbsbfffbbsbsibbbffibbs";
 
 	this->pMainThread = p;
 }
@@ -316,6 +316,13 @@ int Configurator::readConfigurationFile(){
 			case 49: this->pMainThread->pDFilter->diffRate = f;
 					break;
 			case 50: this->pMainThread->pDFilter->creatingFrames = i;
+					break;
+				//Tracking result
+			case 51: this->pMainThread->isResultSaved = b;
+					break;
+			case 52: this->pMainThread->resultSavePath = "RecognitionResult/";
+					break;
+			case 53: //strcpy(this->pMainThread->resultSavePath, s.data());
 					break;
 			default:
 					break;

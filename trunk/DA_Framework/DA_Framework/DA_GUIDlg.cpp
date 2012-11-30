@@ -259,7 +259,7 @@ BOOL CDA_GUIDlg::OnInitDialog()
 
 	this->UsingDefaultSavePath.SetCheck(true);
 
-	this->ResultSavingControl.SetCheck(true);
+	this->ResultSavingControl.SetCheck(this->pMainThread->isResultSaved);
 
 	return TRUE;  // Geben Sie TRUE zurück, außer ein Steuerelement soll den Fokus erhalten
 }
