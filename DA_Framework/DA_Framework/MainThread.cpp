@@ -160,7 +160,7 @@ DWORD MainThread::calculationThreadProc(void){
 	}
 
 #ifdef EVALUATION
-	string EVA_RootPath = string("2012.11.14");
+	string EVA_RootPath = string("2012.11.29");
 	EVA_RootPath.append("/");
 	EVA_RootPath.append(this->INPUTPATH);
 	//const char *EVA_RootPath = "2012.09.17/EmptyBox";
@@ -215,7 +215,7 @@ DWORD MainThread::calculationThreadProc(void){
 #endif
 
 #ifdef EVA_RECOGNITION
-	const char *recogFileName = "Recognition with 1 model test";
+	const char *recogFileName = "Recognition with 1 model_with Improvment";
 	pEvaluator->createCSVFile(recogFileName);
 	//pEvaluator->writeCSVTitle(recogFileName, "Frame Index, Reslutlist Size, Is Find, Is Model 1 found, Is Model 2 found, Result 1, Result 2, Run Time");
 	pEvaluator->writeCSVTitle(recogFileName, "Frame Index, Reslutlist Size, Is Find, Is Model 1 found, Is Model 2 found, Nodes Count, Run Time");
