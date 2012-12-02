@@ -6,7 +6,7 @@
 \BOOKMARK [1][]{section.2.2}{Verfahren basierend auf nat\374rlichen Merkmalen}{chapter.2}% 6
 \BOOKMARK [2][]{subsection.2.2.1}{Kantenbasiertes Verfahren}{section.2.2}% 7
 \BOOKMARK [2][]{subsection.2.2.2}{Optischer Fluss basiertes Verfahren}{section.2.2}% 8
-\BOOKMARK [2][]{subsection.2.2.3}{Templatebasiertes Verfahren}{section.2.2}% 9
+\BOOKMARK [2][]{subsection.2.2.3}{Template basiertes Verfahren}{section.2.2}% 9
 \BOOKMARK [2][]{subsection.2.2.4}{Punktebasiertes Verfahren}{section.2.2}% 10
 \BOOKMARK [1][]{section.2.3}{Markenbasierte Objekterkennung}{chapter.2}% 11
 \BOOKMARK [2][]{subsection.2.3.1}{Markenerkennung}{section.2.3}% 12
@@ -76,7 +76,7 @@
 \BOOKMARK [1][]{section.4.5}{Bildersteuerung}{chapter.4}% 76
 \BOOKMARK [0][]{chapter.5}{Experimentelle Auswertung}{}% 77
 \BOOKMARK [1][]{section.5.1}{Teilweise Evaluation}{chapter.5}% 78
-\BOOKMARK [2][]{subsection.5.1.1}{Abstand-Filter}{section.5.1}% 79
+\BOOKMARK [2][]{subsection.5.1.1}{Abstands-Filter}{section.5.1}% 79
 \BOOKMARK [2][]{subsection.5.1.2}{Helligkeitssteuerung}{section.5.1}% 80
 \BOOKMARK [2][]{subsection.5.1.3}{Verbesserung des Singul\344rwertzerlegungsverfahrens}{section.5.1}% 81
 \BOOKMARK [2][]{subsection.5.1.4}{Aktualisierung des Strukturgraphen}{section.5.1}% 82
@@ -94,9 +94,4 @@
 \BOOKMARK [3][]{subsubsection.5.2.2.3}{Verbesserung mit Kandidaten}{subsection.5.2.2}% 94
 \BOOKMARK [3][]{subsubsection.5.2.2.4}{2 Eingabeobjekte mit 2 Eingabemodellen}{subsection.5.2.2}% 95
 \BOOKMARK [0][]{chapter.6}{Zusammenfassung und Ausblick}{}% 96
-\BOOKMARK [1][]{section.6.1}{Verbesserungen}{chapter.6}% 97
-\BOOKMARK [1][]{section.6.2}{Problem}{chapter.6}% 98
-\BOOKMARK [2][]{subsection.6.2.1}{Stabilit\344t}{section.6.2}% 99
-\BOOKMARK [2][]{subsection.6.2.2}{Zeitaufwand}{section.6.2}% 100
-\BOOKMARK [1][]{section.6.3}{M\366gliche L\366sungsverfahren}{chapter.6}% 101
-\BOOKMARK [0][]{appendix*.2}{Literaturverzeichnis}{}% 102
+\BOOKMARK [0][]{appendix*.2}{Literaturverzeichnis}{}% 97

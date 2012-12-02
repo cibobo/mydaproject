@@ -1,46 +1,46 @@
 \chapter{Experimentelle Auswertung}
-In diesem Abschnitt wird das Programm von verschiedenen Richtungen ausgewertet. Zwei schwarze Kästchen mit weißen Marken werden als Testobjekte in der Evaluation verwendet (Siehe Abb.~\ref{BOXES}. Alle Translation bzw. Rotation des Objekt werden manuell durchgeführt, d.h. die kleine Schwingung von menschlicher Bewegung ist in unserem Test auch betrachtet.
+In diesem Abschnitt wird das Programm von verschiedenen Richtungen ausgewertet. Zwei schwarze Kästchen mit weißen Marken werden als Testobjekte in der Evaluation verwendet (siehe Abb.~\ref{BOXES}. Jede Translation bzw. Rotation des Objektes wird manuell durchgeführt, d.h. die kleine Schwingung von menschlicher Bewegung ist in unserem Test auch betrachtet.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.42]{Abbildungen/Boxes.jpg}
-\caption{Die Testobjekte. Das größere Kästchen auf der linken Seite ist das Haupttestobjekt, was in den meinsten Evaluationen mit einem Objekt verwendet wurde.}
+\caption{Die Testobjekte. Das größere Kästchen auf der linken Seite ist das Haupttestobjekt, was in den meisten Evaluationen über ein Objekt verwendet wurde.}
 \label{BOXES}
 \end{figure}
 
 \section{Teilweise Evaluation}
-Um die möglich besten Ergebnisse zu erhalten, werden viele Hilfsteilprogramme neben dem Lernen- bzw. Wiedererkennungsprozess gleichzeitig durchgeführt. Die Wirkungen und zusätzlicher Zeitaufwand dieser Teilprogramme werden in diesem Abschnitt separat diskutiert.
+Um die bestmöglichen Ergebnisse zu erhalten, werden viele Hilfsteilprogramme neben dem Lernen- bzw. Wiedererkennungsprozess gleichzeitig durchgeführt. Die Wirkungen und der zusätzlicher Zeitaufwand dieser Teilprogramme werden in diesem Abschnitt separat diskutiert.
 
-\subsection{Abstand-Filter}
-Das Ziel des Abstand-Filters ist, die interessanten Objekte aus der Umgebung zu extrahieren. Dadurch kann der Detektor nur den kleinen Bereich um die Objekte fokussieren, wodurch Störungen der Umgebung vermieden werden können. Wegen der starken Abhängigkeit zwischen Detektor und dem Abstand-Filter, kann der Einfluss des Filters durch Anzahl der erkannten Marken bewertet werden. Zwei Testbildströme für ein bewegendes Objekt aber mit unterschiedlichen Hintergründen werden hier verwendet, um die Wirkung des Abstand-Filters zu erklären. Die Screenshots für je 30 Bilder werden in Abbildung~\ref{E} bzw. \ref{F} gezeigt. Insgesamt 8 Marken werden auf der Ebene aufgebracht, was von der Kamera als weiße Kreise aufgenommen werden soll. Die Marken, die von dem Programm erkannt werden können, werden dann wieder mit Rot gefärbt.
+\subsection{Abstands-Filter}
+Das Ziel des Abstands-Filters ist, die interessanten Objekte aus der Umgebung zu extrahieren. Dadurch kann der Detektor nur den kleinen Bereich um die Objekte fokussieren, wodurch Störungen der Umgebung vermieden werden können. Wegen der starken Abhängigkeit zwischen dem Detektor und dem Abstands-Filter, kann der Einfluss des Filters durch die Anzahl der erkannten Marken bewertet werden. Hier werden aber zwei Testbildströme für ein bewegendes Objekt mit unterschiedlichen Hintergründen verwendet, um die Wirkung des Abstands-Filters zu erklären. Die Screenshots für je 30 Bilder wird in Abbildung~\ref{E} bzw. \ref{F} gezeigt. Insgesamt acht Marken werden auf der Ebene aufgebracht, die von der Kamera als weiße Kreise aufgenommen werden sollen. Die Marken, die von dem Programm erkannt werden können, werden dann wieder in rot gefärbt.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.42]{Abbildungen/Empty.png}
-\caption{Der Bildstrom mit homogenem Hintergrund. Von links nach rechts und oben nach unten sind die Screenshots der Bilder, deren Index ab 60 und mit der Schrittweite von 30 sind.}
+\caption{Der Bildstrom mit homogenem Hintergrund. Von links nach rechts und oben nach unten sind die Screenshots der Bilder, deren Index ab 60 beginnt und deren Schrittweite 30 beträgt.}
 \label{E}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.5]{Abbildungen/DF_Empty.png}
-\caption{Vergleich der Erkennungsergebnisse mit und ohne Abstand-Filter. Die Eingabebilder enthalten nur ein Objekt und die homogene Umgebung, was in Abbildung~\ref{E} teilweise gezeigt wird.}
+\caption{Der Vergleich der Erkennungsergebnisse mit und ohne Abstands-Filter. Die Eingabebilder enthalten nur ein Objekt und die homogene Umgebung, was in Abbildung~\ref{E} teilweise gezeigt wird.}
 \label{DFE}
 \end{figure}
 
-Abbildung~\ref{DFE} zeigt die Anzahl der erkannten Marken aus dem Bildstrom mit homogenem Hintergrund. Die blaue und grüne Kurve zeigt jeweils das Erkennungsergebnis mit und ohne dem Abstand-Filter. Die Kurve der Erkennungsergebnisse mit Abstand-Filter schwingt zwischen dem Intervall von 6 bis 9, was aber deutlicher schwächer als die Grüne ist. D.h. Verwendung des Abstand-Filters verbessert die Erkennungsergebnisse und lässt die Ausgaben viel stabiler sein. Die Vergleichsergebnisse für den Bildstrom mit inhomogener Umgebung wird in der Abbildung~\ref{DFF} gezeigt. Die Erkennungsergebnisse mit und ohne Abstand-Filter dieses Tests scheinen ein bisschen schlechter als die Ergebnisse in der Abbildung~\ref{DFE}. Die Verbesserung durch den Abstand-Filter ist dennoch deutlich.  
+Abbildung~\ref{DFE} zeigt die Anzahl der erkannten Marken aus dem Bildstrom mit homogenem Hintergrund. Die blaue und die grüne Kurve zeigen jeweils das Erkennungsergebnis mit und ohne Abstands-Filter. Die Kurve der Erkennungsergebnisse mit Abstands-Filter schwingt zwischen dem Intervall von sechs bis neun, was aber deutlicher schwächer als die Grüne ist. D.h, dass die Verwendung des Abstands-Filters die Erkennungsergebnisse verbessert und die Ausgaben viel stabiler sein lässt. Die Vergleichsergebnisse für den Bildstrom mit inhomogener Umgebung wird in der Abbildung~\ref{DFF} gezeigt. Die Erkennungsergebnisse mit und ohne Abstands-Filter dieses Tests scheinen ein bisschen schlechter als die Ergebnisse in der Abbildung~\ref{DFE} zu sein. Die Verbesserung durch den Abstands-Filter ist dennoch deutlich.   
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.42]{Abbildungen/Full.png}
-\caption{Der Bildstrom mit inhomogener Umgebung. Von links nach rechts und oben nach unten sind die Screenshots der Bilder, deren Index ab 60 und mit der Schrittweite von 30 sind.}
+\caption{Der Bildstrom mit inhomogener Umgebung. Von links nach rechts und oben nach unten sind die Screenshots der Bilder, deren Index ab 60 beginnt und deren Schrittweite 30 beträgt.}
 \label{F}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.5]{Abbildungen/DF_Full.png}
-\caption{Vergleich der Erkennungsergebnisse mit und ohne Abstand-Filter. Die Eingabebilder enthalten mehr Objekte, was in Abbildung~\ref{F} teilweise gezeigt wird.}
+\caption{Der Vergleich der Erkennungsergebnisse mit und ohne Abstand-Filter. Die Eingabebilder enthalten mehr Objekte, was in Abbildung~\ref{F} teilweise gezeigt wird.}
 \label{DFF}
 \end{figure}
 
@@ -50,85 +50,85 @@ Abbildung~\ref{DFE} zeigt die Anzahl der erkannten Marken aus dem Bildstrom mit 
 \begin{figure}
 \centering
 \includegraphics[scale=0.5]{Abbildungen/BC_Empty.png}
-\caption{Vergleich der Erkennungsergebnisse mit und ohne Helligkeitssteuerung. Die Eingabebilder enthalten nur ein Objekt und die homogene Umgebung, was in Abbildung~\ref{E} teilweise gezeigt wird.}
+\caption{Der Vergleich der Erkennungsergebnisse mit und ohne Helligkeitssteuerung. Die Eingabebilder enthalten nur ein Objekt und die homogene Umgebung, was in Abbildung~\ref{E} teilweise gezeigt wird.}
 \label{BCE}
 \end{figure}
 
-In der Bewertung der Helligkeitssteuerung wird der gleiche Testbildstrom verwendet, der in der Abbildung~\ref{E} aufgeführt wird. Die Abbildung~\ref{BCE} zeigt die Vergleichsergebnisse der Anzahl der erkannten Marken von dem Programm, das jeweils mit und ohne Helligkeitssteuerung durchgeführt wird. Die blaue Kurve ist die normale statistische Kurve für die erkannten Marken, was gleich zu der blauen Kurve in Abbildung~\ref{DFE} ist. Die grüne Kurve, die die Erkennungsergebnisse ohne Helligkeitssteuerung beschreibt, schwingt zwischen dem Intervall des Bilderindexes von 200 bis 300 ziemlich stark. Diese unregelmäßige Schwingung liegt daran, dass das Objekt während diesen Bildern entlang die Blickrichtung der Kamera bewegt wird. Wegen dem Arbeitsprinzip der PMD Kamera steigt die Amplitude über das Objekt in dem Bild an, wenn das Objekt zu der Kamera bewegt wird. Das verringert aber den Unterschied zwischen den Marken und diesen Umgebung. Dadurch werden viel mehr Marken als tatsächliche Anzahl erkannt, weil einige Bereiche auf der Ebene des Objekts ähnliche Helligkeit wie die Marken haben. Im umgekehrten Falle sinkt die Amplitude des Objekts ab, wenn das Objekt weiter von der Kamera entfernt wird. Dann werden aber nur weniger Marken als gewünschte Anzahl aus dem Objekt erkannt. 
+In der Bewertung der Helligkeitssteuerung wird der gleiche Testbildstrom verwendet, der in der Abbildung~\ref{E} aufgeführt wird. Die Abbildung~\ref{BCE} zeigt die Vergleichsergebnisse der Anzahl der erkannten Marken von dem Programm, das jeweils mit und ohne Helligkeitssteuerung durchgeführt wird. Die blaue Kurve ist die normale statistische Kurve für die erkannten Marken, welche identisch  zu der blauen Kurve in Abbildung~\ref{DFE} ist. Die grüne Kurve, die die Erkennungsergebnisse ohne Helligkeitssteuerung beschreibt, schwingt zwischen dem Intervall des Bilderindexes von 200 bis 300 ziemlich stark. Diese unregelmäßige Schwingung liegt darin, dass das Objekt während diesen Bildern entlang der Blickrichtung der Kamera bewegt wird. Wegen dem Arbeitsprinzip der PMD Kamera steigt die Amplitude über das Objekt in dem Bild an, wenn das Objekt zu der Kamera bewegt wird. Das verringert aber den Unterschied zwischen den Marken und deren Umgebung. Dadurch werden viel mehr Marken erkannt als tatsächlich vorhanden sind, weil einige Bereiche auf der Ebene des Objektes eine ähnliche Helligkeit wie die Marken haben. Im umgekehrten Falle sinkt die Amplitude des Objektes ab, wenn das Objekt weiter von der Kamera entfernt wird. Dann werden aber nur weniger Marken als die gewünschte Anzahl aus dem Objekt erkannt.
 
 \subsection{Verbesserung des Singulärwertzerlegungsverfahrens}
 \label{VdS}
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.35]{Abbildungen/2DT.png}
-\caption{Testbildstrom mit dem Objekt, das nur in der Ebene bewegt wird.}
+\caption{Der Testbildstrom mit dem Objekt, das nur in der Ebene bewegt wird.}
 \label{DT}
 \end{figure}
 
 \begin{figure}
 \centering
 \includegraphics[scale=0.5]{Abbildungen/2dt_a.png}
-\caption{Vergleich der umdrehenden Winkel mit und ohne Verbesserung für ein im 2D Raum bewegendes Objekt.}
+\caption{Der Vergleich der umdrehenden Winkel mit und ohne Verbesserung für ein im zweidimensionalen Raum bewegendes Objekt.}
 \label{DTA}
 \end{figure}
 
-Im Abschnitt~\ref{VdS} wird die Verbesserung des Singulärwertzerlegungsverfahrens erklärt. In diesem Teil der Evaluation werden die Wirkungen dieser Verbesserung bewertet. Die verschiedenen bewegende- bzw. umdrehende Bewegungen des Objekts im 2D bzw. 3D Raum werden in drei Testbildströme zusammengefasst, welche in Abbildungen~\ref{DT}, \ref{DR} und \ref{3DR} teilweise gezeigt werden. Das Ziel des Singulärwertzerlegungsverfahrens ist, die Korrespondenzpunkte zu finden, damit die Orientierung des Objekts zwischen zwei Zeitpunkten berechnet werden kann. Deshalb, um das bessere Ergebnis zu erhalten, soll die Transformation des Objekts möglich genau bestimmt werden. Aus diesem Grund wird der umdrehende Winkel des Objekts als Bewertungsparameter in diesem Teil der Evaluation verwendet. Die Diagramme über den Vergleich des umdrehenden Winkels mit und ohne Verbesserung des Singulärwertzerlegungsverfahrens werden in Abbildungen~\ref{DTA}, \ref{DRA} und \ref{3DRA} gezeigt.
+Im Abschnitt~\ref{VdS} wird die Verbesserung des Singulärwertzerlegungsverfahrens erklärt. In diesem Teil der Evaluation werden die Wirkungen dieser Verbesserung bewertet. Die verschiedenen bewegenden bzw. umdrehenden Bewegungen des Objekts im zweidimensionalen bzw. dreidimensionalen Raum werden in drei Testbildströmen zusammengefasst, welche in Abbildungen~\ref{DT}, \ref{DR} und \ref{3DR} teilweise gezeigt werden. Das Ziel des Singulärwertzerlegungsverfahrens ist, die Korrespondenzpunkte zu finden, damit die Orientierung des Objekts zwischen zwei Zeitpunkten berechnet werden kann. Deshalb soll die Transformation des Objekts möglich genau bestimmt werden, um das bessere Ergebnis zu erhalten. Aus diesem Grund wird der umdrehende Winkel des Objekts als Bewertungsparameter in diesem Teil der Evaluation verwendet. Die Diagramme über den Vergleich des umdrehenden Winkels mit und ohne Verbesserung des Singulärwertzerlegungsverfahrens werden in Abbildungen~\ref{DTA}, \ref{DRA} und \ref{3DRA} gezeigt.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.26]{Abbildungen/2DR.png}
-\caption{Testbildstrom mit dem Objekt, das nur in der Ebene umgedreht wird.}
+\caption{Der Testbildstrom mit dem Objekt, das nur in der Ebene umgedreht wird.}
 \label{DR}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.5]{Abbildungen/2dr_a.png}
-\caption{Vergleich der umdrehenden Winkel mit und ohne Verbesserung für ein im 2D Raum umdrehendes Objekt.}
+\caption{Der Vergleich der umdrehenden Winkel mit und ohne Verbesserung für ein im zweidimensionalen Raum umdrehendes Objekt.}
 \label{DRA}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.42]{Abbildungen/3DR.png}
-\caption{Testbildstrom mit dem Objekt, das im 3D Raum umgedreht wird.}
+\caption{Der Testbildstrom mit dem Objekt, das im dreidimensionalen Raum umgedreht wird.}
 \label{3DR}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.5]{Abbildungen/3dr_a.png}
-\caption{Vergleich der umdrehenden Winkel mit und ohne Verbesserung für ein im 3D Raum umdrehendes Objekt.}
+\caption{Der Vergleich der umdrehenden Winkel mit und ohne Verbesserung für ein im dreidimensionalen Raum umdrehendes Objekt.}
 \label{3DRA}
 \end{figure}
 
-In den Testbeispielen von 2D Bewegung und Rotation wird der Vorteil der Verbesserung nicht deutlich gezeigt: in der Abbildung~\ref{DTA} gibt es entweder in blauer Kurve oder in grüner Kurve eine hoche Spitze; in der Abbildung~\ref{DRA} laufen beide Kurven aber ruhig durch. Die Wirkung der Verbesserung scheinen deutlicher in Abbildung~\ref{3DRA}, was eine Statistik über den umdrehenden Winkel des Objekts im 3D Raum erstellt. Mithilfe der Screenshots von Abbildung~\ref{3DR} findet man, dass die umdrehenden Winkel unangenehmen zu groß berechnet werden, wenn eine neue Ebene des Objekts unter der Kamera vorkommt. Die Verbesserung des Singulärwertzerlegungsverfahrens lässt den Fehler des berechneten Winkel in Bereichen von Größe und Zeitraum (wie viele Bilder der Fehler vorkommt) unterdrücken. Abbildung~\ref{3DREC} zeigt die Endergebnisse mit und ohne der Verbesserung über den Testbildstrom mit 3D Umdrehung. Die grünen kleinen Kugeln sind die neu erkannten Marken und die große Kugeln beschreiben die stabilen Knoten. Um die Struktur des Objekts deutlicher zu zeigen, werden die stabilen Knoten mit gleicher Farbe gesetzt, wenn sie in der gleichen Ebene erkannt sind. Die roten Knoten beschreiben die erste Ebene des Kästchens. Danach sind die zweite, dritte bzw. vierte Ebene, die mit jeweils Gelb, Cyan und Magenta gezeichnet werden. Die fünfte Farbe Orange beschreibt die gleiche Ebene wie Rot, die nach einer kompletten Rotation wieder von dem Programm erkannt wird. Die Verbesserung durch das verbesserte Singulärwertzerlegungsverfahren erkennt man wegen der zwei Strukturgraphen von Abbildung~\ref{3DREC} deutlich. Die Knoten aus dem Schaubild der ersten Zeile können die vier Ebene eines Hexaeders sehr gut darstellen. Aber die Situation der zweiten Zeile sind chaotisch. Es gibt keine Möglichkeit, eine Gestalt aus den stabilen Knoten herauszufinden.
+In den Testbeispielen von zweidimensionaler Bewegung und Rotation wird der Vorteil der Verbesserung nicht deutlich gezeigt: In der Abbildung~\ref{DTA} gibt es entweder in der blauen Kurve oder in der grünen Kurve einige hohen Spitzen; in der Abbildung~\ref{DRA} laufen beide Kurven aber ruhig durch. Die Wirkung der Verbesserung scheint in Abbildung~\ref{3DRA} deutlicher, welche eine Statistik über den umdrehenden Winkel des Objekts im dreidimensionalen Raum erstellt. Mithilfe der Screenshots von Abbildung~\ref{3DR} findet man, dass die umdrehenden Winkel zu groß berechnet werden, wenn eine neue Ebene des Objektes unter der Kamera vorkommt. Die Verbesserung des Singulärwertzerlegungsverfahrens lässt den Fehler des berechneten Winkels in den Bereichen von Größe und Zeitraum (in wie vielen Bildern der Fehler vorkommt) unterdrücken. Abbildung~\ref{3DREC} zeigt die Endergebnisse mit und ohne Verbesserung über den Testbildstrom mit dreidimensionaler Umdrehung. Die grünen, kleinen Kugeln sind die neu erkannten Marken und die großen Kugeln beschreiben die stabilen Knoten. Um die Struktur des Objekts deutlicher zu zeigen, werden die stabilen Knoten in gleicher Farbe gesetzt, wenn sie in der gleichen Ebene erkannt worden sind. Die roten Knoten beschreiben die erste Ebene des Kästchens. Danach befindet sich die zweite, dritte bzw. vierte Ebene, die jeweils in Gelb, Cyan und Magenta gezeichnet werden. Die fünfte Farbe, Orange, beschreibt die gleiche Ebene wie Rot, die nach einer kompletten Rotation wieder von dem Programm erkannt wird. Die Verbesserung durch das verbesserte Singulärwertzerlegungsverfahren erkennt man durch die zwei Strukturgraphen aus Abbildung~\ref{3DREC} deutlich. Die Knoten aus dem Schaubild der ersten Zeile können die vier Ebene eines Hexaeders sehr gut darstellen. Aber die Situationen in zweiter Zeile sind ungeordnet. Es gibt keine Möglichkeit, eine Gestalt aus den stabilen Knoten herauszufinden.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.18]{Abbildungen/3DR_end_c.png}
-\caption{Die Strukturgraphen eines Kästchen nach Lernen mit (erste Zeile) und ohne (zweite Zeile) der Verbesserung des Singulärwertzerlegungsverfahrens, die jeweils von vorn, oben und einem Punkt an der Verlängerung der Diagonale des Objekts beobachtet werden. Die Knoten mit gleicher Farbe werden in gleicher Ebene erkannt.}
+\caption{Die Strukturgraphen eines Kästchens nach Lernen mit (erste Zeile) und ohne (zweite Zeile) Verbesserung des Singulärwertzerlegungsverfahrens, die jeweils von vorne, oben, und einem Punkt an der Verlängerung der Diagonale des Objektes beobachtet werden. Die Knoten mit gleicher Farbe werden in gleicher Ebene erkannt.}
 \label{3DREC}
 \end{figure}
 
 \subsection{Aktualisierung des Strukturgraphen}
-Der Strukturgraph des Objekts wird durch den Algorithmus~\ref{algAG} in Kapitel 4 dargestellt. Die ,,Lebenszeit'' und der ,,maximale Abstand der identischen Knoten'' sind die zwei wichtigsten Parameter des Algorithmus, wodurch die stabilen Knoten aus dem Rauschen erkannt werden können. In diesem Abschnitt werden die Wirkungen mit verschiedenen Zuordnungen dieser zwei Parameter bzw. die Verbesserung der zusätzlichen Kombination der mehrfach erkannten Knoten diskutiert. Das erste Objekt mit 25 Marken auf 4 Ebenen wird hier als das Testobjekt benutzt. Eine Statistik über die Anzahl der stabilen Knoten, die nach dem Ablauf des Programms in VTK Daten gespeichert werden sollen, wird zuerst erstellt und dann mit tatsächlicher Anzahl der Knoten des Objekts verglichen, damit die unterschiedlich Auswahl der Parameter bewertet werden kann.  
+Der Strukturgraph des Objektes wird durch den Algorithmus~\ref{algAG} in Kapitel 4 dargestellt. Die ,,Lebenszeit'' und der ,,maximale Abstand der identischen Knoten'' sind die zwei wichtigsten Parameter des Algorithmus, wodurch die stabilen Knoten aus dem Rauschen erkannt werden können. In diesem Abschnitt werden die Wirkungen mit verschiedenen Zuordnungen dieser zwei Parameter bzw. die Verbesserung der zusätzlichen Kombination der mehrfach erkannten Knoten diskutiert. Das erste Objekt mit 25 Marken auf vier Ebenen wird hier als das Testobjekt benutzt. Eine Statistik über die Anzahl der stabilen Knoten, die nach dem Ablauf des Programms in VTK  Daten gespeichert werden sollen, wird zuerst erstellt und dann mit der tatsächlichen Anzahl der Knoten des Objekts verglichen, damit die unterschiedliche Auswahl der Parameter bewertet werden kann.   
 
 \subsubsection{Lebenszeit}
 
 \begin{figure}
 \centering
 \includegraphics[scale=0.5]{Abbildungen/gu_lt_all.png}
-\caption{Vergleich der Anzahl der erkannten Knoten und der tatsächlichen Knoten, die am Testobjekt angebracht werden. Verschiedene Lebenszeiten werden als die vordefinierten Parameter des Programms getestet.}
+\caption{Der Vergleich der Anzahl der erkannten Knoten und der tatsächlichen Knoten, die am Testobjekt angebracht werden. Die verschiedenen Lebenszeiten werden als die vordefinierten Parameter des Programms getestet.}
 \label{GULTA}
 \end{figure}
 
-Die blaue gepunktete Linie in Abbildung~\ref{GULTA} bleibt bei 25, was die tatsächliche Anzahl der Marken auf dem Testobjekt ist. Die grüne Kurve zeigt die Anzahl der erkannten Knoten im Strukturgraphen nach dem Lernen mit verschiedenen Eingaben der Lebenszeit. Wenn die Lebenszeit zu klein definiert ist, werden die neu erkannten Marken ziemlich schnell als die stabilen Knoten markiert und im Strukturgraphen eingefügt. Es folgen zwei negative Wirkungen. Zuerst werden gleiche Marken vielmals als unterschiedlichen Knoten erkannt, und zweitens werden die zufällig vorkommenden Rauschpunkte auch als stabile Knoten erkannt und im Endergebnis gespeichert. Die beste Anpassung kommt zwischen 30 bis 40 vor, wo fast gleich so viele Marken wie am realen Objekt erkannt werden. Danach sinkt die Anzahl der stabilen Knoten langsam mit der Vergrößerung der Lebenszeit ab, wegen der Verstärkung der Erkennungsbedingung über die stabilen Knoten. Die erste Zeile des Schaubilds~\ref{GUE} zeigt die Strukturgraphen nach dem Lernen mit verschiedener Lebenszeit.
+Die blau gepunktete Linie in Abbildung~\ref{GULTA} bleibt bei 25, was der tatsächlichen Anzahl der Marken auf dem Testobjekt entspricht. Die grüne Kurve zeigt die Anzahl der erkannten Knoten im Strukturgraphen nach dem Lernen mit verschiedenen Eingaben der Lebenszeit. Wenn die Lebenszeit zu klein definiert ist, werden die neu erkannten Marken ziemlich schnell als die stabilen Knoten markiert und im Strukturgraphen eingefügt. Es folgen zwei negative Wirkungen. Zuerst werden gleiche Marken mehrmals als unterschiedliche Knoten erkannt. Zweitens werden die zufällig vorkommenden Rauschpunkte auch als stabile Knoten erkannt und im Endergebnis gespeichert. Die beste Anpassung kommt zwischen 30 bis 40 vor, wo fast gleich so viele Marken wie am realen Objekt erkannt werden. Wegen der Verstärkung der Erkennungsbedingung über die stabilen Knoten sinkt danach die Anzahl der stabilen Knoten langsam mit der Vergrößerung der Lebenszeit ab. Die erste Zeile des Schaubildes~\ref{GUE} zeigt die Strukturgraphen nach dem Lernen mit verschiedener Lebenszeit.
 
 \begin{figure}
 \centering
 \includegraphics[scale=0.29]{Abbildungen/GU_end.png}
-\caption{Die Screenshots für die Endergebnisse des Lernens mit verschiedenen Schwellenwerten der Lebenszeit, welche in unten des Schaubilds aufgelistet werden. Die erste Zeile zeigt die direkte Ergebnisse von dem Programm. Die Lösungen mit der zusätzlichen Kombination der mehrfach erkannten Knoten werden in der zweiten Zeile dargestellt.}
+\caption{Die Screenshots für die Endergebnisse des Lernens mit verschiedenen Lebenszeit. Die Zahlen am Boden der Abbildung zeigen die Testwerte der Lebenszeit. Die erste Zeile zeigt die direkten Ergebnisse von dem Programm. Die Lösungen mit der zusätzlichen Kombination der mehrfach erkannten Knoten werden in der zweiten Zeile dargestellt.}
 \label{GUE}
 \end{figure}
 
@@ -137,89 +137,89 @@ Die blaue gepunktete Linie in Abbildung~\ref{GULTA} bleibt bei 25, was die tatsä
 \begin{figure}
 \centering
 \includegraphics[scale=0.5]{Abbildungen/gu_dis_all.png}
-\caption{Vergleich der Anzahl der erkannten Knoten und der tatsächlichen Knoten, die am Testobjekt angebracht werden. Verschiedenen maximalen Abstände der identischen Knoten werden als die vordefinierten Parameter des Programms getestet.}
+\caption{Der Vergleich der Anzahl der erkannten Knoten und der tatsächlichen Knoten, die am Testobjekt angebracht werden. Die verschiedenen, maximalen Abstände der identischen Knoten werden als die vordefinierten Parameter des Programms getestet.}
 \label{GUDA}
 \end{figure}
 
-Der Abstandschwellenwert für die identischen Knoten erklärt, wie nahe zwei Knoten liegen sollen, die als identische Knoten des Strukturgraphen erkannt werden. Die Veränderung für die Anzahl der stabilen Knoten mit Anstieg des Abstandschwellwerts wird durch die grüne Kurve in Abbildung~\ref{GUDA} gezeigt. Je kleiner der Abstandschwellwert ist, desto schwieriger werden die neu gefundenen Knoten mit den vorhandenen Knoten identisch erkannt. Aber auf der anderen Seite werden die Strukturgraphen falsch dargestellt, wenn der Abstandschwellwert zu groß definiert wird. In diesem Fall könnten zwei benachbarte Marken als einen Knoten erkannt werden, was sogar die Orientierung stören kann. Ein Beispiel darüber findet man in letztem Schaubild der Abbildung~\ref{GUDE} mit dem Abstandschwellenwert gleich 0.0045.
+Der Abstandschwellenwert für die identischen Knoten erklärt, wie nahe zwei Knoten beieinander liegen sollen, die als identische Knoten des Strukturgraphen erkannt werden. Die Veränderung für die Anzahl der stabilen Knoten mit Anstieg des Abstandschwellwerts wird durch die grüne Kurve in Abbildung~\ref{GUDA} gezeigt. Je kleiner der Abstandschwellwert ist, desto schwieriger werden die neu gefundenen Knoten erkannt, die mit den vorhandenen Knoten identisch sind. Aber auf der anderen Seite werden die Strukturgraphen falsch dargestellt, wenn der Abstandschwellwert zu groß definiert wird. In diesem Fall könnten zwei benachbarte Marken als ein Knoten erkannt werden, was sogar die Orientierung stören kann. Ein Beispiel dafür findet man im letzten Schaubild der Abbildung~\ref{GUDE} mit dem Abstandschwellenwert gleich 0.0045.
 
 \begin{figure}
 \centering
 \includegraphics[scale=0.29]{Abbildungen/GU_dis_end.png}
-\caption{Die Screenshots für die Endergebnisse des Lernens mit verschiedenen Abstandschwellwerten für die identischen Knoten, welche in unten des Schaubilds aufgelistet werden.}
+\caption{Die Screenshots für die Endergebnisse des Lernens mit verschiedenen Abstandschwellwerten für die identischen Knoten. Die Zahlen an dem Boden der Abbildung listen die getesteten Werte auf.}
 \label{GUDE}
 \end{figure}
 
 \subsubsection{Kombination der mehrfach erkannten Knoten}
-Was deutlich in beiden Abbildungen~\ref{GULTA} und \ref{GUDA} erscheint, ist, dass es nur ein Schnittpunkt der blauen und grünen Kurven gibt. D.h. entweder die Lebenszeit oder der Abstandschwellwert ist schwierig zu bestimmen, damit genau so viele stabile Knoten wie die tatsächliche Anzahl der Marken am Objekt erkannt werden. Deshalb soll die Kombination der mehrfach erkannten Knoten nach dem Lernen durchgeführt werden. Dadurch kann die gültige Definitionsmenge der zwei Parameter vergrößert werden. Die roten Kurven in Abbildungen~\ref{GULTA} und \ref{GUDA} zeigen die Anzahl der stabilen Knoten nach der Kombination. In beiden Kurven gibt es ein relativ großes Intervall, in dem die Anzahl der erkannten stabilen Knoten der tatsächlichen Anzahl der Marken des Objekts sehr gut anpasst (24 gegen 25). Der Vergleich der Lernensergebnisse mit und ohne der Kombination wird durch Schaubild~\ref{GUE} erklärt. Die Bilder in zweiter Zeile zeigen die Strukturgraphen nach dem Lernen mit Kombination über verschiedenen Eingaben der Lebenszeit. Wegen dieser Veränderung gibt es kaum Unterschied zwischen der Lösungen mit Lebenszeit von 12 bis 35.
+Was deutlich in beiden Abbildungen~\ref{GULTA} und \ref{GUDA} erscheint, ist, dass es nur ein Schnittpunkt zwischen der blauen und der grünen Kurven gibt. D.h., dass entweder die Lebenszeit oder der Abstandschwellwert schwierig zu bestimmen ist, damit genau so viele stabile Knoten wie die tatsächliche Anzahl der Marken am Objekt erkannt werden. Deshalb soll die Kombination der mehrfach erkannten Knoten nach dem Lernen durchgeführt werden. Dadurch kann die gültige Definitionsmenge der zwei Parameter vergrößert werden. Die roten Kurven in den Abbildungen~\ref{GULTA} und \ref{GUDA} zeigen die Anzahl der stabilen Knoten nach der Kombination. In beiden Kurven gibt es ein relativ großes Intervall, in dem sich die Anzahl der erkannten stabilen Knoten der tatsächlichen Anzahl der Marken des Objekts sehr gut anpasst (24 gegen 25). Der Vergleich der Lernergebnisse mit und ohne die Kombination wird durch das Schaubild~\ref{GUE} erklärt. Die Bilder in zweiter Zeile zeigen die Strukturgraphen nach dem Lernen mit der Kombination über verschiedenen Eingaben der Lebenszeit. Wegen dieser Veränderung gibt es kaum einen Unterschied zwischen den Lösungen mit Lebenszeit von 12 bis 35.
 
 \subsection{Bildersteuerung}
 \label{Bs}
-Wie in der Abbildung~\ref{3DRA} gezeigt, werden die umdrehende Winkel zu groß berechnet, wenn eine Ebene des Objekts allmählich verschwindet und die nachfolgende Ebene langsame vorkommt. Diese falschen Winkel können den große Fehler für die Darstellung des Strukturgraphen erzeugen, was in Abbildung~\ref{3DRFC} klar gezeigt wird. Alle Ebenen sind richtig erkannt, aber können leider keine sinnvolle Gestalt aufbauen. Deshalb ist die Bildersteuerung notwendig, damit die schlechten Bilder aus dem Bildstrom entfernt werden können. Abbildung~\ref{3DRFCA} ist das statische Diagramm über den Vergleich der umdrehenden Winkel mit und ohne der Bildersteuerung während des Testbildstroms aus Abbildung~\ref{3DR}. Außer der großen Spitze der blauen Kurve am Anfang, die wegen der schnellen Bewegung zu dem Bildbereich der Kamera als Rauschen erzeugt wird, läuft die blaue Kurve ruhig in einem kleinen Intervall ohne große Spitze, die aber bei der grünen Kurve häufig beobachtet werden. D.h. mithilfe der Bildersteuerung kann das Programm die negative Wirkung der falsch berechneten Winkel vollständig vermeiden.
+Wie in der Abbildung~\ref{3DRA} dargestellt, werden die umdrehenden Winkel zu groß berechnet, wenn eine Ebene des Objekts allmählich verschwindet und die nachfolgende Ebene langsam vorkommt. Diese falschen Winkel können einen großen Fehler für die Darstellung des Strukturgraphen erzeugen, was in Abbildung~\ref{3DRFC} klar gezeigt wird. Alle Ebenen sind richtig erkannt, können aber leider keine sinnvolle Gestalt aufbauen. Deshalb ist die Bildersteuerung notwendig, damit die schlechten Bilder aus dem Bildstrom entfernt werden können. Abbildung~\ref{3DRFCA} zeigt das statische Diagramm über den Vergleich der umdrehenden Winkel mit und ohne Bildersteuerung während des Testbildstroms aus Abbildung~\ref{3DR}. Abgesehen von der großen Spitze  der blauen Kurve am Anfang, die wegen der schnellen Bewegung zu dem Bildbereich der Kamera als Rauschen erzeugt wird, läuft die blaue Kurve ruhig in einem kleinen Intervall ohne große Spitze, die aber bei der grünen Kurve häufig beobachtet werden. D.h. mithilfe der Bildersteuerung kann das Programm die negative Wirkung der falsch berechneten Winkel vollständig vermeiden.
 
 \begin{figure}
 \centering
 \includegraphics[scale=0.5]{Abbildungen/3dr_fc.png}
-\caption{Vergleich der umdrehenden Winkel mit und ohne Bildersteuerung für ein im 3D Raum umdrehendes Objekt. Der Bildstrom wird im Abbildung~\ref{3DR} teilweise gezeigt.}
+\caption{Der Vergleich der umdrehenden Winkel mit und ohne Bildersteuerung für ein im dreidimensionalen Raum umdrehendes Objekt. Der Bildstrom wird im Abbildung~\ref{3DR} teilweise gezeigt.}
 \label{3DRFCA}
 \end{figure}
 
 \begin{figure}
 \centering
 \includegraphics[scale=0.18]{Abbildungen/3DR_end_wfc.png}
-\caption{Der Strukturgraph eines Kästchen nach Lernen ohne Bildersteuerung, der jeweils von vorn, oben und einem Punkt an der Verlängerung der Diagonale des Objekts beobachtet wird. Die Knoten mit gleicher Farbe werden in gleicher Ebene erkannt.}
+\caption{Der Strukturgraph eines Kästchen nach dem Lernen ohne Bildersteuerung, der jeweils von vorne, oben und einem Punkt an der Verlängerung der Diagonale des Objekts beobachtet wird. Die Knoten mit gleicher Farbe werden in gleicher Ebene erkannt.}
 \label{3DRFC}
 \end{figure}
 
 \subsection{Teilgraph-Isomorphismus}
-Um die Suche der sogenannten isomorphen Knoten zu vereinfachen, wurden zwei Quoten im Abschnitt~\ref{Oerk} definiert. In diesem Teil der Evaluation über Teilgraph-Isomorphismus wird das Wiedererkennungsteilprogramm vielmals mit unterschiedlichen Abstandquoten und Nachbarquoten durchgeführt, und die Anzahl der Bilder, in den das Objekt erfolgreich erkannt werden kann, gespeichert. Die Quote dieser Anzahl und der Anzahl gesamter Eingabebilder, was als Erkennungsquote genannt wird, kann die Qualität der Wiedererkennung bewerten. Die blaue Kurven in Abbildungen~\ref{GIDIS} und \ref{GINODE} zeigen genau diese Erkennungsquote mit verschiedenen Vorgaben der Abstandquote bzw. der Nachbarquote. Der Testbildstrom ist gleich wie die Testdaten, was in Abschnitten~\ref{VdS} und \ref{Bs} verwendet und in Abbildung~\ref{3DR} teilweise aufgeführt wird. Was aus den statistischen Diagrammen zu entnehmen ist, dass die beste Wiedererkennungsquote vorkommt, wenn die Abstandquote gleich 5\% und die Nachbarquote gleich 80\% sind. 
+Um die Suche der sogenannten isomorphen Knoten zu vereinfachen, wurden zwei Quoten im Abschnitt~\ref{Oerk} definiert. In diesem Teil der Evaluation über Teilgraph-Isomorphismus wird das Wiedererkennungsteilprogramm mehrmals mit unterschiedlichen Abstandsquoten und Nachbarquoten durchgeführt, und die Anzahl der Bilder, in denen das Objekt erfolgreich erkannt werden kann, gespeichert. Die Quote dieser Anzahl und der Anzahl gesamter Eingabebilder, welche Erkennungsquote genannt wird, kann die Qualität der Wiedererkennung bewerten. Die blaue Kurven in den Abbildungen~\ref{GIDIS} und \ref{GINODE} zeigen genau diese Erkennungsquote mit verschiedenen Vorgaben der Abstandsquote bzw. der Nachbarquote. Der Testbildstrom ist den Testdaten identisch, was in den Abschnitten~\ref{VdS} und \ref{Bs} verwendet, und in Abbildung~\ref{3DR} teilweise aufgeführt wird. Aus den statistischen Diagrammen ist zu entnehmen, dass die beste Wiedererkennungsquote dann vorkommt, wenn die Abstandsquote gleich 5\% und die Nachbarquote gleich 80\% ist. 
 \\
 \\
-Die grünen Kurven beschreiben die richtigen Wiedererkennungsquoten, wenn ein zusätzlicher Strukturgraph der erlernten Objekte von dem Programm als zweites Eingabemodelle eingelesen wird. Der Unterschied zwischen den grünen und blauen Kurven zeigt die Störung von dem zweiten Eingabemodel, was in einem akzeptierten Intervall (weniger als 2\%) liegt. Das erbringt auch ein überzeugender Nachweis für die hohe Stabilität unseres Teilgraph-Isomorphismus-Algorithmus.
+Die grünen Kurven beschreiben die richtigen Wiedererkennungsquoten, wenn ein zusätzlicher Strukturgraph der erlernten Objekte von dem Programm als zweites Eingabemodell eingelesen wird. Der Unterschied zwischen den grünen und den blauen Kurven zeigt die Störung von dem zweiten Eingabemodell, welches in einem akzeptierten Intervall (weniger als 2\%) liegt. Das erbringt auch einen überzeugenden Nachweis für die hohe Stabilität unseres Teilgraph-Isomorphismus-Algorithmus.
  
 \begin{figure}
 \centering
 \includegraphics[scale=0.5]{Abbildungen/gi_3dr_dis.png}
-\caption{Die Quote der richtigen Wiedererkennungen mit unterschiedlichen Abstandschwellenwerten für ein im 3D Raum umdrehendes Objekt. Der Bildstrom wird im Abbildung~\ref{3DR} teilweise gezeigt.}
+\caption{Die Quote der richtigen Wiedererkennungen mit unterschiedlichen Abstandschwellenwerten für ein im dreidimensionalen Raum umdrehendes Objekt. Der Bildstrom wird im Abbildung~\ref{3DR} teilweise gezeigt.}
 \label{GIDIS}
 \end{figure}
 
 \begin{figure}
 \centering
 \includegraphics[scale=0.5]{Abbildungen/gi_3dr_node.png}
-\caption{Die Quote der richtigen Wiedererkennungen mit unterschiedlichen Nachbarquoten für ein im 3D Raum umdrehendes Objekt. Der Bildstrom wird im Abbildung~\ref{3DR} teilweise gezeigt.}
+\caption{Die Quote der richtigen Wiedererkennungen mit unterschiedlichen Nachbarquoten für ein im dreidimensionalen Raum umdrehendes Objekt. Der Bildstrom wird im Abbildung~\ref{3DR} teilweise gezeigt.}
 \label{GINODE}
 \end{figure}
 
 \section{Globale Evaluation}
-In diesem Abschnitt werden die kompletten Abläufe von Lernen und Wiedererkennung bewertet. Für das Lernen werden die Strukturgraphen, die während dem Lernprozess durch die erkannten Marken erzeugt werden, mit den originalen Objekten verglichen. Für die Wiedererkennung wird die sogenannte richtige Erkennungsquote betrachtet, die die Qualität der Wiedererkennung sehr gut beschreiben kann. Natürlich ist der Zeitaufwand beider Teile ganz wichtig, was jeweils in einigen Tabellen aufgelistet wird.
+In diesem Abschnitt werden die kompletten Abläufe von Lernen und Wiedererkennung bewertet. Für das Lernen werden die Strukturgraphen, die während des Lernprozesses durch die erkannten Marken erzeugt werden, mit den originalen Objekten verglichen. Für die Wiedererkennung wird die sogenannte richtige Erkennungsquote betrachtet, die die Qualität der Wiedererkennung sehr gut beschreiben kann. Natürlich ist der Zeitaufwand beider Teile von hoher Bedeutung, was jeweils in einigen Tabellen aufgelistet wird.
 
 \subsection{Objektlernen}
-Wegen der fehlenden Fähigkeit der Messungen ist die quantitative Evaluation des Lernens nicht möglich. Die Lernensergebnisse können aber mithilfe der graphischen Visualisierung auch sehr gut beobachtet werden. Deshalb im folgenden Teil dieses Abschnitts werden einige Screenshots des Programms gezeigt, wodurch man die komplette Lernensphase für verschiedenen Eingabeobjekte bewerten kann. 
+Wegen der fehlenden Fähigkeit der Messungen ist die quantitative Evaluation des Lernens nicht möglich. Die Lernergebnisse können aber mithilfe der graphischen Visualisierung auch sehr gut beobachtet werden. Deshalb werden im folgenden Teil dieses Abschnitts einige Screenshots des Programms gezeigt, wodurch man die komplette Lernphase für verschiedene Eingabeobjekte bewerten kann. 
 \\
 \\
-Die Abbildung~\ref{gl} zeigt einen normalen Lernensprozess eines Objekts basiert auf dem Eingabebildstrom von \ref{3DR}. Die Strukturgraphen, die in der dritten Zeile gezeichnet werden, werden schrittweise durch die Eingabebilder dargestellt und zu der aktuellen Position des Objekts orientiert. Um die verschiedene Ebenen des Objekts deutlich zu unterscheiden, werden die Farben jeder Ebene manuell verändert. Das Programm stoppt, wenn die erste Ebene wieder vorkommt, welche in der Abbildung~\ref{gl} mit Rot und Organe für jeweils erste und zweite Erscheinung gefärbt werden. Was deutlich beobachtet werden kann, ist, dass alle Knoten, die zu gleicher Ebene gehören, in einer Fläche sehr gut erkannt werden. Weiterhin passen sich die relative Ausrichtungen zwischen je zwei Ebenen der Wirklichkeit gut an. Der Nachweis dafür ist die teilweise Übereinstimmung von der roten Knoten und der orangen Knoten, welche eigentlich von den gleichen Marken des Objekts erkannt werden. Die Abbildung~\ref{Lend} zeigt den Vergleich zwischen den Strukturgraphen und der realen Anordnung der Marken am Objekt.
+Die Abbildung~\ref{gl} zeigt einen normalen Lernprozess eines Objekts basierend auf dem Eingabebildstrom von \ref{3DR}. Die Strukturgraphen, die in der dritten Zeile gezeichnet werden, werden schrittweise durch die Eingabebilder dargestellt und orientieren sich an der aktuellen Position des Objektes. Um die verschiedenen Ebenen des Objektes deutlich zu unterscheiden, werden die Farben jeder Ebene manuell verändert. Das Programm stoppt, wenn die erste Ebene wieder vorkommt, welche in der Abbildung~\ref{gl} in Rot und Organe für die jeweils erste und zweite Erscheinung gefärbt werden. Was deutlich beobachtet werden kann, ist, dass alle Knoten, die zu einer gleichen Ebene gehören, in einer Fläche sehr gut erkannt werden. Weiterhin passen sich die relativen Ausrichtungen zwischen je zwei Ebenen der Wirklichkeit gut an. Der Nachweis dafür ist die teilweise Übereinstimmung von den roten Knoten und den orangenen Knoten, welche eigentlich von den gleichen Marken des Objekts erkannt werden. Die Abbildung~\ref{Lend} zeigt den Vergleich zwischen den Strukturgraphen und der realen Anordnung der Marken am Objekt.
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.42]{Abbildungen/global_l.png}
-\caption{Die Screenshots des Programms. Die Schaubilder der ersten Zeile zeigen die Grauwertbilder der Amplitude mit roten Marken. Die entsprechenden 3D Daten werden an der zweiten Zeile aufgeführt. In der dritten Zeile werden die mit bis aktuellen Bildern erzeugende Strukturgraphen (ohne Kanten, ohne Kombination des mehrfach erkannten Knoten) gezeichnet.}
+\caption{Die Screenshots des Programms. Die Schaubilder der ersten Zeile zeigen die Grauwertbilder der Amplitude mit roten Marken. Die entsprechenden 3D-Daten werden in der zweiten Zeile aufgeführt. In der dritten Zeile werden die mit bis aktuellen Bildern erzeugenden Strukturgraphen (ohne Kanten, ohne Kombination des mehrfach erkannten Knoten) gezeichnet.}
 \label{gl}
 \end{figure}
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.26]{Abbildungen/L_end.png}
-\caption{Der Vergleich zwischen den Strukturgraphen und der realen Anordnung der Marken des Objekts. Die rote Kugeln in der Schaubilder an zweiter Zeile zeigen die stabilen Knoten des Strukturgraphen, welche die weißen Marken der Fotos an erster Zeile entsprechen.}
+\caption{Der Vergleich zwischen den Strukturgraphen und der realen Anordnung der Marken des Objekts. Die roten Kugeln in den Schaubildern in der zweiten Zeile zeigen die stabilen Knoten des Strukturgraphen, welche den weißen Marken der Fotos in der ersten Zeile entsprechen.}
 \label{Lend}
 \end{figure}
 
-In Abbildung~\ref{BC2} werden die Screenshots des Eingabebilderstroms für das zweite Objekt teilweise dargestellt. Da dieses Objekt schlanker als das erste Objekt ist, werden die Abstände zwischen den Marken verkleinert, was lässt die Erkennung bzw. die Verfolgung der Marken schwieriger werden. Aber mithilfe der Veränderung der Parameter der Algorithmen in Lernensprozess kann trotzdem das angenehmene Lernergebnis erhalten werden. Die erste Zeile der Abbildung~\ref{B2} zeigt den Strukturgraph des zweiten Objekts mit gleichen Parameter wie den Lernen des ersten Objekts. Die falsche Orientierung zwischen der gelben und blauen Ebene sieht man deutlich im ersten Bild. Nach Abstieg des Intervalls des Erwartens der Anzahl des bekannten Marken in Helligkeitssteuerung (Siehe Algorithmus~\ref{KS}), Verstärken der Beschränkung der größten Element in Korrespondenzuntersuchung (Siehe Algorithmus~\ref{algSVD}) und Verkleinern der minimalen Lebenszeit des stabilen Knoten in Darstellung der Strukturgraphen (Siehe Algorithmus~\ref{algAG}) kann das Lernergebnis wie die zweite Zeile der Abbildung~\ref{B2} gefunden werden. 
+In Abbildung~\ref{BC2} werden die Screenshots des Eingabebilderstroms für das zweite Objekt teilweise dargestellt. Da dieses Objekt schlanker ist als das erste Objekt, werden die Abstände zwischen den Marken verkleinert, was die Erkennung bzw. die Verfolgung der Marken schwieriger werden lässt. Aber mithilfe der Veränderung der Parameter der Algorithmen in Lernprozess kann trotzdem das erwünschte Lernergebnis erhalten werden. Die erste Zeile der Abbildung~\ref{B2} zeigt den Strukturgraph des zweiten Objektes mit gleichen Parametern wie beim Lernen des ersten Objektes. Die falsche Orientierung zwischen der gelben und blauen Ebene sieht man deutlich im ersten Bild. Nach Abstieg des Erwartungsintervalls der Anzahl der bekannten Marken in der Helligkeitssteuerung (siehe Algorithmus~\ref{KS}), das Verstärken der Beschränkung der größten Element in Korrespondenzuntersuchung (siehe Algorithmus~\ref{algSVD}) und das Verkleinern der minimalen Lebenszeit des stabilen Knoten in der Darstellung der Strukturgraphen (siehe Algorithmus~\ref{algAG}) kann das Lernergebnis wie die zweite Zeile in der Abbildung~\ref{B2} gefunden werden. 
 
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.35]{Abbildungen/Box2_cv.png}
-\caption{Screenshots des Testbildstroms für das zweite Objekt.}
+\caption{Die Screenshots des Testbildstroms für das zweite Objekt.}
 \label{BC2}
 \end{figure}
 
@@ -227,13 +227,13 @@ In Abbildung~\ref{BC2} werden die Screenshots des Eingabebilderstroms für das zw
 \begin{figure}[thbp]
 \centering
 \includegraphics[scale=0.18]{Abbildungen/Box2.png}
-\caption{Die Strukturgraphen des zweiten Objekts, wobei die erste Zeile das Lernensergebnis mit gleichen Parameter wie dem Lernen des ersten Objekts zeigt, und die zweite Zeile das Lernensergebnis mit unterschiedlichen Parameter aufzeichnet.}
+\caption{Die Strukturgraphen des zweiten Objekts, wobei die erste Zeile das Lernergebnis mit gleichen Parametern wie beim Lernen des ersten Objektes zeigt, und die zweite Zeile das Lernergebnis mit unterschiedlichen Parametern aufzeichnet.}
 \label{B2}
 \end{figure}
 
 
 \subsubsection{Zeitaufwand}
-Die Tabelle~\ref{LZ} führt die Laufzeit aller Teilprogramme in der Lernphase auf. Die Teilprogramme von CenSurE Detektor und Helligkeitssteuerung, Markenerkennung und Visualisierung kosten viel mehr Zeit als die andere Teilprogramme, was 77.55\% des gesamten Zeitaufwands beträgt (Siehe Abb.~\ref{LZP}). Die größte Anforderung der Markenerkennung ist ungeplant. Der Grund liegt daran, dass die Marken des Objekts nicht direkt durch den CenSurE Detektor erkannt werden können, sonder eine zusätzliche Kombination der Merkmalen benötigt. Diese Merkmalen sind direkt von dem Detektor erkennbar und liegen in der Nähe von einem anderen. Der reine durchschnittliche Berechnungszeitaufwand ohne Visualisierung ist 53.7065 $ms$ und die entsprechende Framerate ist 18.6 fps, was die Echtzeitbedingung leider nicht sehr gut erfüllt.  
+Die Tabelle~\ref{LZ} führt die Laufzeit aller Teilprogramme in der Lernphase auf. Die Teilprogramme von CenSurE  Detektor und Helligkeitssteuerung, Markenerkennung und Visualisierung kosten viel mehr Zeit als die anderen Teilprogramme, was 77.55\% des gesamten Zeitaufwands beträgt (siehe Abb.~\ref{LZP}). Die größte Anforderung der Markenerkennung ist ungeplant. Der Grund liegt darin, dass die Marken des Objektes nicht direkt durch den CenSurE Detektor erkannt werden können, sondern eine zusätzliche Kombination der Merkmale benötigt. Diese Merkmale sind direkt von dem Detektor erkennbar und liegen in der Nähe von einem anderen. Der reine durchschnittliche Berechnungszeitaufwand ohne Visualisierung beträgt 53.7065 $ms$ und die entsprechende Framerate liegt bei 18.6 fps, was die Echtzeitbedingung leider nicht sehr gut erfüllt. 
 
 
 \begin{table}[htbp]
@@ -258,18 +258,18 @@ Segmentierung & Korrespondenzuntersuchung & Orientierung & Bildersteuerung & Vis
 \begin{figure}[htbp]
 \centering
 \includegraphics[scale=0.55]{Abbildungen/l_time.png}
-\caption{Die Anteile der Laufzeit alle Teilprogramme der Lernphase.}
+\caption{Die Anteile der Laufzeit aller Teilprogramme der Lernphase.}
 \label{LZP}
 \end{figure}
 
 \subsection{Objektwiedererkennung}
-In diesem Abschnitt werden die Qualität der Wiedererkennungen mit verschiedenen initialisierten Bedingungen betrachtet. Wie im \ref{Oerk} erklärt, werden die Strukturgraphen der erlernten Objekte, die auch als Eingabemodelle genannt werden, am Anfang der Wiedererkennungsphase in dem Programm eingegeben. Die Anzahl der Eingabemodelle liefert starken Einfluss auf die Erkennungsergebnisse bzw. den Zeitaufwand. Je mehr die Eingabemodelle berücksichtigt werden, desto schlechter die Erkennungsergebnisse sind und mehr Zeit dafür kostet. Außerdem ist die Anzahl der Objekte im aktuellen Eingabebildstrom auch eine wichtige Variable für Bewertung unseres Programms. Deshalb werden drei verschiedene Kombinationen von der Anzahl der Eingabemodelle und der Anzahl der Eingabeobjekte in folgenden Teilabschnitten diskutiert.
+In diesem Abschnitt wird die Qualität der Wiedererkennungen mit verschiedenen initialisierten Bedingungen betrachtet. Wie im \ref{Oerk} erklärt, werden die Strukturgraphen der erlernten Objekte, die auch als Eingabemodelle bezeichnet werden, am Anfang der Wiedererkennungsphase in dem Programm eingegeben. Die Anzahl der Eingabemodelle liefert einen starken Einfluss auf die Erkennungsergebnisse bzw. den Zeitaufwand. Je mehr die Eingabemodelle berücksichtigt werden, desto schlechter die Erkennungsergebnisse sind und mehr Zeit dafür aufgewendet werden muss. Außerdem ist die Anzahl der Objekte im aktuellen Eingabebildstrom auch eine wichtige Variable für Bewertung unseres Programmes. Deshalb werden drei verschiedene Kombinationen von der Anzahl der Eingabemodelle und der Anzahl der Eingabeobjekte in folgenden Teilabschnitten diskutiert.
 \\
 \\
-Die Testbildströme, die im Abschnitt~\ref{VdS} verwendet wurden, werden hier für den Test mit nur einem Eingabeobjekt wieder benutzt. Diese drei Testbildströme beschreiben jeweils ein Objekt, das sich in der Ebene bewegt (Siehe Abb.~\ref{DT}) und im 2D bzw. 3D Raum umdreht (Siehe Abb.~\ref{DR} und Abb.~\ref{3DR}). Analog zu der Teilevaluation über Teilgraph-Isomorphismus wird die Quote der richtigen Wiedererkennungen nach dem kompletten Durchlauf des Testbildstroms berechnet, was als die wichtigste Variable der Bewertung betrachtet wird. Außerdem wird der durchschnittliche Zeitaufwand bzw. die Anzahl der verglichenen Knoten im Teilgraph-Isomorphismus aufgezeichnet. 
+Die Testbildströme, die im Abschnitt~\ref{VdS} verwendet wurden, werden hier für den Test mit nur einem Eingabeobjekt wieder benutzt. Diese drei Testbildströme beschreiben jeweils ein Objekt, das sich in der Ebene bewegt (siehe Abb.~\ref{DT}) und im zweidimensionalen bzw. dreidimensionalen Raum umdreht (siehe Abb.~\ref{DR} und Abb.~\ref{3DR}). Analog zu der Teilevaluation über den Teilgraph-Isomorphismus wird die Quote der richtigen Wiedererkennungen nach dem kompletten Durchlauf des Testbildstroms berechnet, was als die wichtigste Variable der Bewertung betrachtet wird. Außerdem wird der durchschnittliche Zeitaufwand bzw. die Anzahl der verglichenen Knoten im Teilgraph-Isomorphismus aufgezeichnet.
 
 \subsubsection{1 Eingabeobjekt mit 1 Eingabemodel}
-Die Testergebnisse findet man in der Tabelle~\ref{11}. Da nur ein Eingabemodel mit den aktuellen Eingabebilder verglichen werden soll, sind die gesamte und richtige Erkennungsquote identisch. Der durchschnittliche Zeitaufwand ist weniger als 26 $ms$, was die Echtzeitbedingung sehr gut erfüllt.
+Die Testergebnisse findet man in der Tabelle~\ref{11}. Da nur ein Eingabemodell mit den aktuellen Eingabebildern verglichen werden soll, sind die gesamte und die richtige Erkennungsquote identisch. Der durchschnittliche Zeitaufwand liegt unter 26 $ms$, was die Echtzeitbedingung sehr gut erfüllt.
 
 \begin{table}[htbp]
 \centering
@@ -277,21 +277,61 @@ Die Testergebnisse findet man in der Tabelle~\ref{11}. Da nur ein Eingabemodel m
 \begin{tabular}{| l | c | c | c | c |}
 \hline
 Testbildströme & gesamte Erkennungsquote & richtige Erkennungsquote & Anzahl der isomorphen Knoten & Zeitaufwand jedes Bilds \\
+\hline
+Statisch & 91.46\% & 91.46\% & 4.1068 & 17.0391 $ms$ \\
 \hline
 2D Translation & 55.81\% & 55.81\% & 5.7813 & 25.7035 $ms$ \\
 \hline
 2D Rotation & 66.67\% & 66.67\% & 6.6237 & 22.9068 $ms$ \\
 \hline
-3D Rotation & 69.78\% & 69.78\% & 5.2178 & 19.7962 $ms$ \\
+3D Rotation & 59.94\% & 59.94\% & 2.6265 & 18.8584 $ms$ \\
 \hline
 \end{tabular}
 }
-\caption{Die durchschnittlichen statistischen Daten der Wiedererkennung für unterschiedlichen Testsamples, wobei nur ein Eingabeobjekt und ein Eingabemodel berücksichtigt werden.}
+\caption{Die durchschnittlichen statistischen Daten der Wiedererkennung für unterschiedliche Testsamples, wobei nur ein Eingabeobjekt und ein Eingabemodell berücksichtigt werden.}
 \label{11}
 \end{table}
 
+Die andere Situation für ein Eingabeobjekt und ein Eingabemodell ist, dass das Eingabeobjekt und Eingabemodel sich auf verschiedenen Objekten beziehen. In Idealfall soll das Eingabeobjekt während der Bildsequenz gar nicht erkannt werden. Die Tabelle~\ref{11f} listet die falschen Erkennungsquoten für verschiedenen Testbildströme auf. Im schlechtesten Fall gibt es aber nur weniger als 1\% Bilder in einer Bildsequenz, in den das Eingabeobjekt als das unabhängige Eingabemodell falsch erkannt wird.
+
+\begin{table}[htbp]
+\centering
+\scalebox{0.8}{
+\begin{tabular}{| l | c | c | c | c |}
+\hline
+Testbildströme & Statisch & 2D Translation & 2D Rotation & 3D Rotation \\
+\hline
+Falsche Erkennungsquote & 0.38\% & 0\% & 0\% & 0.86\% \\
+\hline
+\end{tabular}
+}
+\caption{Die durchschnittlichen falschen Erkennungsquoten für unterschiedliche Testsamples, wobei nur ein Eingabeobjekt und ein Eingabemodell berücksichtigt werden, die sich aber auf verschiedenen Objekten beziehen.}
+\label{11f}
+\end{table}
+
+%\begin{table}[htbp]
+%\centering
+%\scalebox{0.63}{
+%\begin{tabular}{| l | c | c | c | c |}
+%\hline
+%Testbildströme & gesamte Erkennungsquote & falsche Erkennungsquote & Anzahl der isomorphen Knoten & Zeitaufwand jedes Bilds \\
+%\hline
+%Statisch & 100\% & 16.41\% & 0.0115 & 27.9885 $ms$ \\
+%\hline
+%2D Translation & 100\% & 0\% & 0 & 30.6570 $ms$ \\
+%\hline
+%2D Rotation & 100\% & 0\% &0 & 29.0143 $ms$ \\
+%\hline
+%3D Rotation & 100\% & 46.80\% & 0.0259 & 25.7478 $ms$ \\
+%\hline
+%\end{tabular}
+%}
+%\caption{Die durchschnittlichen statistischen Daten der Wiedererkennung für unterschiedliche Testsamples, wobei nur ein Eingabeobjekt und ein Eingabemodell berücksichtigt werden.}
+%\label{11}
+%\end{table}
+
 \subsubsection{1 Eingabeobjekt mit 2 Eingabemodellen}
-Der deutliche Unterschied der Testergebnisse zum letzten Abschnitt ist, dass die richtige Erkennungsquote kleiner oder gleich die gesamte Erkennungsquote ist. Der Grund liegt daran, dass das Eingabeobjekt in einigen Bildern als falschen Model erkannt wird. Aber wegen der zufriedenstellenden Stabilität des Teilgraph-Isomorphismus-Algorithmus ist die Quote der falschen Wiedererkennungen klein (weniger als 2\%). Außerdem steigt die durchschnittliche Laufzeit jedes Bildes mit der Zunahme der Eingabemodelle deutlich an, weil jetzt für jedes Eingabeobjekt zweimal des Teilgraph-Isomorphismus durchgeführt werden muss. Alle Testdaten werden in der Tabelle~\ref{12} aufgeführt.
+Der deutliche Unterschied zu den Testergebnissen im letzten Abschnitt besteht darin, dass die richtige Erkennungsquote nicht immer gleich wie die gesamte Erkennungsquote ist. Der Grund liegt darin, dass das Eingabeobjekt in einigen Bildern als falsches Modell erkannt wird. Aber wegen der zufriedenstellenden Stabilität des Teilgraph-Isomorphismus-Algorithmus ist die Quote der falschen Wiedererkennungen klein (weniger als 2\%). Außerdem steigt die durchschnittliche Laufzeit jedes Bildes mit der Zunahme der Eingabemodelle deutlich an, weil jetzt für jedes Eingabeobjekt der Teilgraph-Isomorphismus zweimal durchgeführt werden muss. Alle Testdaten werden in der Tabelle~\ref{12} aufgeführt.
 
 \begin{table}[htbp]
 \centering
@@ -300,29 +340,35 @@ Der deutliche Unterschied der Testergebnisse zum letzten Abschnitt ist, dass die
 \hline
 Testbildströme & gesamte Erkennungsquote & richtige Erkennungsquote & Anzahl der isomorphen Knoten & Zeitaufwand jedes Bilds \\
 \hline
+Statisch & 91.46\% & 91.46\% & 4.1174 & 29.4591 $ms$ \\
+\hline 
 2D Translation & 56.98\% & 55.81\% & 5.7245 & 43.3256 $ms$ \\
 \hline
 2D Rotation & 66.67\% & 66.67\% & 6.6237 & 38.6487 $ms$ \\
 \hline
-3D Rotation & 70.12\% &69.78\% & 5.2586 & 34.1883 $ms$ \\
+3D Rotation & 60.24\% & 59.94\% & 2.7078 & 33.0331 $ms$ \\
 \hline
 \end{tabular}
 }
-\caption{Die durchschnittlichen statistischen Daten der Wiedererkennung für unterschiedlichen Testsamples, wobei nur ein Eingabeobjekt aber zwei Eingabemodelle berücksichtigt werden.}
+\caption{Die durchschnittlichen, statistischen Daten der Wiedererkennung für unterschiedliche Testsamples, wobei nur ein Eingabeobjekt aber zwei Eingabemodelle berücksichtigt werden.}
 \label{12}
 \end{table}
 
 \subsubsection{Verbesserung mit Kandidaten}
-Mithilfe der Kandidaten kann ein Eingabeobjekt in dem Bildstrom verfolgt werden. Die Erkennungsergebnisse werden  in den Kandidaten gespeichert. Dadurch liefert das Programm die Ausgaben ständig, obwohl von dem aktuellem Bild kein entsprechendes Objekt gefunden werden kann. Tabelle~\ref{QA} listet die Erkennungsquoten für unterschiedlichen Testbildströme mit verschiedener Anzahl der Eingabemodelle auf, wo die Verbesserung der Nutzung der Kandidaten deutlich gezeigt wird. Diese Veränderungen können auch von dem Balkendiagramm in Abbildung~\ref{RR} beobachtet werden.
+Mithilfe der Kandidaten kann ein Eingabeobjekt in dem Bildstrom verfolgt werden. Die Erkennungsergebnisse werden  in den Kandidaten gespeichert. Dadurch liefert das Programm ständig die Ausgaben, obwohl von dem aktuellen Bild kein entsprechendes Objekt gefunden werden kann. Tabelle~\ref{QA} listet die Erkennungsquoten für unterschiedlichen Testbildströme mit verschiedener Anzahl der Eingabemodelle auf, in der die Verbesserung der Nutzung der Kandidaten deutlich gezeigt wird. Diese Veränderungen können auch in dem Balkendiagramm in Abbildung~\ref{RR} beobachtet werden.
 
 \begin{table}[htbp]
 \centering
 \scalebox{0.625}{
 \begin{tabular}{| l | c | c | c | c | c | c |}
 \hline
-\multirow{2}{*}{Testbildströme} & Anzahl der  & \multicolumn{2}{c|}{ohne der Verbesserung der Kandidaten} & \multicolumn{2}{c|}{mit der Verbesserung der Kandidaten} & Differenz des\\
+\multirow{2}{*}{Testbildströme} & Anzahl der  & \multicolumn{2}{c|}{ohne die Verbesserung der Kandidaten} & \multicolumn{2}{c|}{mit der Verbesserung der Kandidaten} & Differenz des\\
 \cline{3-6}
 & Eingabemodelle & Erkennungsquote & Zeitaufwand ($ms$) & Erkennungsquote & Zeitaufwand ($ms$) & Zeitaufwands ($ms$) \\
+\hline
+\multirow{2}{*}{Statisch} & 1 & 91.46\% & 17.0391 & 97.86\% & 25.8078 & 8.7687\\
+\cline{2-7}
+& 2 & 91.46\% & 29.4591 & 97.86\% & 40.5302 & 11.0712 \\
 \hline
 \multirow{2}{*}{2D Translation} & 1 & 55.81\% & 25.7035 & 100\% & 33.5872 & 7.8837\\
 \cline{2-7}
@@ -332,34 +378,34 @@ Mithilfe der Kandidaten kann ein Eingabeobjekt in dem Bildstrom verfolgt werden.
 \cline{2-7}
 & 2 & 66.67\% & 38.6487 & 89.96\% & 48.2867 & 9.6380\\
 \hline
-\multirow{2}{*}{3D Rotation} & 1 & 69.78\% & 19.7962 & 99.65\% & 28.8204 & 9.0242\\
+\multirow{2}{*}{3D Rotation} & 1 & 59.94\% & 18.8584 & 99.40\% & 27.8223 & 8.9639\\
 \cline{2-7}
-& 2 & 69.78\% & 34.1883 & 92.57\% & 44.8756 & 10.6874\\
+& 2 & 59.94\% & 33.0331 & 99.10\% & 45.4458 & 12.4127\\
 \hline  
 \end{tabular}
 }
-\caption{Die Erkennungsquote und der Zeitwand mit und ohne der Verbesserung der Kandidaten für unterschiedlichen Testbildströme mit verschiedener Anzahl der Eingabemodelle.}
+\caption{Die Erkennungsquote und der Zeitwand mit und ohne die Verbesserung der Kandidaten für unterschiedliche Testbildströme mit verschiedener Anzahl der Eingabemodelle.}
 \label{QA}
 \end{table}
 
 \begin{figure}
 \centering
-\includegraphics[scale=0.5]{Abbildungen/recog_rate.png}
-\caption{Vergleich der Erkennungsquoten mit und ohne der Verbesserung der Verwendung der Kandidaten. Alle drei Testbildströme werden mit jeweils 1 bzw. 2 Eingabemodellen betrachtet.}
+\includegraphics[scale=0.5]{Abbildungen/recog_rate_new2.png}
+\caption{Der Vergleich der Erkennungsquoten mit und ohne Verbesserung der Verwendung der Kandidaten. Alle drei Testbildströme werden mit jeweils 1 bzw. 2 Eingabemodellen betrachtet.}
 \label{RR}
 \end{figure}
 
-Neben der Vergrößerung der Erkennungsquote steigt die durchschnittliche Laufzeit jedes Bilds deutlich an. Die Zunahme des Zeitaufwands, die in der rechten Spalte der Tabelle~\ref{QA} aufgelistet wird, schwingt um 10 $ms$. D.h. diese Zunahme wird nicht von der durchschnittlichen Laufzeit der Erkennung stark beeinflusst, was die Konvergenz des Zeitaufwands unserer Verbesserung mit Kandidaten experimentell nachweist. Das entsprechende Balkendiagramm findet man in Abbildung~\ref{RT}.   
+Neben der Vergrößerung der Erkennungsquote steigt die durchschnittliche Laufzeit jedes Bildes deutlich an. Die Zunahme des Zeitaufwandes, die in der rechten Spalte der Tabelle~\ref{QA} aufgelistet wird, schwankt um 10 $ms$. D.h., dass diese Zunahme nicht von der durchschnittlichen Laufzeit der Erkennung stark beeinflusst wird, was die Konvergenz des Zeitaufwands unserer Verbesserung mit Kandidaten experimentell nachweist. Das entsprechende Balkendiagramm findet man in Abbildung~\ref{RT}.  
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[scale=0.5]{Abbildungen/recog_time.png}
-\caption{Vergleich des Zeitaufwands mit und ohne der Verbesserung der Verwendung der Kandidaten. Alle drei Testbildströme werden mit jeweils 1 bzw. 2 Eingabemodellen betrachtet.}
+\includegraphics[scale=0.5]{Abbildungen/recog_time_new2.png}
+\caption{Der Vergleich des Zeitaufwandes mit und ohne Verbesserung der Verwendung der Kandidaten. Alle drei Testbildströme werden mit jeweils 1 bzw. 2 Eingabemodellen betrachtet.}
 \label{RT}
 \end{figure}
 
 \subsubsection{2 Eingabeobjekte mit 2 Eingabemodellen}
-Die Wirkung der Erkennungskandidaten vergrößert, wenn zwei Eingabemodelle von dem Programm eingelesen werden und gleichzeitig zwei Objekte im Testbildstrom vorkommen. Wegen dem überlappenden Vergleich zwischen den Eingabemodellen und Eingabeobjekten wird die falsche Erkennungsquote deutlich erhöht. Außerdem stört die unterschiedliche Qualität der Markenerkennung verschiedener Objekte auch die Wiedererkennung. Z.B., in unserem Test ist das zweite Objekt häufig schwierig ständig zu verfolgen, weil nicht genug Marken für das Objekt aus dem aktuellen Bild erkannt werden können. Dadurch nimmt weiterhin die Genauigkeit der Korrespondenzuntersuchung und Orientierung ab. Deshalb sind die historische Erkennungsergebnisse für die Vorhersage bzw. Korrektur des aktuellen Erkennungsergebnis ganz wichtig, was in den Kandidaten regelmäßig gespeichert wird. Die Tabelle~\ref{22} gibt den Vergleich der Erkennungsergebnisse mit und ohne der Verbesserung der Kandidaten aus. Was unbedingt beobachtet werden soll, ist der 50\% Anstieg der Erkennungsquote für das zweite Objekt.
+Die Wirkung der Erkennungskandidaten vergrößert sich, wenn zwei Eingabemodelle von dem Programm eingelesen werden und gleichzeitig zwei Objekte im Testbildstrom vorkommen. Wegen dem überlappenden Vergleich zwischen den Eingabemodellen und Eingabeobjekten wird die falsche Erkennungsquote deutlich erhöht. Außerdem stört die unterschiedliche Qualität der Markenerkennung verschiedener Objekte auch die Wiedererkennung. In unserem Test ist es beispielsweise  häufig schwierig, das zweite Objekt ständig zu verfolgen, weil nicht genug Marken für das Objekt aus dem aktuellen Bild erkannt werden können. Dadurch nimmt die Genauigkeit der Korrespondenzuntersuchung und Orientierung weiterhin ab. Deshalb sind die historischen Erkennungsergebnisse für die Vorhersage bzw. Korrektur des aktuellen Erkennungsergebnisses  besonders wichtig, welches in den Kandidaten regelmäßig gespeichert wird. Die Tabelle~\ref{22} gibt den Vergleich der Erkennungsergebnisse mit und ohne die Verbesserung der Kandidaten wieder. Was unbedingt beobachtet werden soll, ist der 50\% Anstieg der Erkennungsquote für das zweite Objekt. Einige Screenshots werden in Abbildung~\ref{R2B} gezeigt.
 
 \begin{table}[htbp]
 \centering
@@ -368,12 +414,19 @@ Die Wirkung der Erkennungskandidaten vergrößert, wenn zwei Eingabemodelle von de
 \cline{2-4}
 & Erkennungsquote erstes Objekts & Erkennungsquote zweites Objekts & Zeitaufwand ($ms$) \\
 \hline
-\multicolumn{1}{|r|}{Ohne der Verbesserung der Kandidaten} & 53.09\% & 29.06\% & 49.1496 \\
+\multicolumn{1}{|r|}{Ohne die Verbesserung der Kandidaten} & 53.09\% & 29.06\% & 49.1496 \\
 \hline
 \multicolumn{1}{|r|}{Mit der Verbesserung der Kandidaten} & 94.53\% & 79.14\% & 59.9338 \\
 \hline
 \end{tabular}
 }
-\caption{Die statistischen Daten der Wiedererkennung, die zwei Eingabeobjekte und zwei Eingabemodelle hat.}
+\caption{Die statistischen Daten der Wiedererkennung, welche zwei Eingabeobjekte und zwei Eingabemodelle hat.}
 \label{22}
 \end{table}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[scale=0.5]{Abbildungen/Recog2Boxes.png}
+\caption{Die Visualisierung der Erkennungs- und Verfolgungsergebnisse.}
+\label{R2B}
+\end{figure}
